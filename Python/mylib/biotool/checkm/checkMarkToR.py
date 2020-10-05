@@ -3,7 +3,7 @@
  * @Date: 2020-10-02 22:32:18
  * @LastEditors: Hwrn
  * @LastEditTime: 2020-10-03 17:26:01
- * @FilePath: /MyScripts/Python/mylib/biotool/checkm/checkMarkToR.py
+ * @FilePath: /HScripts/Python/mylib/biotool/checkm/checkMarkToR.py
  * @Description:
         Try to cluster each scaffold by the Mark Gene on it
         First, get a list of each Gene on each Scafflod

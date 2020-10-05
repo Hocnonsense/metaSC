@@ -3,7 +3,7 @@
     @Date: 2020-09-13 13:51:35
  * @LastEditors: Hwrn
  * @LastEditTime: 2020-10-03 13:07:13
- * @FilePath: /MyScripts/Python/mylib/biotool/depth2cov.py
+ * @FilePath: /HScripts/Python/mylib/biotool/depth2cov.py
     @Description:
 """
 

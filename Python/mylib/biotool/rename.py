@@ -3,7 +3,7 @@
  * @Date: 2020-02-04 16:30:57
  * @LastEditors: Hwrn
  * @LastEditTime: 2020-10-03 13:07:34
- * @FilePath: /MyScripts/Python/mylib/biotool/rename.py
+ * @FilePath: /HScripts/Python/mylib/biotool/rename.py
  * @Description: to rename sequence and store more messages if possible
         func:
             case '>':

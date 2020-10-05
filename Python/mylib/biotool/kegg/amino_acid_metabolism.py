@@ -3,7 +3,7 @@
  * @Date: 2020-10-02 22:11:16
  * @LastEditors: Hwrn
  * @LastEditTime: 2020-10-03 13:51:23
- * @FilePath: /MyScripts/Python/mylib/biotool/kegg/amino_acid_metabolism.py
+ * @FilePath: /HScripts/Python/mylib/biotool/kegg/amino_acid_metabolism.py
  * @Description:
 """
 

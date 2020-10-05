@@ -4,7 +4,7 @@
  * @Date: 2020-02-04 15:41:48
  * @LastEditors: Hwrn
  * @LastEditTime: 2020-10-03 13:04:57
- * @FilePath: /MyScripts/Python/mylib/biotool/degap.py
+ * @FilePath: /HScripts/Python/mylib/biotool/degap.py
     @Description:
         读取 CLUSTAL O(1.2.4) multiple sequence alignment 文件
         按阈值删除碱基

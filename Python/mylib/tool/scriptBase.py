@@ -3,7 +3,7 @@
  * @Date: 2020-10-03 13:09:46
  * @LastEditors: Hwrn
  * @LastEditTime: 2020-10-03 15:32:28
- * @FilePath: /MyScripts/Python/mylib/tool/scriptBase.py
+ * @FilePath: /HScripts/Python/mylib/tool/scriptBase.py
  * @Description:
         Common code for scripts that manually run simulation and analysis operations
         from the command line (e.g. outside of Fireworks workflows). This has code for

@@ -3,7 +3,7 @@
  * @Date: 2020-07-01 00:29:24
  * @LastEditors: Hwrn
  * @LastEditTime: 2020-10-03 13:08:41
- * @FilePath: /MyScripts/Python/mylib/biotool/kegg/kegg.py
+ * @FilePath: /HScripts/Python/mylib/biotool/kegg/kegg.py
  * @Description:
 """
 import pickle
