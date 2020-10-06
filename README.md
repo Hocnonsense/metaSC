@@ -10,6 +10,7 @@ Hwrn's Scripts
 
 ---
 - [Python](Python/README.md)
+- [R](R/README.md)
 
 
 # [***$\not$<!-- @Hwrn -->*~~`\`~~**](file:///home/hwrn/README.md)
