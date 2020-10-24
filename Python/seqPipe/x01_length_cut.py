@@ -2,8 +2,8 @@
 """
  * @Date: 2020-10-24 10:24:10
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-24 10:38:46
- * @FilePath: /HScripts/Python/seqPipe/01_length_cut.py
+ * @LastEditTime: 2020-10-24 11:30:24
+ * @FilePath: /HScripts/Python/seqPipe/x01_length_cut.py
  * @Description:
 """
 

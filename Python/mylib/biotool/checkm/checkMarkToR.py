@@ -2,7 +2,7 @@
 """
  * @Date: 2020-10-02 22:32:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-03 17:26:01
+ * @LastEditTime: 2020-10-24 11:49:52
  * @FilePath: /HScripts/Python/mylib/biotool/checkm/checkMarkToR.py
  * @Description:
         Try to cluster each scaffold by the Mark Gene on it
@@ -22,12 +22,7 @@
 
 import argparse
 import os
-
-try:
-    from ._checkm import reload_binIdToBinMarkerSets, reload_resultsManagers
-except ImportError:
-    # pyright: reportMissingImports=false
-    from _checkm import reload_binIdToBinMarkerSets, reload_resultsManagers
+from mylib.biotool.checkm._checkm import reload_binIdToBinMarkerSets, reload_resultsManagers
 
 
 def markerGeneToContig(markerSet, resultsManager, reportContig=True):
@@ -110,15 +105,7 @@ __doc__ = """
 
 
 if __name__ == "__main__":
-    try:
-        import mylib.tool.parseArgs as args
-    except ModuleNotFoundError:
-        import sys
-        BASE_DIR = os.path.abspath(__file__)
-        while not BASE_DIR.endswith("mylib"):
-            BASE_DIR = os.path.dirname(BASE_DIR)
-        sys.path.append(os.path.dirname(BASE_DIR))
-        import mylib.tool.parseArgs as args
+    import mylib.tool.parseArgs as args
 
     parser: argparse.ArgumentParser = args.send_parser(__doc__)
     parser.add_argument("checkM_result_dir", type=str,

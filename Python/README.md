@@ -1,7 +1,7 @@
 <!--
  * @Date: 2020-10-02 20:40:15
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-24 10:17:17
+ * @LastEditTime: 2020-10-24 11:28:51
  * @FilePath: /HScripts/Python/README.md
  * @Description:
 -->
@@ -26,6 +26,9 @@ Python files
 - mv Python TheAlgorithms
 
 ## [seqPipe](seqPipe/__init__.py)
+
+## [setup](setup.py)
+- run `Hscripts]$``python ./`
 
 
 # [***$\not$<!-- @Hwrn -->*~~`\`~~**](../README.md)

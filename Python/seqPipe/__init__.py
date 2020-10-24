@@ -2,7 +2,7 @@
 """
  * @Date: 2020-10-24 10:24:10
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-24 10:26:45
+ * @LastEditTime: 2020-10-24 11:44:42
  * @FilePath: /HScripts/Python/seqPipe/__init__.py
  * @Description:
 """

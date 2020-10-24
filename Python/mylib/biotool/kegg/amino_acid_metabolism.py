@@ -2,24 +2,13 @@
 """
  * @Date: 2020-10-02 22:11:16
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-03 13:51:23
+ * @LastEditTime: 2020-10-24 11:48:48
  * @FilePath: /HScripts/Python/mylib/biotool/kegg/amino_acid_metabolism.py
  * @Description:
 """
 
-try:
-    from .kegg import _load_module, KModule
-except ModuleNotFoundError:
-    import sys
-    import os
-    BASE_DIR = os.path.abspath(__file__)
-    while not BASE_DIR.endswith("mylib"):
-        BASE_DIR = os.path.dirname(BASE_DIR)
-    sys.path.append(os.path.dirname(BASE_DIR))
-    from .kegg import _load_module, KModule
-except ImportError:
-    # pyright: reportMissingImports=false
-    from kegg import _load_module, KModule
+
+from mylib.biotool.kegg.kegg import _load_module, KModule
 
 
 amino_acid_metabolism = """
