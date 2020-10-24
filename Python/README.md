@@ -1,7 +1,7 @@
 <!--
  * @Date: 2020-10-02 20:40:15
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-07 22:13:29
+ * @LastEditTime: 2020-10-24 10:17:17
  * @FilePath: /HScripts/Python/README.md
  * @Description:
 -->
@@ -24,6 +24,8 @@ Python files
 ## [TheAlgorithms/Python](TheAlgorithms/README.md)
 - /HScripts/Python]$git clone --depth 1 git@github.com:TheAlgorithms/Python.git
 - mv Python TheAlgorithms
+
+## [seqPipe](seqPipe/__init__.py)
 
 
 # [***$\not$<!-- @Hwrn -->*~~`\`~~**](../README.md)
