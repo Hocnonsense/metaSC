@@ -1,7 +1,7 @@
 <!--
  * @Date: 2020-10-02 20:40:15
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-24 11:28:51
+ * @LastEditTime: 2020-10-29 14:39:21
  * @FilePath: /HScripts/Python/README.md
  * @Description:
 -->
@@ -28,7 +28,9 @@ Python files
 ## [seqPipe](seqPipe/__init__.py)
 
 ## [setup](setup.py)
-- run `Hscripts]$``python ./`
+- clone: `git clone https://github.com/Hocnonsense/HScripts.git`
+- run `Hscripts]$``cd Python/build && python ../setup.py install`
+- to remove, just `pip uninstall Hscripts`
 
 
 # [***$\not$<!-- @Hwrn -->*~~`\`~~**](../README.md)
