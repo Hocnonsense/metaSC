@@ -2,24 +2,13 @@
 """
  * @Date: 2020-10-02 22:32:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-03 13:04:29
+ * @LastEditTime: 2020-10-29 12:41:53
  * @FilePath: /HScripts/Python/mylib/biotool/checkm/_checkm.py
  * @Description:
-        Try to cluster each scaffold by the Mark Gene on it
-        First, get a list of each Gene on each Scafflod
-        Second, group these Sacffolds by Gene
-        Third, change data format to a list sorted by distance
- * @TODU: function
+        Just like checkm.
 """
 
-
-import os
-import gzip
-import pickle
-
 from ast import literal_eval
-from re import split as re_split
-from sys import stdout
 
 
 class DefaultValues():
@@ -301,122 +290,6 @@ class ResultsManager():
                         break
 
             self.markerHits[markerId] = hits
-
-
-# reload
-
-def popBinIdFromSets(pop_dict, pop_list):
-    """Pop binId from pop_dict by pop_list"""
-    for binId in pop_list:
-        pop_dict.pop(binId)
-
-
-def reload_binIdToBinMarkerSets(checkM_OUTPUT_DIR):
-    """ load binIdToBinMarkerSets. """
-    # read file like these:
-    """
-        # [Lineage Marker File]
-        25_4	2	UID1	root	5656	[{'PF00411.14', 'PF01000.21'}, {'PF00831.18'}]	UID1	root	5656	[{'PF00411.14'}]
-        25_3	1	UID1	root	5656	[{'PF00411.14'}]
-        """
-    binIdToBinMarkerSets = {}
-    with open(os.path.join(checkM_OUTPUT_DIR, DefaultValues.MARKER_FILE)) as f:
-        f.readline()  # skip header
-
-        for line in f:
-            lineSplit = line.split('\t')
-            binId = lineSplit[0]
-
-            binMarkerSets = BinMarkerSets(binId)
-            binMarkerSets.read(line)
-
-            binIdToBinMarkerSets[binId] = binMarkerSets
-
-        # check point #
-        # print("binIdToBinMarkerSets[25_1].markerSets[0].UID:", binIdToBinMarkerSets[r"25_1"].markerSets[0].UID)
-        # print("binIdToBinMarkerSets[25_1].markerSets[0].markerSet[0]:", binIdToBinMarkerSets[r"25_1"].markerSets[0].markerSet[0])
-    return binIdToBinMarkerSets
-
-
-def reload_resultsManagers(checkM_OUTPUT_DIR, binIdToBinMarkerSets):
-    # loadBinModels
-    binIdToModels = {}
-    with gzip.open(os.path.join(checkM_OUTPUT_DIR, 'storage', DefaultValues.HMM_MODEL_INFO_FILE)) as f:
-        binIdToModels = pickle.load(f)
-        # print("binIdToModels.keys():", binIdToModels.keys())
-        # sth in binIdToBinMarkerSets but not in binIdToModels
-        popBinIds = []
-        for binId in binIdToBinMarkerSets:
-            if binId not in binIdToModels:
-                popBinIds.append(binId)
-        popBinIdFromSets(binIdToBinMarkerSets, popBinIds)
-
-    # parseBinStats
-    binStats = {}
-    with open(os.path.join(checkM_OUTPUT_DIR, 'storage', DefaultValues.BIN_STATS_FILE)) as f:
-        for line in f:
-            lineSplit = line.split('\t')
-            binStats[lineSplit[0]] = literal_eval(lineSplit[1])
-        popBinIds = []
-        for binId in binIdToBinMarkerSets:
-            if binId not in binIdToModels:
-                popBinIds.append(binId)
-        popBinIdFromSets(binIdToBinMarkerSets, popBinIds)
-
-    # read file like these:
-    """
-        #                                                                            --- full sequence --- -------------- this domain -------------   hmm coord   ali coord   env coord
-        # target name        accession   tlen query name           accession   qlen   E-value  score  bias   #  of  c-Evalue  i-Evalue  score  bias  from    to  from    to  from    to  acc description of target
-        #------------------- ---------- ----- -------------------- ---------- ----- --------- ------ ----- --- --- --------- --------- ------ ----- ----- ----- ----- ----- ----- ----- ---- ---------------------
-        scaffold_4712_4      -            141 DUF3897              PF13036.1    180   1.2e-44  150.3   5.8   1   1   1.3e-45   9.4e-43  144.2   5.8    62   180     2   129     1   129 0.89 # 2503 # 2925 # -1 # ID=364_4;partial=01;start_type=Edge;rbs_motif=None;rbs_spacer=None;gc_cont=0.584
-        """
-    resultsManagers = {}
-    popBinIds = []
-    for binId in binIdToBinMarkerSets:
-        resultsManager = ResultsManager(
-            binId, binIdToModels[binId], binStats=binStats[binId])
-
-        hmmTableFile = os.path.join(
-            checkM_OUTPUT_DIR, 'bins', binId, DefaultValues.HMM_TABLE_FILE)
-        # parseHmmerResults
-        # print("hmmTableFile:", hmmTableFile)
-        try:
-            f = open(hmmTableFile)
-            line_count = 0
-            while True:
-                # HMMERParser.next()
-                # readHitsDOM
-                while True:
-                    line = f.readline().rstrip()
-                    try:
-                        if line[0] != '#' and len(line) != 0:
-                            dMatch = re_split(r'\s+', line.rstrip())
-                            if len(dMatch) < 23:
-                                raise Exception(
-                                    "Error processing line:\n%s" % (line))
-                            refined_match = dMatch[0:22] + \
-                                [" ".join([str(i) for i in dMatch[22:]])]
-                            hit = HmmerHitDOM(refined_match)
-                            line_count += 1
-                            break
-                    except IndexError:
-                        hit = None
-                        break
-                if hit is None:
-                    break
-                print("read {0} hits: {1}, {2} in bin: {3}".format(
-                    line_count, hit.target_name, hit.query_name, binId), end="\r", file=stdout)
-                resultsManager.addHit(hit)
-        except FileNotFoundError:
-            popBinIds.append(binId)
-            continue
-
-        resultsManager.identifyAdjacentMarkerGenes()
-        resultsManagers[binId] = resultsManager
-        print("", file=stdout)
-        # print("resultsManager.__dict__:", resultsManager.__dict__.keys())
-    popBinIdFromSets(binIdToBinMarkerSets, popBinIds)
-    return resultsManagers
 
 
 # # ResultsParser.printSummary

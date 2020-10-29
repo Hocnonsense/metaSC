@@ -2,8 +2,8 @@
 """
  * @Date: 2020-10-02 22:32:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-24 11:49:52
- * @FilePath: /HScripts/Python/mylib/biotool/checkm/checkMarkToR.py
+ * @LastEditTime: 2020-10-29 14:41:37
+ * @FilePath: /HScripts/Python/mylib/biotool/checkm/manual.py
  * @Description:
         Try to cluster each scaffold by the Mark Gene on it
         First, get a list of each Gene on each Scafflod
@@ -22,7 +22,9 @@
 
 import argparse
 import os
-from mylib.biotool.checkm._checkm import reload_binIdToBinMarkerSets, reload_resultsManagers
+from sys import stderr
+from typing import OrderedDict
+from mylib.biotool.checkm.reload import reload_binIdToBinMarkerSets, reload_resultsManagers
 
 
 def markerGeneToContig(markerSet, resultsManager, reportContig=True):
@@ -30,6 +32,9 @@ def markerGeneToContig(markerSet, resultsManager, reportContig=True):
        @param markerSet         : _checkm.MarkerSet
        @param resultsManager    : _checkm.ResultsManager
        @param reportContig      : True to report contig, False to keep silence
+       @return (contigs, ms_wight)
+                                : contigs: dict -> {contig_name: set(index of marker set)}
+                                : ms_weight: dict -> [multiCopy/length for each markerSet]
         """
     contigs = {}
     ms_wight = {}
@@ -96,15 +101,45 @@ def generateAdditionalCsv(out_file, markerSet, contigs, ms_wight):
             print(contig_name, *contig_valuse[contig_name], sep=",", file=fout)
 
 
-__doc__ = """
-    Try to cluster each scaffold by the Mark Gene on it.
-    First, get a list of each Gene on each Scafflod;
-    Second, group these Sacffolds by Gene;
-    Third, change data format to a list sorted by distance.
-"""
+def getBinsToModify(ckmap: OrderedDict,
+                    Compl_THRESHOLD: int = 70,
+                    Contai_THRESHOLD: int = 10
+                    ):
+    """ OK, now, find which are good and which should be modified. """
+    goodbins = []
+    mdf_bins = []
+    uid_nums = []
+    # Bin Id, Marker lineage (UID), Completeness, Contamination
+    for binID, (UID, Compl, Contai) in ckmap.items():
+        if Compl > Compl_THRESHOLD:
+            if Contai < Contai_THRESHOLD:
+                goodbins.append(binID)
+            else:
+                mdf_bins.append(binID)
+                uid_nums.append(UID)
+    else:
+        print("""
+            Now, you get:
+                {} good bins
+                {} bins to modify
+                {} bins useless
+            more information:
+                {}
+            """.format(len(goodbins),
+                       len(mdf_bins),
+                       len(ckmap)-len(goodbins)-len(mdf_bins),
+                       str(ckmap)),
+              file=stderr)
+    return goodbins, mdf_bins, uid_nums
+    #print("Output list to txt", file=stderr)
+    #with open("checkm-good.tmp", "w") as gout, open("checkm-modify.tmp", "w") as mout, open("checkm-to-r.tmp", "w") as uout:
+    #    gout.write("\n".join(goodbins)+"\n")
+    #    mout.write("\n".join(mdf_bins)+"\n")
+    #    uout.write("\n".join([" ".join(match)
+    #                          for match in zip(mdf_bins, uid_nums)])+"\n")
 
 
-if __name__ == "__main__":
+def main():
     import mylib.tool.parseArgs as args
 
     parser: argparse.ArgumentParser = args.send_parser(__doc__)
@@ -157,5 +192,8 @@ if __name__ == "__main__":
             for markerSet in binIdToBinMarkerSets[binId].markerSets:
                 contigs, _ = markerGeneToContig(markerSet, resultsManager)
 
+
+if __name__ == "__main__":
+    main()
 # example:
 # D:\Code\python\CheckM-master>tmp.py D:\Files\TODU\MetaWork\results bins.029_sub.contigs UID4444 D:\Files\TODU\MetaWork
