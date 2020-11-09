@@ -1,7 +1,7 @@
 <!--
  * @Date: 2020-10-02 20:40:15
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-29 14:39:21
+ * @LastEditTime: 2020-11-09 22:55:15
  * @FilePath: /HScripts/Python/README.md
  * @Description:
 -->
@@ -29,7 +29,7 @@ Python files
 
 ## [setup](setup.py)
 - clone: `git clone https://github.com/Hocnonsense/HScripts.git`
-- run `Hscripts]$``cd Python/build && python ../setup.py install`
+- run `Hscripts]$``cd Python && python setup.py install`
 - to remove, just `pip uninstall Hscripts`
 
 
