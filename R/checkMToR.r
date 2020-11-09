@@ -1,7 +1,7 @@
 ###
 #* @Date: 2020-10-05 16:27:53
 #* @LastEditors: Hwrn
-#* @LastEditTime: 2020-10-05 16:28:17
+#* @LastEditTime: 2020-11-09 22:24:13
 #* @FilePath: /HScripts/R/checkMToR.r
 #* @Description: help to binning with checkm
 ###
@@ -10,7 +10,7 @@ library(mmgenome2)
 setwd("D:/Files/TODU/2020-09-MgAffact")
 cov_name = "Analyze/origin-depth._cov"
 cov = read.table(cov_name, header = T)
-
+#cov<-read.table('Mar_M152_061_bin_metabat.52.jgi.txt',header=T,sep="\t")[,c("contigName","totalAvgDepth")]
 # ------------------------------------------------------------- change here for several rolls @Hwrn
 bin_dir = "F-06-MAG/03_modify/5_m5/modify/"
 mks_dir = "F-06-MAG/03_modify/5_m5/modify/"
