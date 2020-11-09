@@ -2,63 +2,19 @@
 """
  * @Date: 2020-10-06 21:57:58
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-07 16:46:48
+ * @LastEditTime: 2020-11-09 22:28:03
  * @FilePath: /HScripts/Python/mylib/biotool/read_outputs.py
  * @Description:
 """
 
 from io import StringIO
 from sys import stderr
-from typing import Any, Callable, Tuple
+from typing import Any, Callable
 from numpy import nan
+from mylib.biotool.checkm.reload import reload_checkMOutput
 
 
-def checkM(text: StringIO) -> list:
-    """ read checkm output.
-       @return:
-            Bin Id | UID | Completeness | Contamination | Strain heterogeneity | # genomes | # markers | # marker sets | 0 | 1 | 2 | 3 | 4 | 5+
-    """
-    ckmlist = []
-    for line in text:
-        #print(line)
-        if line.strip().split()[0] == "Bin":
-            break
-    else:
-        print("""
-            we read the file like:
-                \`\`\`
-                [2020-09-19 16:44:36] INFO: CheckM v1.1.2
-                [2020-09-19 16:44:36] INFO: checkm lineage ...
-                ...                                        ...
-                [2020-09-19 17:33:36] INFO: Parsing HMM hi ...
-                ------------------------------------------ ...
-             ->   Bin Id                            Marker ...
-                ------------------------------------------ ...
-                  metabat2_90_60.124          o__Cytophaga ...
-                \`\`\`
-            and we just reach the line of \`->\` table head
-
-            So, what's your problem?
-            """, file=stderr)
-        raise NotImplementedError
-    text.readline()  # read the secend line between table body and head
-    for line in text:
-        if line[0] == "-":
-            break
-        values = line.strip().split()
-        # Bin Id: [Marker lineage (UID), Completeness, Contamination]
-        ckmlist.append(
-            [values[0], values[2][1:-1]] +
-            [float(i) for i in values[-3:]] +
-            [int(i) for i in values[3:-3]])
-    else:
-        print("""
-            the table will end with a line of "-"
-
-            So, what's your problem?
-            """, file=stderr)
-
-    return ckmlist
+checkM = reload_checkMOutput
 
 
 def gtdbtk(text: StringIO) -> list:

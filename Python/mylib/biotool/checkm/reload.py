@@ -2,20 +2,24 @@
 """
  * @Date: 2020-10-24 12:55:39
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-29 14:36:23
- * @FilePath: /HScripts/Python/mylib/biotool/checkm/reload.py
+ * @LastEditTime: 2020-10-30 16:18:25
+ * @FilePath: /2020-10-Qiandaohu_MG/home/hwrn/Software/HScripts/Python/mylib/biotool/checkm/reload.py
  * @Description:
     Reload from checkm output.
 """
 
 
-from collections import OrderedDict
-from sys import stderr
-import os
 import gzip
+import os
 import pickle
+from ast import literal_eval
+from collections import OrderedDict
 from re import split as re_split
-from mylib.biotool.checkm.interface import DefaultValues, BinMarkerSets, HmmerHitDOM, ResultsManager
+from sys import stderr
+
+from mylib.biotool.checkm.interface import (
+    BinMarkerSets, DefaultValues, HmmerHitDOM, ResultsManager
+)
 
 
 def popBinIdFromSets(pop_dict: dict, pop_list: list) -> None:
@@ -176,8 +180,8 @@ def reload_checkMOutput(checkM_OUTPUT_STDOUT):
             # Bin Id: [Marker lineage (UID), Completeness, Contamination]
             ckmap[values[0]] = [
                 values[1], values[2][1:-1],
-                *[int(values[i]) for i in range(3, 12)],
-                *[float(values[i]) for i in range(13, 16)],
+                *[int(values[i]) for i in range(3, 10)],
+                *[float(values[i]) for i in range(11, 14)],
             ]
         else:
             print("""
