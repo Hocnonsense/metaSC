@@ -2,7 +2,7 @@
 """
  * @Date: 2020-10-06 21:57:58
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-11-09 22:28:03
+ * @LastEditTime: 2020-11-14 15:37:53
  * @FilePath: /HScripts/Python/mylib/biotool/read_outputs.py
  * @Description:
 """
@@ -24,6 +24,7 @@ def gtdbtk(text: StringIO) -> list:
             user_genome, classification, fastani_reference, fastani_reference_radius, fastani_taxonomy, fastani_ani, fastani_af, closest_placement_reference, closest_placement_radius, closest_placement_taxonomy, closest_placement_ani, closest_placement_af, pplacer_taxonomy, classification_method, note, other_related_references, aa_percent, translation_table, red_value, warnings
        @warnings: some line are need to deal with.
     """
+    print(__doc__, file=stderr)
     gtdbtklist = []
     text.readline()
     print("""
@@ -55,6 +56,7 @@ def iRep(text: StringIO) -> list:
             binId | index of replication (iRep) | un-filtered index of replication (iRep) | raw index of replication (no GC bias correction) | r^2 | coverage | % windows passing filter | fragments/Mbp | GC bias | GC r^2
             n/a will be recorded to np.nan
     """
+    print(__doc__, file=stderr)
     def read_values(text: StringIO, head: str, value_type: type,
                     recode_func: Callable[[str, Any], None]) -> str:
         '''
@@ -98,3 +100,73 @@ def iRep(text: StringIO) -> list:
     for index, (name, dtype) in enumerate(irvalues.items()):
         read_values(text, name, dtype, lambda p0, p1: index_lambda(p0, p1, index))
     return [[binId] + values for binId, values in irmap.items()]
+
+
+def check_head(head: str) -> bool:
+    """ If the {@param looks like a line, then we confirm it is a .depth file
+        from jgi_summarize_bam_contig_depths}.
+     * @return: [(index, bam_file_name) for bam files]
+                if is not a depth file, return None
+    """
+    head_list = head.strip().split()
+    if \
+        head_list[0] == "contigName" and \
+        head_list[1] == "contigLen" and \
+        head_list[2] == "totalAvgDepth" and \
+        head_list[3] == head_list[4][:-4] and \
+        len(head_list) % 2 == 1:
+        return [(i, head_list[i]) for i in range(3, len(head_list), 2)]
+
+
+class ScfDepthSample:
+    """
+     * @description: help to get depth or given depth of given sample
+     * @useage: ScfDepthSample((sample_list, scf_depth), "totalAvgDepth")[contigName]
+    """
+
+    def __init__(self, contig_depths, sample: str, isvar=False) -> None:
+        sample_list, scf_depth = contig_depths
+        self.scf_depth = scf_depth
+        if sample == "length":
+            self.i = 0
+            self.j = 0
+        elif sample == "totalAvgDepth":
+            self.i = 0
+            self.j = 1
+        else:
+            self.i = 2 if isvar else 1
+            self.j = sample_list.index[sample]
+
+    def __getitem__(self, contigName):
+        return self.scf_depth[contigName][self.i][self.j]
+
+
+def contig_depths(text: StringIO) -> dict:
+    """ Read .depth generated from jgi_summarize_bam_contig_depths
+     * @return (
+            sample_list: list -> [sample names, ]
+            scf_depth: dict -> {
+                contigName: (
+                    (length, totalAvgDepth),
+                    [depth in each sample, ],
+                    [depth-var in each sample]
+                )
+            }
+        )
+    """
+    print(__doc__, file=stderr)
+    # DEPTH_META = [(0, "contigName"), (1, "contigLen"), (2, "totalAvgDepth")]
+    (sample_list, scf_depth) = ([], {})
+    head = text.readline()
+    sample_index = check_head(head)
+    sample_list = [i[1] for i in sample_index]
+    #sample_index = DEPTH_META + sample_index
+    #print(sample_list)
+    for line in text:
+        values = line.strip().split()
+        scf_depth[values[0]] = (
+            (int(float(values[1])), float(values[2])),
+            [float(values[i[0]]) for i in sample_index],
+            [float(values[i[0] + 1]) for i in sample_index]
+        )
+    return (sample_list, scf_depth)

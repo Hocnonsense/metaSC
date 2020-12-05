@@ -2,7 +2,7 @@
 """
  * @Date: 2020-10-24 10:24:10
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-24 22:48:10
+ * @LastEditTime: 2020-12-05 11:49:33
  * @FilePath: /HScripts/Python/seqPipe/x01_length_cut.py
  * @Description:
     01_length_cut.py <in_file.fa> <out_file.fa> <threshold> [-h] [--help]
@@ -50,7 +50,7 @@ def main():
                 discard_seqs += 1
                 discard_bases += len(line.seq)
     print("{seqs_n} reads ({bases_n} bases) are discarded\n".format(
-        seq_n=discard_seqs, bases_n=discard_bases), file=stderr)
+        seqs_n=discard_seqs, bases_n=discard_bases), file=stderr)
 
 
 if __name__ == "__main__":
