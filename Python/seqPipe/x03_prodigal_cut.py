@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """
  * @Date: 2020-10-24 10:24:10
+ * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-05 19:56:03
+ * @LastEditTime: 2020-12-09 23:21:45
  * @FilePath: /HScripts/Python/seqPipe/x03_prodigal_cut.py
  * @Description:
+        update from LYX's script
     x03_prodigal_cut.py <in_file_prefix_prefix> <out_file_prefix_prefix> <threshold> [-h] [--help]
         @description:   Remove sequence shorter than given threshold.
                         This file is designed to control quality of
@@ -16,6 +18,7 @@
                                                 ./M001-prodigal.faa
                                                 ./M001-prodigal.fna
                                                 ./M001-prodigal.gff
+                                        **NOTE**: "in_file_prefix_prefix".faa must exist
                         <out_file_prefix_prefix>:  output file prefix. Similar to
                                             <in_file_prefix_prefix>
                         <threshold>:        threshold for aa, typtically, 33
@@ -33,93 +36,37 @@ from typing import Tuple
 from Bio import SeqIO
 
 
+class prefix_files:
+    def __init__(self, prefix) -> None:
+        self.prefix = os.path.abspath(os.path.expanduser(prefix))
+
+    def __call__(self, suffix: str, check_exist: bool = None) -> str:
+        file_name = self.prefix + suffix
+
+        if os.path.isdir(file_name):
+            raise IsADirectoryError
+        if check_exist is not os.path.isfile(check_exist):
+            return False
+
+        return file_name
+
+
 def parse_args():
     if "-h" in argv or "--help" in argv or len(argv) == 1:
         print(__doc__, file=stderr)
         exit(0)
 
     sc, in_file_prefix, out_file_prefix, number = argv
-    in_file_prefix = os.path.abspath(os.path.expanduser(in_file_prefix))
-    out_file_prefix = os.path.abspath(os.path.expanduser(out_file_prefix))
+    in_file_prefix = prefix_files(in_file_prefix)
+    out_file_prefix = prefix_files(out_file_prefix)
     num = int(number)
     args = in_file_prefix, out_file_prefix, num
     print(sc, *args, sep="\n" + " "*4, file=stderr)
     return args
 
 
-def check_args(args):
-    in_file_prefix, out_file_prefix, num = args
-    c_args = []
-    suffix = ".faa"
-    in_file = in_file_prefix + suffix
-    if os.path.exists(in_file) and os.path.isfile(in_file):
-        c_args.append((in_file, out_file_prefix + suffix, num, trim_fa))
-    else:
-        print("invalid", suffix, "file:", in_file, file=stderr)
-    suffix = ".fna"
-    in_file = in_file_prefix + suffix
-    if os.path.exists(in_file) and os.path.isfile(in_file):
-        c_args.append((in_file, out_file_prefix + suffix, num * 3, trim_fa))
-    else:
-        print("invalid", suffix, "file:", in_file, file=stderr)
-    suffix = ".gff"
-    in_file = in_file_prefix + suffix
-    if os.path.exists(in_file) and os.path.isfile(in_file):
-        c_args.append((in_file, out_file_prefix + suffix, num * 3, trim_gff))
-    else:
-        print("invalid", suffix, "file:", in_file, file=stderr)
-
-    if c_args:
-        return c_args
-
-    print("No valid inputs. Exit")
-    exit(1)
-
-
-def trim_fa(in_file: FileIO, out_file: FileIO, num: int) -> Tuple[int, int]:
-    discard_seqs, discard_bases = (0, 0)
-    head = ">gene_id"
-    seq = ""
-    for line in in_file:
-        if line.startswith("#"):
-            continue
-        elif line.startswith(">"):
-            seq_len = sum([len(i) for i in seq.split()])
-            if seq_len > num:
-                out_file.write(head+seq)
-            else:
-                discard_seqs += 1
-                discard_bases += seq_len
-            head = line
-            seq = ""
-        else:
-            seq += line
-    return (discard_seqs, discard_bases)
-
-
-def trim_gff(in_file: FileIO, out_file: FileIO, num: int) -> Tuple[int, int]:
-    discard_seqs, discard_bases = (0, 0)
-    for line in in_file:
-        if line.startswith("#"):
-            continue
-        else:
-            values = line.strip().split()
-            if values[2] != "CDS":
-                print("Not CDS:\n>", line, file=stderr)
-                discard_seqs += 1
-            else:
-                seq_len = int(values[4]) -  int(values[3]) + 1
-                #assert seq_len % 3 == 0
-                if seq_len > num:
-                    out_file.write(line)
-                else:
-                    discard_seqs += 1
-                    discard_bases += seq_len
-    return (discard_seqs, discard_bases)
-
-
 def main():
-    c_args = check_args(parse_args())
+    args = parse_args()
 
     for (in_file, out_file, num, func) in c_args:
         with open(out_file, "w") as fo \
@@ -128,6 +75,71 @@ def main():
             discard_seqs, discard_bases = func(fi, fo, num)
         print("    {seqs_n} seqs ({bases_n} bases(aa)) are discarded".format(
             seqs_n=discard_seqs, bases_n=discard_bases), file=stderr)
+
+    in_file_prefix, out_file_prefix, num = args
+
+    genes_to_trim = {}
+    suffix = ".faa"
+    in_file = in_file_prefix(suffix, True)
+    if in_file:
+        with open(in_file) as fin\
+                , open(out_file_prefix(suffix), 'w') as fout\
+                :
+            for record in SeqIO.parse(fin, 'fasta'):
+                seq = str(record.seq)
+                if len(seq) >= 33:
+                    des = str(record.description)
+                    fout.write('>'+des+'\n'+seq+'\n')
+                else:
+                    sid = str(record.id)
+                    genes_to_trim[sid] = len(seq)
+
+            print("    {seqs_n} seqs ({bases_n} bases(aa)) are discarded".format(
+                seqs_n=len(genes_to_trim), bases_n=sum(genes_to_trim.values())), file=stderr)
+    else:
+        print("invalid", suffix, "file:", in_file, file=stderr)
+        exit(1)
+
+    suffix = ".fna"
+    in_file = in_file_prefix(suffix, True)
+    if in_file:
+        #check_genes_to_trim = genes_to_trim.copy()
+        with open(in_file) as fin, \
+                open(out_file_prefix(suffix), 'w') as fout\
+                :
+            for record in SeqIO.parse(fin, 'fasta'):
+                seq = str(record.seq)
+                if sid in genes_to_trim:
+                    #check_genes_to_trim.pop(sid)
+                    pass
+                else:
+                    des = str(record.description)
+                    sid = str(record.id)
+                    fout.write('>'+des+'\n'+seq+'\n')
+
+    else:
+        print("    {in_file} no found, pass".format(in_file=in_file_prefix(suffix)))
+
+    suffix = ".gff"
+    in_file = in_file_prefix(suffix, True)
+    if in_file:
+        #check_genes_to_trim = genes_to_trim.copy()
+        with open(in_file) as fin, \
+                open(out_file_prefix(suffix), 'w') as fout \
+                :
+            for line in fin:
+                if line[0] != '#':
+                    temp = line.strip().split('\t')
+                    scaffold = temp[0]
+                    s_count = temp[8].split(';')[0].split('_')[1]
+                    sid = scaffold+'_'+s_count
+                    if sid in genes_to_trim:
+                        pass
+                    else:
+                        fout.write(line)
+
+    else:
+        print("    {in_file} no found, pass".format(in_file=in_file_prefix(suffix)))
 
 
 if __name__ == "__main__":

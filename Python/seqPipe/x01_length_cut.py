@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
  * @Date: 2020-10-24 10:24:10
+ * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-05 19:54:45
+ * @LastEditTime: 2020-12-09 22:18:32
  * @FilePath: /HScripts/Python/seqPipe/x01_length_cut.py
  * @Description:
     x01_length_cut.py <in_file.fa> <out_file.fa> <threshold> [-h] [--help]
