@@ -2,8 +2,8 @@
 """
  * @Date: 2020-11-09 23:09:57
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-11-14 15:56:19
- * @FilePath: /HScripts/Python/mylib/biotool/statistic_bin.py
+ * @LastEditTime: 2020-12-10 20:37:27
+ * @FilePath: /HScripts/Python/mylib/biotool/statistic_MAG.py
  * @Description:
     seq number, GC%, genome size from *.fa file
 """
@@ -15,35 +15,35 @@ from typing import Tuple
 from Bio import SeqIO
 
 
-def list_bins(bin_file_path: str, endswith = "") -> list:
+def list_MAGs(MAG_file_path: str, endswith = "") -> list:
     """
-    * @description: list name of bins in given path
-    * @param {str} bin_file_path
+    * @description: list name of MAGs in given path
+    * @param {str} MAG_file_path
     * @param {str} endswith
-    * @return {list}: [name of bins (with "endswith")]
+    * @return {list} MAGs_list: [name of MAGs (with "endswith")]
     """
     print(__doc__, file=stderr)
-    bins_list = []
-    for bin_file in sorted(os.listdir(bin_file_path)):
-        if bin_file.endswith(endswith):
-            bins_list.append(bin_file)
-    return bins_list
+    MAGs_list = []
+    for MAG_file in sorted(os.listdir(MAG_file_path)):
+        if MAG_file.endswith(endswith):
+            MAGs_list.append(MAG_file)
+    return MAGs_list
 
 
-def get_bin_ctgs(bin_file: Tuple[str, StringIO]) -> dict:
-    """ now, read bin's fasta files
-     * @return bin_dict: [scaffold_name, ] of given bin
+def get_MAG_ctgs(MAG_file: Tuple[str, StringIO]) -> dict:
+    """ now, read MAG's fasta files
+     * @return {dict} MAG_dict: [scaffold_name, ] of given MAG
     """
     print(__doc__, file=stderr)
-    bin_ctgs = []
-    for record in SeqIO.parse(bin_file, "fasta"):
-        bin_ctgs.append(record.name)
-    return bin_ctgs
+    MAG_ctgs = []
+    for record in SeqIO.parse(MAG_file, "fasta"):
+        MAG_ctgs.append(record.name)
+    return MAG_ctgs
 
 
 def get_ctg_msg(fasta_file: Tuple[str, StringIO]) -> list:
     """ Read fasta files.
-     * @param bin_file_path: path of bin file or scaffold.fa or IO.
+     * @param MAG_file_path: path of MAG file or scaffold.fa or IO.
      * @return {dict} {ctg_name: [genome size, GC%]}
     """
     print(__doc__, file=stderr)
@@ -57,9 +57,9 @@ def get_ctg_msg(fasta_file: Tuple[str, StringIO]) -> list:
     return ctgs_msg
 
 
-def get_bin_depth(bin_ctgs: list, ctg_depth: dict) -> list:
-    """ Get depth of given bin.
-    * @param {list} bin_dict: [scaffold_name, ] of given bin by get_bin_ctgs
+def get_ctg_depth(ctgs: list, ctg_depth: dict) -> list:
+    """ Get depth of given MAG.
+    * @param {list} ctgs: [scaffold_name, ]
     * @param {dict} ctg_depth: dict -> {
             contigName: (
                 (length, totalAvgDepth),
@@ -67,14 +67,14 @@ def get_bin_depth(bin_ctgs: list, ctg_depth: dict) -> list:
                 [depth-var in each sample]
             )
         } from contig_depths
-    * @return {*}
+    * @return {dict} sub_ctg_depth: subset of ctg_depth
     """
-    return {contigName: ctg_depth[contigName] for contigName in bin_ctgs}
+    return {contigName: ctg_depth[contigName] for contigName in ctgs}
 
 
-def sum_bin_depth(bin_ctgs: list, ctg_depth: dict) -> tuple:
-    """ Calculate total depth of given bin (in all bins).
-    * @param {list} bin_dict: [scaffold_name, ] of given bin by get_bin_ctgs
+def sum_ctg_depth(ctgs: list, ctg_depth: dict) -> tuple:
+    """ Calculate total depth of given MAG (in all MAGs).
+    * @param {list} ctgs: [scaffold_name, ]
     * @param {dict} ctg_depth: dict -> {
             contigName: (
                 (length, totalAvgDepth),
@@ -82,7 +82,7 @@ def sum_bin_depth(bin_ctgs: list, ctg_depth: dict) -> tuple:
                 [depth-var in each sample]
             )
         } from contig_depths
-    * @return {tuple} bin_depth_sum: (
+    * @return {tuple} MAG_depth_sum: (
             (length, totalAvgDepth),
             [depth in each sample, ],
             [depth-var in each sample]
@@ -94,7 +94,7 @@ def sum_bin_depth(bin_ctgs: list, ctg_depth: dict) -> tuple:
         sample_depths = [0.0 for _ in values[1]]
         sample_depths_var = [0.0 for _ in values[1]]
         break  # get the length and leave
-    for contigName in bin_ctgs:
+    for contigName in ctgs:
         values = ctg_depth[contigName]
         length += values[0][0]
         totalAvgDepth += values[0][1]
@@ -106,3 +106,9 @@ def sum_bin_depth(bin_ctgs: list, ctg_depth: dict) -> tuple:
         sample_depths,
         sample_depths_var
     )
+
+
+def collect_MAG_segs(
+        MAG_file_path: str,
+        ):
+    pass
