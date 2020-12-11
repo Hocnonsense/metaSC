@@ -2,8 +2,8 @@
 """
  * @Date: 2020-10-24 12:55:39
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-30 16:18:25
- * @FilePath: /2020-10-Qiandaohu_MG/home/hwrn/Software/HScripts/Python/mylib/biotool/checkm/reload.py
+ * @LastEditTime: 2020-12-11 20:25:49
+ * @FilePath: /HScripts/Python/mylib/biotool/checkm/reload.py
  * @Description:
     Reload from checkm output.
 """
@@ -156,7 +156,7 @@ def reload_checkMOutput(checkM_OUTPUT_STDOUT):
         else:
             print("""
                 we read the file like:
-                    \`\`\`
+                    '''
                     [2020-09-19 16:44:36] INFO: CheckM v1.1.2
                     [2020-09-19 16:44:36] INFO: checkm lineage ...
                     ...                                        ...
@@ -165,8 +165,8 @@ def reload_checkMOutput(checkM_OUTPUT_STDOUT):
                  ->   Bin Id                            Marker ...
                     ------------------------------------------ ...
                       metabat2_90_60.124          o__Cytophaga ...
-                    \`\`\`
-                and we just reach the line of \`->\` table head
+                    '''
+                and we just reach the line of '->' table head
 
                 So, what's your problem?
                 """, file=stderr)
@@ -180,8 +180,8 @@ def reload_checkMOutput(checkM_OUTPUT_STDOUT):
             # Bin Id: [Marker lineage (UID), Completeness, Contamination]
             ckmap[values[0]] = [
                 values[1], values[2][1:-1],
-                *[int(values[i]) for i in range(3, 10)],
-                *[float(values[i]) for i in range(11, 14)],
+                *[int(values[i]) for i in range(3, 11)],
+                *[float(values[i]) for i in range(12, 15)],
             ]
         else:
             print("""

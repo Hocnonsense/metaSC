@@ -2,14 +2,14 @@
 """
  * @Date: 2020-11-09 23:09:57
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-11 17:10:41
+ * @LastEditTime: 2020-12-11 20:22:25
  * @FilePath: /HScripts/Python/mylib/biotool/statistic_MAG.py
  * @Description:
     seq number, GC%, genome size from *.fa file
 """
 
 import os
-from sys import argv, stderr
+from sys import stderr
 
 from mylib.biotool.read_outputs import checkM, contig_depths, fasta, gtdbtk, iRep
 from mylib.biotool.fna_msg import statistic_fna, seq_total_depth
@@ -31,11 +31,11 @@ def list_MAGs(MAG_file_path: str, endswith="") -> list:
 
 
 def collect_MAGs_msg(
-        MAG_file_path: str,
-        depth_file: str = None,
-        checkM_file: str = None,
-        iRep_file: str = None,
-        gtdbtk_file: str = None
+        MAG_file_path   : str,
+        depth_file      : str = "",
+        checkM_file     : str = "",
+        iRep_file       : str = "",
+        gtdbtk_file     : str = ""
 ):
     """
      * @return {(list, dict)} -> {
@@ -77,7 +77,7 @@ def collect_MAGs_msg(
 
     msg_title += MAG_msg_title + depth_title
 
-    if iRep_file:
+    try:
         with open(iRep_file) as text:
             iReplist = iRep(text)
         msg_title += ["index of replication"]
@@ -85,23 +85,30 @@ def collect_MAGs_msg(
         for msg in iReplist:
             iRep_MAG_msg[msg[0]] = [msg[1]]
         for MAG, MAG_msg in MAGs_msg.items():
-            MAG_msg += iRep_MAG_msg.get(MAG, ["n/a"])
+            MAG_msg += iRep_MAG_msg.get(os.path.basename(
+                os.path.splitext(MAG)[0]), ["n/a"])
+    except FileNotFoundError:
+        pass
 
-    if gtdbtk_file:
+    try:
         with open(gtdbtk_file) as text:
-            gtdbtklist = gtdbtk()
+            gtdbtklist = gtdbtk(text)
         gtdbtk_title = ["Domain", "Phylum", "Class",
                         "Order", "Family", "Genus", "Species",
                         "ClosestRefGenome", "ANI"]
         gtdbtk_MAG_msg = {}
         for msg in gtdbtklist:
-            gtdbtk_MAG_msg[msg[0]] = msg[1].split(";") + msg[2:4]
+            gtdbtk_MAG_msg[msg["user_genome"]] = msg["classification"].split(";") + [
+                msg["fastani_reference"], msg["fastani_reference_radius"]
+            ]
         for MAG, MAG_msg in MAGs_msg.items():
-            MAG_msg += gtdbtk_MAG_msg.get(os.path.basename(MAG),
-                                          ["n/a"] * len(gtdbtk_title))
+            MAG_msg += gtdbtk_MAG_msg.get(os.path.basename(
+                os.path.splitext(MAG)[0]), ["n/a"] * len(gtdbtk_title))
         msg_title += gtdbtk_title
+    except FileNotFoundError:
+        pass
 
-    if checkM_file:
+    try:
         with open(checkM_file) as text:
             ckmap = checkM(checkM_file)
         msg_title += ["Marker_lineage", "Completeness",
@@ -110,12 +117,16 @@ def collect_MAGs_msg(
         for Bin_Id, values in ckmap.items():
             checkM_MAG_msg[Bin_Id] = [values[1]] + values[-3:]
         for MAG, MAG_msg in MAGs_msg.items():
-            MAG_msg += checkM_MAG_msg.get(os.path.basename(MAG),
-                                          ["n/a"] * 4)
+            MAG_msg += checkM_MAG_msg.get(os.path.basename(
+                os.path.splitext(MAG)[0]), ["n/a"] * 4)
+    except FileNotFoundError:
+        pass
 
     return (msg_title, MAGs_msg)
 
 
 if __name__ == "__main__":
-    args = argv[1:]
+    # args = argv[1:]
     # TODO: add func to use it with bash
+    # from mylib.biotool.statistic_MAG import collect_MAGs_msg
+    pass

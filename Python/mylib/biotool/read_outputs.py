@@ -2,15 +2,17 @@
 """
  * @Date: 2020-10-06 21:57:58
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-11 15:47:37
+ * @LastEditTime: 2020-12-11 19:31:49
  * @FilePath: /HScripts/Python/mylib/biotool/read_outputs.py
  * @Description:
         checkM, gtdbtk, iRep, contig_depths, fasta
 """
 
+import os
 from io import StringIO
 from sys import stderr
 from typing import Any, Callable
+from collections import OrderedDict
 
 from Bio import SeqIO
 from mylib.biotool.checkm.reload import reload_checkMOutput
@@ -22,21 +24,20 @@ checkM = reload_checkMOutput
 def gtdbtk(text: StringIO) -> list:
     """ read --out_dir/gtdbtk.bac120.summary.tsv
                      ./gtdbtk.ar122.summary.tsv
+            Warning: several rows may absent
+                user_genome, classification, fastani_reference, fastani_reference_radius, fastani_taxonomy, fastani_ani, fastani_af, closest_placement_reference, closest_placement_radius, closest_placement_taxonomy, closest_placement_ani, closest_placement_af, pplacer_taxonomy, classification_method, note, other_related_references, aa_percent, translation_table, red_value, warnings
        @return:
-            user_genome, classification, fastani_reference, fastani_reference_radius, fastani_taxonomy, fastani_ani, fastani_af, closest_placement_reference, closest_placement_radius, closest_placement_taxonomy, closest_placement_ani, closest_placement_af, pplacer_taxonomy, classification_method, note, other_related_references, aa_percent, translation_table, red_value, warnings
        @warnings: some line are need to deal with.
     """
     print(__doc__, file=stderr)
     gtdbtklist = []
-    text.readline()
+    titles = text.readline().strip().split("\t")
     print("""
     raise FutureWarning("Some lines are still raw. please check carefully")
     #""", file=stderr)
     for line in text:
-        user_genome, classification, fastani_reference, fastani_reference_radius, fastani_taxonomy, fastani_ani, fastani_af, closest_placement_reference, closest_placement_radius, closest_placement_taxonomy, closest_placement_ani, closest_placement_af, pplacer_taxonomy, classification_method, note, other_related_references, aa_percent, translation_table, red_value, warnings = line[:-1].split("\t")
-        gtdbtklist.append([
-            user_genome, classification, fastani_reference, fastani_reference_radius, fastani_taxonomy, fastani_ani, fastani_af, closest_placement_reference, closest_placement_radius, closest_placement_taxonomy, closest_placement_ani, closest_placement_af, pplacer_taxonomy, classification_method, note, other_related_references, aa_percent, translation_table, red_value, warnings
-        ])
+        values = line[:-1].split("\t")
+        gtdbtklist.append(OrderedDict({i: j for i, j in zip(titles, values)}))
     return gtdbtklist
 
 
@@ -59,6 +60,7 @@ def iRep(text: StringIO) -> list:
             n/a will be recorded to np.nan
     """
     print(__doc__, file=stderr)
+
     def read_values(text: StringIO, head: str, value_type: type,
                     recode_func: Callable[[str, Any], None]) -> str:
         '''
@@ -78,9 +80,10 @@ def iRep(text: StringIO) -> list:
                 return line
             genome_dir, raw_value = line.strip().split()
             # ../03_modify/7_final//17.fa	n/a
-            binId = genome_dir[genome_dir.rfind("/")+1:genome_dir.rfind(".")]
+            binId = os.path.basename(os.path.splitext(genome_dir)[0])
             value = read_nan(value_type, raw_value, "n/a", "False")
             recode_func(binId, value)
+
     # collect data to this map
     irmap = {}
     irvalues = {
@@ -95,10 +98,12 @@ def iRep(text: StringIO) -> list:
         'GC r^2'                          : float,
     }
     heads_num = len(irvalues)
+
     def index_lambda(binId: str, value: Any, index: int) -> None:
         if binId not in irmap:
             irmap[binId] = [nan for _ in range(heads_num)]
         irmap[binId][index] = value
+
     for index, (name, dtype) in enumerate(irvalues.items()):
         read_values(text, name, dtype, lambda p0, p1: index_lambda(p0, p1, index))
     return [[binId] + values for binId, values in irmap.items()]
@@ -112,11 +117,11 @@ def check_head(head: str) -> bool:
     """
     head_list = head.strip().split()
     if \
-        head_list[0] == "contigName" and \
-        head_list[1] == "contigLen" and \
-        head_list[2] == "totalAvgDepth" and \
-        head_list[3] == head_list[4][:-4] and \
-        len(head_list) % 2 == 1:
+            head_list[0] == "contigName" and \
+            head_list[1] == "contigLen" and \
+            head_list[2] == "totalAvgDepth" and \
+            head_list[3] == head_list[4][:-4] and \
+            len(head_list) % 2 == 1:
         return [(i, head_list[i]) for i in range(3, len(head_list), 2)]
 
 
