@@ -2,7 +2,7 @@
 """
  * @Date: 2020-11-09 23:09:57
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-11 20:22:25
+ * @LastEditTime: 2020-12-11 22:21:51
  * @FilePath: /HScripts/Python/mylib/biotool/statistic_MAG.py
  * @Description:
     seq number, GC%, genome size from *.fa file
@@ -11,8 +11,9 @@
 import os
 from sys import stderr
 
-from mylib.biotool.read_outputs import checkM, contig_depths, fasta, gtdbtk, iRep
-from mylib.biotool.fna_msg import statistic_fna, seq_total_depth
+from mylib.biotool.fna_msg import seq_total_depth, statistic_fna
+from mylib.biotool.read_outputs import (checkM, contig_depths, fasta, gtdbtk,
+                                        iRep)
 
 
 def list_MAGs(MAG_file_path: str, endswith="") -> list:
@@ -35,7 +36,7 @@ def collect_MAGs_msg(
         depth_file      : str = "",
         checkM_file     : str = "",
         iRep_file       : str = "",
-        gtdbtk_file     : str = ""
+        gtdbtk_path     : str = ""
 ):
     """
      * @return {(list, dict)} -> {
@@ -90,22 +91,26 @@ def collect_MAGs_msg(
     except FileNotFoundError:
         pass
 
-    try:
-        with open(gtdbtk_file) as text:
-            gtdbtklist = gtdbtk(text)
-        gtdbtk_title = ["Domain", "Phylum", "Class",
-                        "Order", "Family", "Genus", "Species",
-                        "ClosestRefGenome", "ANI"]
-        gtdbtk_MAG_msg = {}
-        for msg in gtdbtklist:
-            gtdbtk_MAG_msg[msg["user_genome"]] = msg["classification"].split(";") + [
-                msg["fastani_reference"], msg["fastani_reference_radius"]
-            ]
+    gtdbtk_title = ["Domain", "Phylum", "Class",
+                    "Order", "Family", "Genus", "Species",
+                    "ClosestRefGenome", "ANI"]
+    gtdbtk_MAG_msg = {}
+    for markers in ["ar122", "bac120"]:
+        gtdbtk_file = os.path.join(
+            gtdbtk_path, "gtdbtk.{markers}.markers_summary.tsv".format(markers=markers))
+        try:
+            with open(gtdbtk_file) as text:
+                gtdbtklist = gtdbtk(text)
+            for msg in gtdbtklist:
+                gtdbtk_MAG_msg[msg[0]] = msg[1].split(";") + [msg[2], msg[3]]
+        except FileNotFoundError:
+            print(gtdbtk_file, "not found, pass", file=stderr)
+    if gtdbtk_MAG_msg:
         for MAG, MAG_msg in MAGs_msg.items():
             MAG_msg += gtdbtk_MAG_msg.get(os.path.basename(
                 os.path.splitext(MAG)[0]), ["n/a"] * len(gtdbtk_title))
         msg_title += gtdbtk_title
-    except FileNotFoundError:
+    else:
         pass
 
     try:

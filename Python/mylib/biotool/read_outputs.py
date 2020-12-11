@@ -2,7 +2,7 @@
 """
  * @Date: 2020-10-06 21:57:58
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-11 19:31:49
+ * @LastEditTime: 2020-12-11 22:22:06
  * @FilePath: /HScripts/Python/mylib/biotool/read_outputs.py
  * @Description:
         checkM, gtdbtk, iRep, contig_depths, fasta
@@ -12,7 +12,6 @@ import os
 from io import StringIO
 from sys import stderr
 from typing import Any, Callable
-from collections import OrderedDict
 
 from Bio import SeqIO
 from mylib.biotool.checkm.reload import reload_checkMOutput
@@ -24,20 +23,22 @@ checkM = reload_checkMOutput
 def gtdbtk(text: StringIO) -> list:
     """ read --out_dir/gtdbtk.bac120.summary.tsv
                      ./gtdbtk.ar122.summary.tsv
-            Warning: several rows may absent
-                user_genome, classification, fastani_reference, fastani_reference_radius, fastani_taxonomy, fastani_ani, fastani_af, closest_placement_reference, closest_placement_radius, closest_placement_taxonomy, closest_placement_ani, closest_placement_af, pplacer_taxonomy, classification_method, note, other_related_references, aa_percent, translation_table, red_value, warnings
        @return:
+            user_genome, classification, fastani_reference, fastani_reference_radius, fastani_taxonomy, fastani_ani, fastani_af, closest_placement_reference, closest_placement_taxonomy, closest_placement_ani, closest_placement_af, pplacer_taxonomy, classification_method, note, other_related_references, aa_percent, translation_table, red_value, warnings
        @warnings: some line are need to deal with.
     """
     print(__doc__, file=stderr)
     gtdbtklist = []
-    titles = text.readline().strip().split("\t")
+    #titles = text.readline().strip().split("\t")
+    text.readline()
     print("""
     raise FutureWarning("Some lines are still raw. please check carefully")
     #""", file=stderr)
     for line in text:
-        values = line[:-1].split("\t")
-        gtdbtklist.append(OrderedDict({i: j for i, j in zip(titles, values)}))
+        user_genome, classification, fastani_reference, fastani_reference_radius, fastani_taxonomy, fastani_ani, fastani_af, closest_placement_reference, closest_placement_taxonomy, closest_placement_ani, closest_placement_af, pplacer_taxonomy, classification_method, note, other_related_references, aa_percent, translation_table, red_value, warnings = line[:-1].split("\t")
+        gtdbtklist.append([
+            user_genome, classification, fastani_reference, fastani_reference_radius, fastani_taxonomy, fastani_ani, fastani_af, closest_placement_reference, closest_placement_taxonomy, closest_placement_ani, closest_placement_af, pplacer_taxonomy, classification_method, note, other_related_references, aa_percent, translation_table, red_value, warnings
+        ])
     return gtdbtklist
 
 
