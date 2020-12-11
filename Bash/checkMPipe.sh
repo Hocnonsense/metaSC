@@ -9,7 +9,7 @@
 :<<!EOF!
  * @Date: 2020-09-20 15:33:13
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-06 21:56:41
+ * @LastEditTime: 2020-12-10 23:02:11
  * @FilePath: /HScripts/Bash/checkMPipe.sh
  * @Description:
 !EOF!
@@ -69,7 +69,7 @@ else
     checkm lineage_wf \
         -x fa -t 39 \
         ${bin_dir} ${ckm_dir} \
-    > ${ckm_out}
+    | tee ${ckm_out}
 
     echo "checkm finished" >&2
 fi
@@ -137,9 +137,9 @@ for binID, (UID, Compl, Contai) in ckmap.items():
 else:
     print("""
         Now, you get:
-            {} good bins
-            {} bins to modify
-            {} bins useless
+            {} good bins (Compl > 70 and Contai < 10)
+            {} bins to modify (Compl > 70 but Contai > 10)
+            {} bins useless (Else)
         more information:
             {}
         """.format(len(goodbins),

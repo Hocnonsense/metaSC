@@ -2,17 +2,19 @@
 """
  * @Date: 2020-10-06 21:57:58
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-11-14 15:37:53
+ * @LastEditTime: 2020-12-11 15:47:37
  * @FilePath: /HScripts/Python/mylib/biotool/read_outputs.py
  * @Description:
+        checkM, gtdbtk, iRep, contig_depths, fasta
 """
 
 from io import StringIO
 from sys import stderr
 from typing import Any, Callable
-from numpy import nan
-from mylib.biotool.checkm.reload import reload_checkMOutput
 
+from Bio import SeqIO
+from mylib.biotool.checkm.reload import reload_checkMOutput
+from numpy import nan
 
 checkM = reload_checkMOutput
 
@@ -118,15 +120,15 @@ def check_head(head: str) -> bool:
         return [(i, head_list[i]) for i in range(3, len(head_list), 2)]
 
 
-class ScfDepthSample:
+class ctgDepthSample:
     """
      * @description: help to get depth or given depth of given sample
-     * @useage: ScfDepthSample((sample_list, scf_depth), "totalAvgDepth")[contigName]
+     * @useage: ctgDepthSample((sample_list, ctg_depth), "totalAvgDepth")[contigName]
     """
 
     def __init__(self, contig_depths, sample: str, isvar=False) -> None:
-        sample_list, scf_depth = contig_depths
-        self.scf_depth = scf_depth
+        sample_list, ctg_depth = contig_depths
+        self.ctg_depth = ctg_depth
         if sample == "length":
             self.i = 0
             self.j = 0
@@ -138,14 +140,14 @@ class ScfDepthSample:
             self.j = sample_list.index[sample]
 
     def __getitem__(self, contigName):
-        return self.scf_depth[contigName][self.i][self.j]
+        return self.ctg_depth[contigName][self.i][self.j]
 
 
 def contig_depths(text: StringIO) -> dict:
     """ Read .depth generated from jgi_summarize_bam_contig_depths
      * @return (
             sample_list: list -> [sample names, ]
-            scf_depth: dict -> {
+            ctg_depth: dict -> {
                 contigName: (
                     (length, totalAvgDepth),
                     [depth in each sample, ],
@@ -156,7 +158,7 @@ def contig_depths(text: StringIO) -> dict:
     """
     print(__doc__, file=stderr)
     # DEPTH_META = [(0, "contigName"), (1, "contigLen"), (2, "totalAvgDepth")]
-    (sample_list, scf_depth) = ([], {})
+    (sample_list, ctg_depth) = ([], {})
     head = text.readline()
     sample_index = check_head(head)
     sample_list = [i[1] for i in sample_index]
@@ -164,9 +166,22 @@ def contig_depths(text: StringIO) -> dict:
     #print(sample_list)
     for line in text:
         values = line.strip().split()
-        scf_depth[values[0]] = (
+        ctg_depth[values[0]] = (
             (int(float(values[1])), float(values[2])),
             [float(values[i[0]]) for i in sample_index],
             [float(values[i[0] + 1]) for i in sample_index]
         )
-    return (sample_list, scf_depth)
+    return (sample_list, ctg_depth)
+
+
+def fasta(text: StringIO) -> dict:
+    """ Read all seqs from fasta file
+     * @param {StringIO} text
+     * @return {dict} seqs: dict -> {record.id: record.seq}
+            *NOTE*: record.seq: Bio.Seq.Seq
+    """
+    print(__doc__, file=stderr)
+    seqs = {}
+    for record in SeqIO.parse(text, "fasta"):
+        seqs[record.id] = record.seq
+    return seqs
