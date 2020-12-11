@@ -2,7 +2,7 @@
 """
  * @Date: 2020-11-09 23:09:57
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-11 22:21:51
+ * @LastEditTime: 2020-12-11 23:04:56
  * @FilePath: /HScripts/Python/mylib/biotool/statistic_MAG.py
  * @Description:
     seq number, GC%, genome size from *.fa file
@@ -135,3 +135,16 @@ if __name__ == "__main__":
     # TODO: add func to use it with bash
     # from mylib.biotool.statistic_MAG import collect_MAGs_msg
     pass
+    MAG_file_path = "/home/hwrn/Work/2020-12-Yap/04_MAG/00_raw/{sample}/DAS_Tool_DASTool_bins"
+    depth_file = "/home/hwrn/Work/2020-12-Yap/02_assembly/depth/{sample}-jgi.depth"
+    checkM_file = "/home/hwrn/Work/2020-12-Yap/04_MAG/01_modify/{sample}/01/checkm.out"
+    iRep_file = "/home/hwrn/Work/2020-12-Yap/04_MAG/iRep/{sample}.tsv"
+    gtdbtk_file = "/home/hwrn/Work/2020-12-Yap/04_MAG/gtdbtk/{sample}/"
+
+    fo = open("/home/hwrn/Work/2020-12-Yap/Analyze/bins_msg.csv", "w")
+    for sample in ["Yap_AOA2", "Yap_AOA3", "Yap_AOA4"]:
+        msg_title, MAGs_msg = collect_MAGs_msg(
+            MAG_file_path.format(sample=sample),
+            depth_file.format(sample=sample),
+            checkM_file.format(sample=sample),
+            iRep_file.format(sample=sample), gtdbtk_file.format(sample=sample))

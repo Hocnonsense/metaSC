@@ -2,7 +2,7 @@
 """
  * @Date: 2020-10-06 21:57:58
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-11 22:22:06
+ * @LastEditTime: 2020-12-11 22:31:53
  * @FilePath: /HScripts/Python/mylib/biotool/read_outputs.py
  * @Description:
         checkM, gtdbtk, iRep, contig_depths, fasta
@@ -56,6 +56,7 @@ def read_nan(dtype: type, numstr: str, *nanstr) -> Any:
 
 def iRep(text: StringIO) -> list:
     """ read -o.tsv
+        TODO: Sometimes read several .sam. How to solve it?
        @return:
             binId | index of replication (iRep) | un-filtered index of replication (iRep) | raw index of replication (no GC bias correction) | r^2 | coverage | % windows passing filter | fragments/Mbp | GC bias | GC r^2
             n/a will be recorded to np.nan
