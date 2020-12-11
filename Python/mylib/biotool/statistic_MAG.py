@@ -2,7 +2,7 @@
 """
  * @Date: 2020-11-09 23:09:57
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-11 23:04:56
+ * @LastEditTime: 2020-12-11 23:13:17
  * @FilePath: /HScripts/Python/mylib/biotool/statistic_MAG.py
  * @Description:
     seq number, GC%, genome size from *.fa file
@@ -97,7 +97,7 @@ def collect_MAGs_msg(
     gtdbtk_MAG_msg = {}
     for markers in ["ar122", "bac120"]:
         gtdbtk_file = os.path.join(
-            gtdbtk_path, "gtdbtk.{markers}.markers_summary.tsv".format(markers=markers))
+            gtdbtk_path, "gtdbtk.{markers}.summary.tsv".format(markers=markers))
         try:
             with open(gtdbtk_file) as text:
                 gtdbtklist = gtdbtk(text)
