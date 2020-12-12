@@ -39,7 +39,7 @@ def length_NL(seqs: dict, pcg=50) -> Tuple[int, int]:
     for i, length in enumerate(seqs_len):
         pcg_len -= length
         if pcg_len <= 0:
-            return (i, length)
+            return (length, i)
 
 
 def statistic_fna(seqs: dict) -> dict:
@@ -60,8 +60,8 @@ def statistic_fna(seqs: dict) -> dict:
     for i, (gc, length) in enumerate(GC_len):
         pcg_len -= length
         if pcg_len <= 0:
-            fna_msg["N50"] = i
-            fna_msg["L50"] = length
+            fna_msg["N50"] = length
+            fna_msg["L50"] = i
             break
 
     return fna_msg
