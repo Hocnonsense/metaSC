@@ -62,8 +62,9 @@ def statistic_fna(seqs: dict) -> dict:
         if pcg_len <= 0:
             fna_msg["N50"] = i
             fna_msg["L50"] = length
+            break
 
-    return fna_msg
+        return fna_msg
 
 
 def seq_depth(seqs: Iterable, ctg_depth: dict) -> dict:
