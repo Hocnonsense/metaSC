@@ -2,7 +2,7 @@
 """
  * @Date: 2020-10-06 21:57:58
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-11 22:31:53
+ * @LastEditTime: 2020-12-15 14:06:44
  * @FilePath: /HScripts/Python/mylib/biotool/read_outputs.py
  * @Description:
         checkM, gtdbtk, iRep, contig_depths, fasta
@@ -27,7 +27,6 @@ def gtdbtk(text: StringIO) -> list:
             user_genome, classification, fastani_reference, fastani_reference_radius, fastani_taxonomy, fastani_ani, fastani_af, closest_placement_reference, closest_placement_taxonomy, closest_placement_ani, closest_placement_af, pplacer_taxonomy, classification_method, note, other_related_references, aa_percent, translation_table, red_value, warnings
        @warnings: some line are need to deal with.
     """
-    print(__doc__, file=stderr)
     gtdbtklist = []
     #titles = text.readline().strip().split("\t")
     text.readline()
@@ -61,7 +60,6 @@ def iRep(text: StringIO) -> list:
             binId | index of replication (iRep) | un-filtered index of replication (iRep) | raw index of replication (no GC bias correction) | r^2 | coverage | % windows passing filter | fragments/Mbp | GC bias | GC r^2
             n/a will be recorded to np.nan
     """
-    print(__doc__, file=stderr)
 
     def read_values(text: StringIO, head: str, value_type: type,
                     recode_func: Callable[[str, Any], None]) -> str:
@@ -163,7 +161,6 @@ def contig_depths(text: StringIO) -> dict:
             }
         )
     """
-    print(__doc__, file=stderr)
     # DEPTH_META = [(0, "contigName"), (1, "contigLen"), (2, "totalAvgDepth")]
     (sample_list, ctg_depth) = ([], {})
     head = text.readline()
@@ -187,8 +184,10 @@ def fasta(text: StringIO) -> dict:
      * @return {dict} seqs: dict -> {record.id: record.seq}
             *NOTE*: record.seq: Bio.Seq.Seq
     """
-    print(__doc__, file=stderr)
     seqs = {}
     for record in SeqIO.parse(text, "fasta"):
         seqs[record.id] = record.seq
     return seqs
+
+
+print(__doc__, file=stderr)

@@ -3,7 +3,7 @@
  * @Date: 2020-10-24 10:24:10
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-09 23:21:45
+ * @LastEditTime: 2020-12-15 14:08:28
  * @FilePath: /HScripts/Python/seqPipe/x03_prodigal_cut.py
  * @Description:
         update from LYX's script
@@ -29,10 +29,8 @@
                                             times 3 will be discard.
 """
 
-from io import FileIO
 import os
 from sys import argv, stderr
-from typing import Tuple
 from Bio import SeqIO
 
 
@@ -53,7 +51,6 @@ class prefix_files:
 
 def parse_args():
     if "-h" in argv or "--help" in argv or len(argv) == 1:
-        print(__doc__, file=stderr)
         exit(0)
 
     sc, in_file_prefix, out_file_prefix, number = argv
@@ -61,14 +58,14 @@ def parse_args():
     out_file_prefix = prefix_files(out_file_prefix)
     num = int(number)
     args = in_file_prefix, out_file_prefix, num
-    print(sc, *args, sep="\n" + " "*4, file=stderr)
+    print(sc, *args, sep="\n" + " " * 4, file=stderr)
     return args
 
 
 def main():
     args = parse_args()
 
-    for (in_file, out_file, num, func) in c_args:
+    for (in_file, out_file, num, func) in args:
         with open(out_file, "w") as fo \
                 , open(in_file) as fi \
                 :
@@ -89,7 +86,7 @@ def main():
                 seq = str(record.seq)
                 if len(seq) >= 33:
                     des = str(record.description)
-                    fout.write('>'+des+'\n'+seq+'\n')
+                    fout.write('>' + des + '\n' + seq + '\n')
                 else:
                     sid = str(record.id)
                     genes_to_trim[sid] = len(seq)
@@ -115,7 +112,7 @@ def main():
                 else:
                     des = str(record.description)
                     sid = str(record.id)
-                    fout.write('>'+des+'\n'+seq+'\n')
+                    fout.write('>' + des + '\n' + seq + '\n')
 
     else:
         print("    {in_file} no found, pass".format(in_file=in_file_prefix(suffix)))
@@ -132,7 +129,7 @@ def main():
                     temp = line.strip().split('\t')
                     scaffold = temp[0]
                     s_count = temp[8].split(';')[0].split('_')[1]
-                    sid = scaffold+'_'+s_count
+                    sid = scaffold + '_' + s_count
                     if sid in genes_to_trim:
                         pass
                     else:
@@ -141,6 +138,8 @@ def main():
     else:
         print("    {in_file} no found, pass".format(in_file=in_file_prefix(suffix)))
 
+
+print(__doc__, file=stderr)
 
 if __name__ == "__main__":
     main()

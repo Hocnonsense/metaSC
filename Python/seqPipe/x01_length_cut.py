@@ -3,7 +3,7 @@
  * @Date: 2020-10-24 10:24:10
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-09 22:18:32
+ * @LastEditTime: 2020-12-15 14:08:56
  * @FilePath: /HScripts/Python/seqPipe/x01_length_cut.py
  * @Description:
     x01_length_cut.py <in_file.fa> <out_file.fa> <threshold> [-h] [--help]
@@ -25,7 +25,6 @@ from Bio import SeqIO
 
 def parse_args():
     if "-h" in argv or "--help" in argv or len(argv) == 1:
-        print(__doc__, file=stderr)
         exit(0)
 
     sc, in_file, out_file, number = argv
@@ -33,7 +32,7 @@ def parse_args():
     out_file = os.path.abspath(os.path.expanduser(out_file))
     num = int(number)
     args = in_file, out_file, num
-    print(sc, *args, sep="\n" + " "*4, file=stderr)
+    print(sc, *args, sep="\n" + " " * 4, file=stderr)
     return args
 
 
@@ -46,13 +45,15 @@ def main():
         discard_seqs, discard_bases = 0, 0
         for line in SeqIO.parse(fi, 'fasta'):
             if len(line.seq) >= num:
-                fo.write('>'+str(line.id)+'\n'+str(line.seq)+'\n')
+                fo.write('>' + str(line.id) + '\n' + str(line.seq) + '\n')
             else:
                 discard_seqs += 1
                 discard_bases += len(line.seq)
     print("    {seqs_n} seqs ({bases_n} bases) are discarded".format(
         seqs_n=discard_seqs, bases_n=discard_bases), file=stderr)
 
+
+print(__doc__, file=stderr)
 
 if __name__ == "__main__":
     main()

@@ -2,7 +2,7 @@
 """
  * @Date: 2020-11-09 23:09:57
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-11 23:13:17
+ * @LastEditTime: 2020-12-15 14:05:46
  * @FilePath: /HScripts/Python/mylib/biotool/statistic_MAG.py
  * @Description:
     seq number, GC%, genome size from *.fa file
@@ -23,7 +23,6 @@ def list_MAGs(MAG_file_path: str, endswith="") -> list:
     * @param {str} endswith
     * @return {list} MAGs_list: [name of MAGs (with "endswith")]
     """
-    print(__doc__, file=stderr)
     MAGs_list = []
     for MAG_file in sorted(os.listdir(MAG_file_path)):
         if MAG_file.endswith(endswith):
@@ -120,15 +119,26 @@ def collect_MAGs_msg(
                       "Contamination", "Strain_heterogeneity"]
         checkM_MAG_msg = {}
         for Bin_Id, values in ckmap.items():
-            checkM_MAG_msg[Bin_Id] = [values[1]] + values[-3:]
+            checkM_MAG_msg[Bin_Id] = [values[0]] + values[-3:]
         for MAG, MAG_msg in MAGs_msg.items():
             MAG_msg += checkM_MAG_msg.get(os.path.basename(
                 os.path.splitext(MAG)[0]), ["n/a"] * 4)
     except FileNotFoundError:
         pass
 
+    # human read
+    pGenomeSize = msg_title.index("GenomeSize")
+    pGC = msg_title.index("GC")
+    for values in MAGs_msg.values():
+        values[pGenomeSize] /= 10**6
+        values[pGC] *= 100
+    msg_title[pGenomeSize] += " (Mbp)"
+    msg_title[pGC] += " %"
+
     return (msg_title, MAGs_msg)
 
+
+print(__doc__, file=stderr)
 
 if __name__ == "__main__":
     # args = argv[1:]

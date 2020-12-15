@@ -2,7 +2,7 @@
 """
  * @Date: 2020-12-11 10:22:23
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-11 17:47:42
+ * @LastEditTime: 2020-12-15 14:06:07
  * @FilePath: /HScripts/Python/mylib/biotool/fna_msg.py
  * @Description:
         Get message from a fna file.
@@ -18,7 +18,6 @@ def seq_GC_len(seqs: dict) -> dict:
      * @param {dict} seqs: dict -> {record.id: record.seq}
      * @return {dict} {ctg_name: [GC count, genome size]}
     """
-    print(__doc__, file=stderr)
     GC_len = {}
     for id, seq in seqs.items():
         gc_count = seq.count("G") + seq.count("C")
@@ -108,3 +107,6 @@ def seq_total_depth(seqs: Iterable, ctg_depth: dict):
         for i, depth in enumerate(sample_depth):
             sampleBases[i] += depth * seq_length
     return (totalBases / totalLength, [bases / totalLength for bases in sampleBases])
+
+
+print(__doc__, file=stderr)
