@@ -2,7 +2,7 @@
 """
  * @Date: 2020-10-02 22:32:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-29 14:41:37
+ * @LastEditTime: 2020-12-20 19:53:47
  * @FilePath: /HScripts/Python/mylib/biotool/checkm/manual.py
  * @Description:
         Try to cluster each scaffold by the Mark Gene on it
@@ -22,9 +22,11 @@
 
 import argparse
 import os
+from collections import OrderedDict
 from sys import stderr
-from typing import OrderedDict
-from mylib.biotool.checkm.reload import reload_binIdToBinMarkerSets, reload_resultsManagers
+
+from mylib.biotool.checkm.reload import (reload_binIdToBinMarkerSets,
+                                         reload_resultsManagers)
 
 
 def markerGeneToContig(markerSet, resultsManager, reportContig=True):
@@ -127,7 +129,7 @@ def getBinsToModify(ckmap: OrderedDict,
                 {}
             """.format(len(goodbins),
                        len(mdf_bins),
-                       len(ckmap)-len(goodbins)-len(mdf_bins),
+                       len(ckmap) - len(goodbins) - len(mdf_bins),
                        str(ckmap)),
               file=stderr)
     return goodbins, mdf_bins, uid_nums
