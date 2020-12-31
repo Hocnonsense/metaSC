@@ -3,8 +3,8 @@
  * @Date: 2020-10-24 10:24:10
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-15 14:08:28
- * @FilePath: /HScripts/Python/seqPipe/x03_prodigal_cut.py
+ * @LastEditTime: 2020-12-31 10:37:57
+ * @FilePath: /HScripts/Python/seqPipe/x03.1_gene_cut.py
  * @Description:
         update from LYX's script
     x03_prodigal_cut.py <in_file_prefix_prefix> <out_file_prefix_prefix> <threshold> [-h] [--help]
@@ -62,18 +62,14 @@ def parse_args():
     return args
 
 
-def main():
-    args = parse_args()
-
-    for (in_file, out_file, num, func) in args:
-        with open(out_file, "w") as fo \
-                , open(in_file) as fi \
-                :
-            discard_seqs, discard_bases = func(fi, fo, num)
-        print("    {seqs_n} seqs ({bases_n} bases(aa)) are discarded".format(
-            seqs_n=discard_seqs, bases_n=discard_bases), file=stderr)
-
-    in_file_prefix, out_file_prefix, num = args
+def main(in_file_prefix, out_file_prefix, num):
+    #for (in_file, out_file, num, func) in args:
+    #    with open(out_file, "w") as fo \
+    #            , open(in_file) as fi \
+    #            :
+    #        discard_seqs, discard_bases = func(fi, fo, num)
+    #    print("    {seqs_n} seqs ({bases_n} bases(aa)) are discarded".format(
+    #        seqs_n=discard_seqs, bases_n=discard_bases), file=stderr)
 
     genes_to_trim = {}
     suffix = ".faa"
@@ -142,4 +138,4 @@ def main():
 print(__doc__, file=stderr)
 
 if __name__ == "__main__":
-    main()
+    main(*parse_args())

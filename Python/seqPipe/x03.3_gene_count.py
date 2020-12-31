@@ -2,7 +2,7 @@
 """
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-31 09:22:40
+ * @LastEditTime: 2020-12-31 10:31:59
  * @FilePath: /HScripts/Python/seqPipe/x03.3_gene_count.py
  * @Description:
         update from LYX's script
@@ -92,7 +92,7 @@ def main(in_file, out_file=None):
         fo.close()
 
 
-def check_args(args: list) -> list:
+def parse_args(args: list) -> list:
     out_file = None
     if "-h" in args:
         print(__doc__, file=stderr)
@@ -107,7 +107,7 @@ def check_args(args: list) -> list:
 
 if __name__ == "__main__":
     try:
-        in_file, out_file = check_args(argv[1:])
+        in_file, out_file = parse_args(argv[1:])
     except IndexError:
         print(__doc__, file=stderr)
         exit()
