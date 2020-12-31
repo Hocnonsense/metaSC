@@ -2,7 +2,7 @@
 """
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-31 09:03:03
+ * @LastEditTime: 2020-12-31 09:22:40
  * @FilePath: /HScripts/Python/seqPipe/x03.3_gene_count.py
  * @Description:
         update from LYX's script
@@ -24,7 +24,7 @@
 
 
 from io import StringIO
-from sys import argv, stdout
+from sys import argv, stderr, stdout
 from typing import Dict
 
 
@@ -94,6 +94,8 @@ def main(in_file, out_file=None):
 
 def check_args(args: list) -> list:
     out_file = None
+    if "-h" in args:
+        print(__doc__, file=stderr)
     if "-o" in args:
         index_o = args.index("-o")
         args.pop(index_o)
@@ -104,5 +106,9 @@ def check_args(args: list) -> list:
 
 
 if __name__ == "__main__":
-    in_file, out_file = check_args(argv[1:])
+    try:
+        in_file, out_file = check_args(argv[1:])
+    except IndexError:
+        print(__doc__, file=stderr)
+        exit()
     main(in_file, out_file)
