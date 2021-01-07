@@ -3,7 +3,7 @@
  * @Date: 2020-10-24 10:24:10
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-31 12:13:29
+ * @LastEditTime: 2021-01-03 14:52:25
  * @FilePath: /HScripts/Python/seqPipe/x03.1_gene_cut.py
  * @Description:
         update from LYX's script
@@ -75,8 +75,8 @@ def main(in_file_prefix, out_file_prefix, num):
     #            , open(in_file) as fi \
     #            :
     #        discard_seqs, discard_bases = func(fi, fo, num)
-    #    print("    {seqs_n} seqs ({bases_n} bases(aa)) are discarded".format(
-    #        seqs_n=discard_seqs, bases_n=discard_bases), file=stderr)
+    #    print("    {seqs_n} seqs ({aas_n} aa) are discarded".format(
+    #        seqs_n=discard_seqs, aas_n=discard_aas), file=stderr)
 
     genes_to_trim = {}
     suffix = ".faa"
@@ -87,18 +87,25 @@ def main(in_file_prefix, out_file_prefix, num):
         with open(in_file) as fin \
                 , open(out_file, 'w') as fout \
                 :
+            total_trimmed_genes, total_trimmed_aas = 0, 0
             for record in SeqIO.parse(fin, 'fasta'):
                 seq = str(record.seq)
+                seq_len = len(seq)
                 if len(seq) >= num:
+                    total_trimmed_genes += 1
+                    total_trimmed_aas += seq_len
+
                     des = str(record.description)
                     print('>' + des, file=fout)
                     print(seq, file=fout)
                 else:
                     sid = str(record.id)
-                    genes_to_trim[sid] = len(seq)
+                    genes_to_trim[sid] = seq_len
 
-            print("    {seqs_n} seqs ({bases_n} bases(aa)) are discarded".format(
-                seqs_n=len(genes_to_trim), bases_n=sum(genes_to_trim.values())), file=stderr)
+            print("    {seqs_n} seqs ({aas_n} aa) are discarded".format(
+                seqs_n=len(genes_to_trim), aas_n=sum(genes_to_trim.values())), file=stderr)
+            print("    resulted in {seqs_n} seqs ({aas_n} bases(aa))".format(
+                seqs_n=total_trimmed_genes, aas_n=total_trimmed_aas), file=stderr)
     else:
         print("invalid", suffix, "file:", in_file, file=stderr)
         exit(1)
