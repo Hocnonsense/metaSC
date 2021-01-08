@@ -2,7 +2,7 @@
 """
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-31 10:31:59
+ * @LastEditTime: 2020-12-31 21:06:02
  * @FilePath: /HScripts/Python/seqPipe/x03.3_gene_count.py
  * @Description:
         update from LYX's script
@@ -36,6 +36,7 @@ def read_featureCounts(text: StringIO) -> list:
                 -t CDS -g ID \\
                 -p ${bam}
        @return:
+           |   0   | 1  |  2   | 3  |   4   |   5   | 6 |
             Geneid, Chr, Start, End, Strand, Length, bam
     """
     countlist = []
@@ -62,14 +63,13 @@ def gene_count(countlist: dict) -> dict:
     """
     ctg_g_tpm: Dict[str, dict] = {}
 
-    total_transcript = 0.0
-    for values in countlist:
-        # calculate total TPM
-        total_transcript += values[5] / values[6]
+    # total transcript = sum(Length / depth)
+    transcripts = [values[6] / values[5] for values in countlist]
+    total_transcript = sum(transcripts)
 
-    for values in countlist:
+    for values, transcript in zip(countlist, transcripts):
         geneId = int(values[0].split('_')[1])
-        tpm = (values[6] / (values[5] * total_transcript)) * 1000000
+        tpm = transcript / total_transcript * 1000000
         ctg_g_tpm.setdefault(values[1], {})[geneId] = tpm
 
     return ctg_g_tpm
@@ -95,7 +95,7 @@ def main(in_file, out_file=None):
 def parse_args(args: list) -> list:
     out_file = None
     if "-h" in args:
-        print(__doc__, file=stderr)
+        raise IndexError
     if "-o" in args:
         index_o = args.index("-o")
         args.pop(index_o)
@@ -110,5 +110,5 @@ if __name__ == "__main__":
         in_file, out_file = parse_args(argv[1:])
     except IndexError:
         print(__doc__, file=stderr)
-        exit()
+        exit(1)
     main(in_file, out_file)
