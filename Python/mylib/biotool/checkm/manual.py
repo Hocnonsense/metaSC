@@ -2,8 +2,8 @@
 """
  * @Date: 2020-10-02 22:32:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-20 19:53:47
- * @FilePath: /HScripts/Python/mylib/biotool/checkm/manual.py
+ * @LastEditTime: 2021-03-10 10:03:34
+ * @FilePath: /Work/home/hwrn/software/HScripts/Python/mylib/biotool/checkm/manual.py
  * @Description:
         Try to cluster each scaffold by the Mark Gene on it
         First, get a list of each Gene on each Scafflod
@@ -78,7 +78,7 @@ def generateAdditionalCsv(out_file, markerSet, contigs, ms_wight):
 
     sorted_markerSets = sorted(
         list(ms_wight), key=lambda i: ms_wight[i], reverse=True)
-    out_markerSets = sorted_markerSets[:10] if len(
+    out_markerSets = sorted_markerSets[:] if len(
         sorted_markerSets) >= 10 else sorted_markerSets
     print([(len(markerSet.markerSet[ms]), ms_wight[ms])
            for ms in out_markerSets])
@@ -180,7 +180,7 @@ def main():
         contigs, ms_wight = markerGeneToContig(markerSet, resultsManager)
 
         if out_dir:
-            out_file = os.path.join(argv[4], ".".join([binId, r"marker_gene.csv"]))
+            out_file = os.path.join(out_dir, ".".join([binId, r"marker_gene.csv"]))
             generateAdditionalCsv(out_file, markerSet, contigs, ms_wight)
     elif binId:
         resultsManager = resultsManagers[binId]
