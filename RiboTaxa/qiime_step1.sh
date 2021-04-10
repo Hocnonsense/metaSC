@@ -3,7 +3,7 @@
  * @Editors: WangJing
  * @Date: 2020-12-30 21:03:03
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-03-28 21:19:28
+ * @LastEditTime: 2021-04-10 14:12:47
  * @FilePath: /metaSC/RiboTaxa/qiime_step1.sh
  * @Description:
 !EOF!
@@ -11,10 +11,10 @@
 
 function show_usage (){
     echo ""
-    echo "Usage: $(basename $0) manifest [-o outpath] [-p forward_primer,reverse_primer]"
+    echo "Usage: $(basename $0) manifest forward_primer,reverse_primer [-o outpath]"
     echo ""
-    echo 'Example$'" $(basename $0) result/manifest.tsv \\ "
-    echo "    -o result -p GTGYCAGCMGCCGCGGTAA,GGACTACNVGGGTWTCTAAT"
+    echo 'Example$'" $(basename $0) result/00_reads_path.tsv \\ "
+    echo "    GTGYCAGCMGCCGCGGTAA,GGACTACNVGGGTWTCTAAT -o result"
     echo ""
     echo "Required arguments:"
     echo "    manifest | A tsv table listing the fastq files for each sample"
@@ -24,13 +24,13 @@ function show_usage (){
     echo "     * sequenced samples"
     echo "        sequenced samples ARE GIVEN in FILE manifest"
     echo "        However, file IN fastq format SHOULD exist IN given path"
+    echo "    primer | primer given in the format of 'forward_primer,reverse_primer'"
+    echo "        forward_primer | Forward PCR primer"
+    echo "        reverse_primer | Forward PCR primer"
     echo ""
     echo "Optional arguments:"
     echo "    -o outpath | Path to store the output files"
     echo "    -t threads | Threads if needed"
-    echo "    -p primer | Pair of primers joined with ','"
-    echo "        forward_primer | Forward PCR primer, default: GTGYCAGCMGCCGCGGTAA"
-    echo "        reverse_primer | Forward PCR primer, default: GGACTACNVGGGTWTCTAAT"
     echo ""
     echo "FILE output:"
     echo "    * {outpath}/01.1-demux.qza"
@@ -42,13 +42,13 @@ function show_usage (){
 
     return 0
 }
-primer_f="GTGYCAGCMGCCGCGGTAA"
-primer_r="GGACTACNVGGGTWTCTAAT"
+primer_f=""
+primer_r=""
 threads=4
 
 
 echo "$0 $*" >&2
-set -- `getopt o:p:t:h "$@"`
+set -- `getopt o:t:h "$@"`
 
 
 while [ -n "$1" ]
@@ -63,18 +63,16 @@ do
         echo "output files store in"
         echo "    $(cd $(dirname $outpath); pwd)"/"$(basename $outpath)"
         shift ;;
-    -p)
-        primer_f=${2%%,*}
-        primer_r=${2##*,}
-        echo "using primer: f: $primer_f"
-        echo "              r: $primer_r"
-        shift ;;
     -t)
         threads=$2
         shift ;;
     --) ;;
     *)
         manifest=$1
+        primer_f=${2%%,*}
+        primer_r=${2##*,}
+        echo "using primer: f: $primer_f"
+        echo "              r: $primer_r"
         break ;;
     esac
     shift

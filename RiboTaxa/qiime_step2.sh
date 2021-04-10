@@ -3,7 +3,7 @@
  * @Editors: WangJing
  * @Date: 2020-12-30 21:03:03
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-03-28 23:14:13
+ * @LastEditTime: 2021-04-10 14:13:33
  * @FilePath: /metaSC/RiboTaxa/qiime_step2.sh
  * @Description:
 !EOF!
@@ -14,7 +14,7 @@ function show_usage (){
     echo "Usage: $(basename $0) seqs metadata length_forward,length_reverse [-t trim_forward,trim_reverse] [-o outpath] [-f reference]"
     echo ""
     echo 'Example$'" $(basename $0) result/01.2-demux-trimmed.qza \\ "
-    echo "    result/metadata.tsv 200,180 \\ "
+    echo "    result/00_metadata.tsv 200,180 \\ "
     echo "    -o result -f 00_data/classifier.qza -p 0,0 -t 4"
     echo ""
     echo "Required arguments:"

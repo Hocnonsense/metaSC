@@ -3,7 +3,7 @@
  * @Editors: WangJing
  * @Date: 2020-12-30 21:03:03
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-03-28 22:59:22
+ * @LastEditTime: 2021-04-10 14:17:02
  * @FilePath: /metaSC/RiboTaxa/qiime_step3.sh
  * @Description:
 !EOF!
@@ -13,9 +13,10 @@ function show_usage (){
     echo ""
     echo "Usage: $(basename $0) table metadata tree subsampling reference [-o outpath] [group [...]]"
     echo ""
-    echo 'Example$'" $(basename $0) result/01.2-demux-trimmed.qza \\ "
-    echo "    results/Archaea/Archaea-table.qza results/00_metadata.tsv \\ "
-    echo "    results/rooted-tree.qza 1000 \\ "
+    echo 'Example$'" $(basename $0) \\ "
+    echo "    results/Archaea/02.4-Archaea_table.qza \\ "
+    echo "    results/00_metadata.tsv \\ "
+    echo "    results/02.2-rooted_tree.qza 5000 \\ "
     echo "    -o result/Archaea -t 4"
     echo ""
     echo "Required parameters:"
@@ -125,7 +126,7 @@ function alpha_statistics (){
 }
 
 for index in faith_pd_vector observed_features_vector shannon_vector evenness_vector; do
-  alpha_statistics
+    alpha_statistics || exit
 done
 
 # Statistics tests on beta diversity
