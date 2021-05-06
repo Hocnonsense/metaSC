@@ -2,16 +2,15 @@
 """
  * @Date: 2020-11-09 22:32:22
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-11 20:25:21
- * @FilePath: /HScripts/Python/mylib/tool/tmpPkl.py
+ * @LastEditTime: 2021-05-06 20:08:09
+ * @FilePath: /metaSC/PyLib/PyLibTool/tmpPkl.py
  * @Description:
     with which will build a tmp pickle file for its function.
         also get some message from pickle: time, path, and desc
         #WARNING# be careful when using @TmpPkl.
-
  * @TODO:
 """
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 import sys
 from sys import stderr
@@ -25,13 +24,20 @@ from typing import Callable
 class TmpPkl:
     """ Save a pickle file for the function or block. """
 
-    def __init__(self, PICKLE_FILE_name, force_rewrite=False, desc="") -> None:
-        self.PICKLE_FILE_name = PICKLE_FILE_name
+    def __init__(self, PICKLE_FILE_name, desc="",
+                 force_rewrite=False, situ='') -> None:
+        if situ:
+            if os.path.isfile(situ):
+                situ = os.path.dirname(situ)
+            PICKLE_FILE_name = os.path.join(situ, PICKLE_FILE_name)
+        else:
+            PICKLE_FILE_name = os.path.expanduser(PICKLE_FILE_name)
+        self.PICKLE_FILE_name = os.path.abspath(PICKLE_FILE_name)
         self.force_rewrite = force_rewrite
         self.last_results = None
         self.meta = {
             "date": datetime.now(),
-            "pwd": sys.argv[0] or os.path.abspath(),
+            "pwd": sys.argv[0] or os.getcwd(),
             "desc": desc
         }
 
