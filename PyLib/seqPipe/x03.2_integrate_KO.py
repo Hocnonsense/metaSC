@@ -3,8 +3,8 @@
  * @Editor: Lv Yongxin
  * @Date: 2020/08/29 11:08:50
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-15 15:44:30
- * @FilePath: /HScripts/Python/seqPipe/x04_integrate_KO.py
+ * @LastEditTime: 2021-06-01 13:47:43
+ * @FilePath: /metaSC/PyLib/seqPipe/x03.2_integrate_KO.py
  * @Description: 对最多三种来源的KO注释结果整合
 
     usage: python x04_integrate_KO.py -p pattern [-o out_file]
@@ -25,6 +25,11 @@ import os
 import re
 from sys import argv, stderr, stdout
 from typing import Tuple
+
+from PyLib.PyLibTool.file_info import verbose_import
+
+
+verbose_import(__name__, __doc__)
 
 
 def readline_GhostKOALA(line) -> Tuple[str, str]:
@@ -141,8 +146,6 @@ def main():
             fout.flush()
             fout.close()
 
-
-print(__doc__, file=stderr)
 
 if __name__ == "__main__":
     main()

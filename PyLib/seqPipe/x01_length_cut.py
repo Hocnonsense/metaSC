@@ -3,8 +3,8 @@
  * @Date: 2020-10-24 10:24:10
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-15 14:08:56
- * @FilePath: /HScripts/Python/seqPipe/x01_length_cut.py
+ * @LastEditTime: 2021-06-01 13:47:00
+ * @FilePath: /metaSC/PyLib/seqPipe/x01_length_cut.py
  * @Description:
     x01_length_cut.py <in_file.fa> <out_file.fa> <threshold> [-h] [--help]
         @description:   Remove sequence shorter than given threshold.
@@ -21,6 +21,11 @@
 import os
 from sys import argv, stderr
 from Bio import SeqIO
+
+from PyLib.PyLibTool.file_info import verbose_import
+
+
+verbose_import(__name__, __doc__)
 
 
 def parse_args():
@@ -52,8 +57,6 @@ def main():
     print("    {seqs_n} seqs ({bases_n} bases) are discarded".format(
         seqs_n=discard_seqs, bases_n=discard_bases), file=stderr)
 
-
-print(__doc__, file=stderr)
 
 if __name__ == "__main__":
     main()

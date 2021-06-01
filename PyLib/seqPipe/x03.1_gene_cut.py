@@ -3,8 +3,8 @@
  * @Date: 2020-10-24 10:24:10
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-01-03 14:52:25
- * @FilePath: /HScripts/Python/seqPipe/x03.1_gene_cut.py
+ * @LastEditTime: 2021-06-01 13:47:20
+ * @FilePath: /metaSC/PyLib/seqPipe/x03.1_gene_cut.py
  * @Description:
         update from LYX's script
     x03.1_gene_cut.py <in_file_prefix> <out_file_prefix> <threshold> [-h] [--help]
@@ -33,6 +33,11 @@
 import os
 from sys import argv, stderr
 from Bio import SeqIO
+
+from PyLib.PyLibTool.file_info import verbose_import
+
+
+verbose_import(__name__, __doc__)
 
 
 class prefix_files:
@@ -156,8 +161,6 @@ def main(in_file_prefix, out_file_prefix, num):
     else:
         print("    {in_file} no found, pass".format(in_file=in_file_prefix(suffix)))
 
-
-print(__doc__, file=stderr)
 
 if __name__ == "__main__":
     main(*parse_args())
