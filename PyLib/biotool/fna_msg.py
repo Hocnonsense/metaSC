@@ -2,15 +2,19 @@
 """
  * @Date: 2020-12-11 10:22:23
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-15 14:06:07
- * @FilePath: /HScripts/Python/mylib/biotool/fna_msg.py
+ * @LastEditTime: 2021-06-01 14:40:08
+ * @FilePath: /metaSC/PyLib/biotool/fna_msg.py
  * @Description:
         Get message from a fna file.
 """
 
-from collections import OrderedDict
-from sys import stderr
-from typing import Iterable, Tuple
+from typing import Iterable, List, Tuple
+
+#from PyLib.reader.read_outputs import jgi_depths
+from PyLib.PyLibTool.file_info import verbose_import
+
+
+verbose_import(__name__, __doc__)
 
 
 def seq_GC_len(seqs: dict) -> dict:
@@ -41,59 +45,56 @@ def length_NL(seqs: dict, pcg=50) -> Tuple[int, int]:
             return (length, i)
 
 
-def statistic_fna(seqs: dict) -> dict:
-    """ Sequence message: SeqNumbers, MaxLength, GenomeSize, GC, N50, L50
-     * @param {dict} seqs: dict -> {record.id: record.seq}
-     * @return {dict} fna_msg
-    """
-    fna_msg = OrderedDict()
+def statistic_fna(seqs: dict) -> Tuple:
+    """{
+        'header': ['SeqNumbers', 'MaxLength', 'GenomeSize',
+                   'GC', 'N50', 'L50']
+    }"""
     GC_len = sorted(seq_GC_len(seqs).values(), reverse=True)
-    fna_msg["SeqNumbers"] = len(GC_len)
-    fna_msg["MaxLength"] = GC_len[0][1]
+    SeqNumbers = len(GC_len)
+    MaxLength = GC_len[0][1]
 
     total_len = sum(i[1] for i in GC_len)
-    fna_msg["GenomeSize"] = total_len
-    fna_msg["GC"] = sum(i[0] for i in GC_len) / total_len
+    GenomeSize = total_len
+    GC = sum(i[0] for i in GC_len) / total_len
 
     pcg_len = total_len * 50 / 100
     for i, (gc, length) in enumerate(GC_len):
         pcg_len -= length
         if pcg_len <= 0:
-            fna_msg["N50"] = length
-            fna_msg["L50"] = i
+            N50 = length
+            L50 = i + 1  # start from 1
             break
 
-    return fna_msg
+    return SeqNumbers, MaxLength, GenomeSize, GC, N50, L50
 
 
-def seq_depth(seqs: Iterable, ctg_depth: dict) -> dict:
-    """ Get depth of given seqs subset.
-    * @param {Iterable} seqs: [scaffold_name, ]
-    * @param {dict} ctg_depth: dict -> {
-            contigName: (
-                (length, totalAvgDepth),
-                [depth in each sample, ],
-                [depth-var in each sample]
-            )
-        } from contig_depths
-    * @return {dict} sub_ctg_depth: subset of ctg_depth
+def seq_total_depth(seqs: Iterable[str], ctg_depth: dict) -> Tuple[float, List[float]]:
     """
-    return {contigName: ctg_depth[contigName] for contigName in seqs}
+     * @description:
+        It is difficult to tell how depth is calculated by *jgi_summarize_bam_contig_depths*
+        https://bitbucket.org/berkeleylab/metabat/issues/48/jgi_summarize_bam_contig_depths-coverage
+            #L699: int32_t ignoreEdges = 0
 
+            #L715: end = contigLength
+            #L717: start = ignoreEdges;
+            #L718: end = end - ignoreEdges;
 
-def seq_total_depth(seqs: Iterable, ctg_depth: dict):
-    """ Total bases and depth of given seqs
+            #L721: int32_t adjustedContigLength = end - start
+
+            #L728: avgDepth += depthCounts.baseCounts[i] * (hasWeights ? weights[i] : 1.0);
+            #L732: avgDepth = avgDepth / adjustedContigLength;
             total_bases = sum(avgDepth * length)
             total_depth = total_bases / total_length
-    * @param {Iterable} seqs: [scaffold_name, ]
-    * @param {dict} ctg_depth: dict -> {
+     * @param {Iterable} seqs: [scaffold_name, ]
+     * @param {dict} ctg_depth: {
             contigName: (
                 (length, totalAvgDepth),
-                [depth in each sample, ],
-                [depth-var in each sample]
+                [depth in each sample, ], [depth-var in each sample, ]
             )
-        } from contig_depths
-     * @return {(float, list)} (totalAvgDepth, [depth in each sample]) of given seqs
+        } from jgi_depths
+     * @return
+        (totalAvgDepth, [depth in each sample]) of given seqs
     """
     (totalLength, totalBases) = (0, 0.0)
     for values in ctg_depth:
@@ -107,6 +108,3 @@ def seq_total_depth(seqs: Iterable, ctg_depth: dict):
         for i, depth in enumerate(sample_depth):
             sampleBases[i] += depth * seq_length
     return (totalBases / totalLength, [bases / totalLength for bases in sampleBases])
-
-
-print(__doc__, file=stderr)

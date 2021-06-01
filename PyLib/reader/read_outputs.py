@@ -2,22 +2,23 @@
 """
  * @Date: 2020-10-06 21:57:58
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-15 14:06:44
- * @FilePath: /HScripts/Python/mylib/biotool/read_outputs.py
+ * @LastEditTime: 2021-06-01 15:37:54
+ * @FilePath: /metaSC/PyLib/reader/read_outputs.py
  * @Description:
         checkM, gtdbtk, iRep, contig_depths, fasta
 """
 
 import os
 from io import StringIO
-from sys import stderr
-from typing import Any, Callable
+from typing import Any, Callable, Dict, List, Tuple
 
 from Bio import SeqIO
-from mylib.biotool.checkm.reload import reload_checkMOutput
 from numpy import nan
 
-checkM = reload_checkMOutput
+from PyLib.PyLibTool.file_info import verbose_import
+
+
+verbose_import(__name__, __doc__)
 
 
 def gtdbtk(text: StringIO) -> list:
@@ -25,13 +26,13 @@ def gtdbtk(text: StringIO) -> list:
                      ./gtdbtk.ar122.summary.tsv
        @return:
             user_genome, classification, fastani_reference, fastani_reference_radius, fastani_taxonomy, fastani_ani, fastani_af, closest_placement_reference, closest_placement_taxonomy, closest_placement_ani, closest_placement_af, pplacer_taxonomy, classification_method, note, other_related_references, aa_percent, translation_table, red_value, warnings
-       @warnings: some line are need to deal with.
+       @warnings: use PyLib.reader.iters.DASTool_summary_iter
     """
     gtdbtklist = []
     #titles = text.readline().strip().split("\t")
     text.readline()
-    print("""
-    raise FutureWarning("Some lines are still raw. please check carefully")
+    #print("""
+    raise FutureWarning("use PyLib.reader.iters.DASTool_summary_iter instead")
     #""", file=stderr)
     for line in text:
         user_genome, classification, fastani_reference, fastani_reference_radius, fastani_taxonomy, fastani_ani, fastani_af, closest_placement_reference, closest_placement_taxonomy, closest_placement_ani, closest_placement_af, pplacer_taxonomy, classification_method, note, other_related_references, aa_percent, translation_table, red_value, warnings = line[:-1].split("\t")
@@ -148,18 +149,16 @@ class ctgDepthSample:
         return self.ctg_depth[contigName][self.i][self.j]
 
 
-def contig_depths(text: StringIO) -> dict:
+def jgi_depths(text: StringIO) \
+        -> Tuple[List[str],
+                 Dict[str, Tuple[Tuple[int, float],
+                      List[float], List[float]]]]:
     """ Read .depth generated from jgi_summarize_bam_contig_depths
      * @return (
-            sample_list: list -> [sample names, ]
-            ctg_depth: dict -> {
-                contigName: (
-                    (length, totalAvgDepth),
-                    [depth in each sample, ],
-                    [depth-var in each sample]
-                )
-            }
-        )
+            sample_list: [sample names, ]
+            ctg_depth: {contigName: (
+                (length, totalAvgDepth),
+                [depth in each sample, ], [depth-var in each sample, ])})
     """
     # DEPTH_META = [(0, "contigName"), (1, "contigLen"), (2, "totalAvgDepth")]
     (sample_list, ctg_depth) = ([], {})
@@ -171,7 +170,7 @@ def contig_depths(text: StringIO) -> dict:
     for line in text:
         values = line.strip().split()
         ctg_depth[values[0]] = (
-            (int(float(values[1])), float(values[2])),
+            (int(float(values[1])), float(values[2])),  # to avoid "base 10: '1.2458e+06'"
             [float(values[i[0]]) for i in sample_index],
             [float(values[i[0] + 1]) for i in sample_index]
         )
@@ -188,6 +187,3 @@ def fasta(text: StringIO) -> dict:
     for record in SeqIO.parse(text, "fasta"):
         seqs[record.id] = record.seq
     return seqs
-
-
-print(__doc__, file=stderr)
