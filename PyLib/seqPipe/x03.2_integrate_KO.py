@@ -3,11 +3,11 @@
  * @Editor: Lv Yongxin
  * @Date: 2020/08/29 11:08:50
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-01 13:47:43
+ * @LastEditTime: 2021-06-05 21:49:16
  * @FilePath: /metaSC/PyLib/seqPipe/x03.2_integrate_KO.py
  * @Description: 对最多三种来源的KO注释结果整合
 
-    usage: python x04_integrate_KO.py -p pattern [-o out_file]
+    usage: python x03.2_integrate_KO.py -p pattern [-o out_file]
 
     description: merge KO annotations from
         GhostKOALA, KofamKOALA, eggnog as the order
@@ -118,7 +118,7 @@ def main():
             if pattern.search(file):
                 for i, source in enumerate(formats_list):
                     if source in file.lower():
-                        ann_files[i] = file
+                        ann_files[i] = os.path.join(in_dir, file)
 
         gene_KOs = {}
         for format, file in zip(formats_list, ann_files):

@@ -2,15 +2,18 @@
 """
  * @Date: 2021-04-26 12:03:40
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-04-26 15:28:42
+ * @LastEditTime: 2021-06-04 20:28:11
  * @FilePath: /metaSC/PyLib/reader/pubmed.py
  * @Description:
 """
 
+import sys
 import os
 from io import FileIO, StringIO
 from typing import Tuple
-from PyLib.reader import path
+
+
+SUFFIX = '.pubmed'
 
 
 def wrapStrFile(sth: FileIO, **kwargs):
@@ -25,10 +28,10 @@ def wrapStrFile(sth: FileIO, **kwargs):
 def add_pubmed_item(item: dict, k0: str, v: str):
     k1, v1 = '', v
     if v[-1] == ')':
-        v, k1 = v[:-1].split('(')
+        v, k1 = v[:-1].split('(', 1)
         v1 = v.strip()
     elif v[-1] == ']':
-        v, k1 = v[:-1].split('[')
+        v, k1 = v[:-1].split('[', 1)
         v1 = v.strip()
     item.setdefault(k0, {})[k1] = v1
     item.setdefault(k0, {})[''] = v
@@ -76,10 +79,9 @@ def report(file, *keys: Tuple):
 
 
 if __name__ == '__main__':
-    file = '/home/hwrn/Work/2021_02-MarianaMeta/Analyze/pubmed-27242695-set.nbib'
-    dir = path.path(file)
-    with open(dir.get('pubmed_set.2.tsv'), 'w') as fo:
+    file_in, file_out = sys.argv[1:3]
+    with open(file_out, 'w') as fo:
         print('doi', 'Ti', 'JT', 'AB', 'DP', sep='\t', file=fo)
-        for report_item in report(dir.get(), ('AID', 'doi'), 'TI', 'JT', 'AB', 'DP'):
+        for report_item in report(file_in, ('AID', 'doi'), 'TI', 'JT', 'AB', 'DP'):
             print('https://doi.org/', end='', file=fo)
             print(*report_item, sep='\t', file=fo)
