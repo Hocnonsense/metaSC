@@ -2,8 +2,8 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-01 15:03:09
- * @FilePath: /metaSC/PyLib/reader/iters.py
+ * @LastEditTime: 2021-06-07 17:40:17
+ * @FilePath: /2021_05-MT10kSW/Scripts/PyLib/reader/iters.py
  * @Description:
 """
 
@@ -100,13 +100,14 @@ def gtdbtk_iter(text: FileIO):
     header = text.readline()
     assert header == '\t'.join(eval(gtdbtk_iter.__doc__)['in_header']) + '\n'  # 12
     for line in text:
+        if not line.strip():
+            continue
         values = line.strip().split('\t')
-        if values:
-            yield values[0], [
-                *values[1:4],
-                values[7], values[12], values[15],
-                values[17], values[18]
-            ], [
-                taxon.split('__')[1]
-                for taxon in values[1].split(';')
-            ]
+        yield values[0], [
+            *values[1:4],
+            values[7], values[12], values[15],
+            values[17], values[18]
+        ], [
+            taxon.split('__')[1]
+            for taxon in values[1].split(';')
+        ]
