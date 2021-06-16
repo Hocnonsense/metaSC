@@ -2,12 +2,13 @@
 """
  * @Date: 2020-07-01 00:29:24
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-03 13:08:41
- * @FilePath: /HScripts/Python/mylib/biotool/kegg/kegg.py
+ * @LastEditTime: 2021-06-15 12:11:38
+ * @FilePath: /metaSC/PyLib/biotool/kegg/kegg.py
  * @Description:
 """
 import pickle
 from io import StringIO
+from typing import Dict, Hashable, List
 
 
 class KModule():
@@ -20,10 +21,11 @@ class KModule():
     """
     def __init__(self, express="", additional_info=""):
         # print(express)
-        self.is_chain = True
-        self.elements = []
-        self.ko = ""
-        self.additional_info = additional_info
+        self.is_chain: bool = True
+        self.elements: List[KModule] = []
+        self.ko: str = ""
+        self.additional_info: str = additional_info
+
         self.__calculate(express)
 
     def __calculate(self, express: str):
@@ -72,7 +74,10 @@ class KModule():
         # print(*self.elements)
         self.elements.reverse()
 
-    def completeness(self, ko_match: dict):
+    def abundance(self, ko_match: Dict[str, float]):
+        return sum(ko_match.get(ko, 0) for ko in self.list_ko())
+
+    def completeness(self, ko_match: Hashable) -> float:
         """Complessness of given match, ko is its dict"""
         count = 0
         if self.ko:
@@ -84,6 +89,11 @@ class KModule():
             return count / len(self.elements)
         # self.is_chain is False
         return max([element.completeness(ko_match) for element in self.elements])
+
+    def list_ko(self) -> List[str]:
+        if self.ko:
+            return [self.ko]
+        return [ko for element in self.elements for ko in element.list_ko()]
 
     def __len__(self):
         return sum([len(e) for e in self.elements]) if self.elements else 1

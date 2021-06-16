@@ -2,13 +2,13 @@
 """
  * @Date: 2020-10-02 22:11:16
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-24 11:48:48
- * @FilePath: /HScripts/Python/mylib/biotool/kegg/amino_acid_metabolism.py
+ * @LastEditTime: 2021-06-14 19:53:45
+ * @FilePath: /metaSC/PyLib/biotool/kegg/amino_acid_metabolism.py
  * @Description:
 """
 
 
-from mylib.biotool.kegg.kegg import _load_module, KModule
+from PyLib.biotool.kegg.kegg import _load_module, KModule
 
 
 amino_acid_metabolism = """
