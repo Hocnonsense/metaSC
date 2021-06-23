@@ -2,10 +2,11 @@
 """
  * @Date: 2021-03-15 11:07:29
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-01 14:28:21
+ * @LastEditTime: 2021-06-16 18:08:14
  * @FilePath: /metaSC/PyLib/PyLibTool/file_info.py
  * @Description:
 """
+
 import logging
 
 
@@ -33,6 +34,7 @@ def verbose_import(module_name, module_doc):
     logger = logging.getLogger(module_name)
     LastEditTime = doc_dict["LastEditTime"]
     logger.debug(f'import version {LastEditTime} -- {module_name}')
+    return logger
 
 
 verbose_import(__name__, __doc__)

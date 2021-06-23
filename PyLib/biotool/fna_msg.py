@@ -2,7 +2,7 @@
 """
  * @Date: 2020-12-11 10:22:23
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-01 14:40:08
+ * @LastEditTime: 2021-06-16 20:38:19
  * @FilePath: /metaSC/PyLib/biotool/fna_msg.py
  * @Description:
         Get message from a fna file.
@@ -17,26 +17,26 @@ from PyLib.PyLibTool.file_info import verbose_import
 verbose_import(__name__, __doc__)
 
 
-def seq_GC_len(seqs: dict) -> dict:
+def seq_GC_len(seqs: Iterable[Tuple[str, str]]) -> dict:
     """ Read fasta files.
-     * @param {dict} seqs: dict -> {record.id: record.seq}
+     * @param {dict} seqs: Iterable[Tuple[str, str]] -> {record.id: record.seq}
      * @return {dict} {ctg_name: [GC count, genome size]}
     """
     GC_len = {}
-    for id, seq in seqs.items():
+    for id, seq in seqs:
         gc_count = seq.count("G") + seq.count("C")
         seq_len = len(seq)
         GC_len[id] = gc_count, seq_len
     return GC_len
 
 
-def length_NL(seqs: dict, pcg=50) -> Tuple[int, int]:
+def length_NL(seqs: Iterable[Tuple[str, str]], pcg=50) -> Tuple[int, int]:
     """ Calculate N50, L50 or N{pcg}, L{pcg} for given pcg (total is 100)
-     * @param {dict} seqs: dict -> {record.id: record.seq}
+     * @param {dict} seqs: Iterable[Tuple[str, str]] -> {record.id: record.seq}
      * @param {int} pcg: threashold of total length percentage (100)
      * @return {(int, int)} (N50, L50)
     """
-    seqs_len = [len(seq) for seq in seqs.items()]
+    seqs_len = [len(seq) for seq in seqs]
     seqs_len.sort(reverse=True)
     pcg_len = sum(seqs_len) * pcg / 100
     for i, length in enumerate(seqs_len):
@@ -45,7 +45,7 @@ def length_NL(seqs: dict, pcg=50) -> Tuple[int, int]:
             return (length, i)
 
 
-def statistic_fna(seqs: dict) -> Tuple:
+def statistic_fna(seqs: Iterable[Tuple[str, str]]) -> Tuple:
     """{
         'header': ['SeqNumbers', 'MaxLength', 'GenomeSize',
                    'GC', 'N50', 'L50']
@@ -69,7 +69,7 @@ def statistic_fna(seqs: dict) -> Tuple:
     return SeqNumbers, MaxLength, GenomeSize, GC, N50, L50
 
 
-def seq_total_depth(seqs: Iterable[str], ctg_depth: dict) -> Tuple[float, List[float]]:
+def seq_total_depth(seqs: Iterable[Tuple[str, str]], ctg_depth: dict) -> Tuple[float, List[float]]:
     """
      * @description:
         It is difficult to tell how depth is calculated by *jgi_summarize_bam_contig_depths*
@@ -101,7 +101,7 @@ def seq_total_depth(seqs: Iterable[str], ctg_depth: dict) -> Tuple[float, List[f
         sample_len = len(values[1])
         break  # get the length and leave
     sampleBases = [0.0] * sample_len
-    for contigName in seqs:
+    for contigName, _ in seqs:
         (seq_length, totalAvgDepth), sample_depth, sample_depth_var = ctg_depth[contigName]
         totalLength += seq_length
         totalBases += seq_length * totalAvgDepth

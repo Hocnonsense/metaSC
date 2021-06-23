@@ -3,8 +3,8 @@
  * @Date: 2020-10-24 10:24:10
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-01 13:47:00
- * @FilePath: /metaSC/PyLib/seqPipe/x01_length_cut.py
+ * @LastEditTime: 2021-06-16 20:29:53
+ * @FilePath: /metaSC/PyLib/seqPipe/x02.1_length_cut.py
  * @Description:
     x01_length_cut.py <in_file.fa> <out_file.fa> <threshold> [-h] [--help]
         @description:   Remove sequence shorter than given threshold.
@@ -19,44 +19,95 @@
 """
 
 import os
-from sys import argv, stderr
+from sys import stderr
+from io import FileIO
+from datetime import datetime
+import logging
+import argparse
+import sys
+from typing import Tuple
+
 from Bio import SeqIO
 
 from PyLib.PyLibTool.file_info import verbose_import
+#from PyLib.biotool.fna_msg import statistic_fna
 
 
-verbose_import(__name__, __doc__)
+logger = verbose_import(__name__, __doc__)
 
 
-def parse_args():
-    if "-h" in argv or "--help" in argv or len(argv) == 1:
-        exit(0)
-
-    sc, in_file, out_file, number = argv
-    in_file = os.path.abspath(os.path.expanduser(in_file))
-    out_file = os.path.abspath(os.path.expanduser(out_file))
-    num = int(number)
-    args = in_file, out_file, num
-    print(sc, *args, sep="\n" + " " * 4, file=stderr)
-    return args
-
-
-def main():
-    in_file, out_file, num = parse_args()
-
-    with open(out_file, "w") as fo \
-            , open(in_file) as fi \
-            :
-        discard_seqs, discard_bases = 0, 0
-        for line in SeqIO.parse(fi, 'fasta'):
-            if len(line.seq) >= num:
-                fo.write('>' + str(line.id) + '\n' + str(line.seq) + '\n')
-            else:
-                discard_seqs += 1
-                discard_bases += len(line.seq)
+def main(fi: FileIO, fo: FileIO, threshold):  #, report):
+    discard_seqs, discard_bases = 0, 0
+    for line in SeqIO.parse(fi, 'fasta'):
+        if len(line.seq) >= threshold:
+            fo.write('>' + str(line.id) + '\n' + str(line.seq) + '\n')
+        else:
+            discard_seqs += 1
+            discard_bases += len(line.seq)
     print("    {seqs_n} seqs ({bases_n} bases) are discarded".format(
         seqs_n=discard_seqs, bases_n=discard_bases), file=stderr)
 
+    fi.close()
+    fo.close()
 
-if __name__ == "__main__":
-    main()
+    return 0
+
+
+def get_args() -> Tuple:
+    parser = argparse.ArgumentParser(description=__doc__)
+    set_args(parser)
+    args = parser.parse_args()
+    logging.basicConfig(level=args.loglevel.upper())  # info
+
+    input = args.input
+    output = args.output
+    threshold = args.threshold
+    #report = args.report
+
+    input = os.path.abspath(os.path.expanduser(input))
+    logger.info(f'intput: {input}')
+    in_file = open(input)
+
+    if output == 'output':
+        #if report:
+        #    logger.warning('conflict between output and report, ignore output')
+        #    out_file = None
+        #else:
+        out_file = sys.stdout
+    else:
+        output = os.path.abspath(os.path.expanduser(output))
+        out_file = open(output, 'w')
+    logger.info(f'output: {output}')
+
+    logger.info(f'threshold: {threshold}')
+    return in_file, out_file, threshold  #, report
+
+
+def set_args(parser: argparse.ArgumentParser):
+    parser.add_argument('--loglevel', default='INFO', type=str,
+                        help='set level of logger')
+    parser.add_argument('-i', '--input', type=str, required=True,
+                        help='input file in FASTA format')
+    parser.add_argument('-o', '--output', type=str, default='stdout',
+                        help='output file')
+    parser.add_argument('threshold', default=500, type=int, nargs='?',
+                        help='threshold. '
+                             'Any sequence < threshold will be discard')
+    #parser.add_argument('--report', action='store_true',
+    #                    help='report quality of sequence')
+
+
+def run():
+    args = get_args()
+
+    now = datetime.now()
+    logger.warning('>>> job start at ' + now.strftime('%Y-%m-%d %H:%M:%S'))
+    state = main(*args)
+    logger.warning('>>> job run time: ' + str(datetime.now() - now))
+
+    if state == 0:
+        logger.info('success!')
+
+
+if __name__ == '__main__':
+    run()
