@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-01 23:31:42
+ * @LastEditTime: 2021-07-01 23:39:22
  * @FilePath: /metaSC/PyLib/seqPipe/x00_Oerr.py
  * @Description:
 """
@@ -20,7 +20,8 @@ from PyLib.biotool.fna_msg import statistic_fna, seq_total_depth
 
 def sickle_mapper(text: FileIO):
     """{
-        'header': ['key', 'input reads',
+        'header': ['key',
+                   'input reads',
                    'paired reads kept', 'SE1 reads kept', 'SE2 reads kept',
                    'paired reads discarded', 'SE1 reads discarded', 'SE2 reads discarded'],
         'demo': '''
@@ -64,12 +65,14 @@ def sickle_mapper(text: FileIO):
 def assem_mapper(text: FileIO):
     """{
         'header': [
+            'key',
             'SeqNumbers', 'MaxLength', 'GenomeSize',
             'GC', 'N50', 'L50',
             'total_depth', '{depths}',
             'Reads', 'Mapped reads', 'Mapped bases',
             'Percent mapped', 'Percent proper pairs',
-            'Average coverage', 'Average coverage with deletions', 'Standard deviation'
+            'Average coverage', 'Average coverage with deletions',
+            'Standard deviation', 'Percent of reference bases covered'
         ],
         'demo': '''
             Reads:                               	124372186
