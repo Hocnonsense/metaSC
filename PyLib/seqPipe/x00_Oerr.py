@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-01 23:21:58
+ * @LastEditTime: 2021-07-01 23:31:42
  * @FilePath: /metaSC/PyLib/seqPipe/x00_Oerr.py
  * @Description:
 """
@@ -103,8 +103,7 @@ def assem_mapper(text: FileIO):
             sample_list, ctg_depth = jgi_depths(fi)
         totalAvgDepth, depths = seq_total_depth(ctg_depth, fasta(scf))
         values = list(fna_msg) + [totalAvgDepth] + depths
-    except (FileNotFoundError,
-            IndexError):  # File "PyLib.biotool.fna_msg", line 55, in statistic_fna
+    except FileNotFoundError:
         values = []
 
     for line in text:
