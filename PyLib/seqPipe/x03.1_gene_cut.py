@@ -3,7 +3,7 @@
  * @Date: 2020-10-24 10:24:10
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-01 13:47:20
+ * @LastEditTime: 2021-06-30 20:02:44
  * @FilePath: /metaSC/PyLib/seqPipe/x03.1_gene_cut.py
  * @Description:
         update from LYX's script
@@ -18,7 +18,7 @@
                                                 ./M001-prodigal.faa
                                                 ./M001-prodigal.fna
                                                 ./M001-prodigal.gff
-                                        **NOTE**: "in_file_prefix".faa must
+                                        **NOTE**: '"in_file_prefix".faa' must
                                         exist.
                         <out_file_prefix>:  output file prefix. Similar to
                                         <in_file_prefix>

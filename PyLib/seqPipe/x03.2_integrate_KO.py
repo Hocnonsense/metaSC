@@ -3,7 +3,7 @@
  * @Editor: Lv Yongxin
  * @Date: 2020/08/29 11:08:50
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-05 21:49:16
+ * @LastEditTime: 2021-06-30 20:35:58
  * @FilePath: /metaSC/PyLib/seqPipe/x03.2_integrate_KO.py
  * @Description: 对最多三种来源的KO注释结果整合
 
@@ -108,8 +108,8 @@ def main():
 
             else:  # what will happen then?
                 i += 1
-        stderr.write("pattern: {}\nin_dir: {}\nout_name: {}\n".format(
-            pattern, in_dir, out_name))
+        stderr.write("pattern: {}\n" "in_dir: {}\n" "out_name: {}\n"
+                     .format(pattern, in_dir, out_name))
 
         # find avaiable annotation file
         pattern = re.compile(pattern)
