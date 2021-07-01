@@ -2,8 +2,8 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-07 17:40:17
- * @FilePath: /2021_05-MT10kSW/Scripts/PyLib/reader/iters.py
+ * @LastEditTime: 2021-07-01 16:35:19
+ * @FilePath: /metaSC/PyLib/reader/iters.py
  * @Description:
 """
 
@@ -15,6 +15,15 @@ from PyLib.PyLibTool.file_info import verbose_import
 
 
 verbose_import(__name__, __doc__)
+
+
+def read_table(text: FileIO, sep='\t', annot='#'):
+    for line in text:
+        if line.startswith(annot):
+            continue
+        values = line.strip().split(sep)
+        if values:
+            yield values
 
 
 def DASTool_summary_iter(text: FileIO):
@@ -111,3 +120,24 @@ def gtdbtk_iter(text: FileIO):
             taxon.split('__')[1]
             for taxon in values[1].split(';')
         ]
+
+
+def featureCounts_iter(text: FileIO):
+    """ read <in_file> of featureCounts by:
+            featureCounts \\
+                -a ${gff} \\
+                -o <in_file> \\
+                -t CDS -g ID \\
+                -p ${bam}
+       @return:
+           |   0   | 1  |  2   | 3  |   4   |   5   |  6 | ...
+            Geneid, Chr, Start, End, Strand, Length, bam1  ...
+    """
+    for values in read_table(text):
+        if values[0].startswith("Geneid"):  # drop title line
+            yield (*values[:6], values[6:])
+            return
+        Geneid, Chr, Start, End, Strand, Length = values[:6]
+        bam = values[6:]
+        yield (Geneid, Chr, int(Start), int(End), Strand, int(Length),
+               [int(bami) for bami in bam])

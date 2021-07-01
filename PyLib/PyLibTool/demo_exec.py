@@ -2,7 +2,7 @@
 """
  * @Date: 2021-06-06 18:01:40
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-07 20:56:33
+ * @LastEditTime: 2021-07-01 14:28:55
  * @FilePath: /metaSC/PyLib/PyLibTool/demo_exec.py
  * @Description:
 """
@@ -26,7 +26,7 @@ def get_args() -> Tuple:
     args = parser.parse_args()
     logging.basicConfig(level=args.loglevel.upper())  # info
 
-    print(parser.print_help())
+    parser.print_help()
 
     return
 
