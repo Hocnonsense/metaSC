@@ -2,8 +2,8 @@
 """
  * @Date: 2020-10-06 21:57:58
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-01 15:37:54
- * @FilePath: /metaSC/PyLib/reader/read_outputs.py
+ * @LastEditTime: 2021-07-01 22:40:21
+ * @FilePath: /Work/home/hwrn/software/metaSC/PyLib/reader/read_outputs.py
  * @Description:
         checkM, gtdbtk, iRep, contig_depths, fasta
 """
@@ -183,7 +183,4 @@ def fasta(text: StringIO) -> dict:
      * @return {dict} seqs: dict -> {record.id: record.seq}
             *NOTE*: record.seq: Bio.Seq.Seq
     """
-    seqs = {}
-    for record in SeqIO.parse(text, "fasta"):
-        seqs[record.id] = record.seq
-    return seqs
+    return ((title.split()[0], seq) for title, seq in SeqIO.FastaIO.SimpleFastaParser(text))

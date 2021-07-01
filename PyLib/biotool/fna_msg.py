@@ -2,8 +2,8 @@
 """
  * @Date: 2020-12-11 10:22:23
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-16 20:38:19
- * @FilePath: /metaSC/PyLib/biotool/fna_msg.py
+ * @LastEditTime: 2021-07-01 22:42:11
+ * @FilePath: /Work/home/hwrn/software/metaSC/PyLib/biotool/fna_msg.py
  * @Description:
         Get message from a fna file.
 """
@@ -69,7 +69,7 @@ def statistic_fna(seqs: Iterable[Tuple[str, str]]) -> Tuple:
     return SeqNumbers, MaxLength, GenomeSize, GC, N50, L50
 
 
-def seq_total_depth(seqs: Iterable[Tuple[str, str]], ctg_depth: dict) -> Tuple[float, List[float]]:
+def seq_total_depth(ctg_depth: dict, seqs: Iterable[Tuple[str, str]], ) -> Tuple[float, List[float]]:
     """
      * @description:
         It is difficult to tell how depth is calculated by *jgi_summarize_bam_contig_depths*
