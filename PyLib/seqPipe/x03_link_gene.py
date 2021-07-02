@@ -3,7 +3,7 @@
  * @Date: 2021-06-30 20:05:10
  * @Editors: Hwrn, LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-01 17:48:05
+ * @LastEditTime: 2021-07-02 16:23:21
  * @FilePath: /metaSC/PyLib/seqPipe/x03_link_gene.py
  * @Description:
     1.  it can generate/read subset gene or contig file, either fasta or table format.
@@ -135,21 +135,21 @@ def main(subsets: Tuple[Hashable, bool],
         title += ['KO']
         for gene, output_list in output_dict.items():
             output_list.append(gene_KOs.get(gene, ''))
-    if gene_tpg:
-        logger.info('collect TPG messages')
-        title += samples
-        for gene, output_list in output_dict.items():
-            output_list.extend(gene_tpg.get(gene, [''] * len(samples)))
     if show_contig:
         logger.info('collect contig messages')
         title += ['contig']
         for gene, output_list in output_dict.items():
             output_list.append(gene.rsplit('_', 1)[0])
+    if gene_tpg:
+        logger.info('collect TPG messages')
+        title += samples
+        for gene, output_list in output_dict.items():
+            output_list.extend(gene_tpg.get(gene, [''] * len(samples)))
 
     with output:
         print(*title, sep='\t', file=output)
-        for gene, output_list in output_dict.items():
-            print(gene, *output_list, sep='\t', file=output)
+        for gene in sorted(output_dict):
+            print(gene, *output_dict[gene], sep='\t', file=output)
         logger.info(f'write to file {output.name}')
 
     return 0
@@ -234,14 +234,21 @@ def get_args() -> Tuple[Tuple[Set, bool],  # subset
                     if source in file.lower():
                         ann_files[i] = os.path.join(in_dir, file)
 
-    countfile = args.tpg
-    if not os.path.isfile(countfile):
-        logger.warning('illigal pattern, ignore')
-        countfile = ''
+        if not any(ann_files):
+            parser.print_help()
+            logger.fatal('illigal pattern, please check!')
+            exit(1)
 
-    if not (any(ann_files) or countfile):
+    countfile = args.tpg
+    if countfile:
+        if not os.path.isfile(countfile):
+            parser.print_help()
+            logger.fatal('illigal countfile, please check!')
+            exit(1)
+
+    elif not any(countfile):
         parser.print_help()
-        logger.fatal('Nothing to output, exit')
+        logger.fatal('either pattern or countfile should be provided!')
         exit(1)
 
     show_contig = args.show_contig
