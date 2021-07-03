@@ -3,12 +3,13 @@
  * @Date: 2021-06-30 20:05:10
  * @Editors: Hwrn, LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-02 16:23:21
+ * @LastEditTime: 2021-07-02 23:34:15
  * @FilePath: /metaSC/PyLib/seqPipe/x03_link_gene.py
  * @Description:
     1.  it can generate/read subset gene or contig file, either fasta or table format.
     2.  it can intergrate KO
     3.  it can count gene and calculate gene hits/gene length (tpg)
+        - Warning: tpg / mapped reads cannot reflact sample difference as well as tpm of gene only?
     4.  it can output a table of 'gene, KO, tpg, contig' (contig is for binning later)
 """
 

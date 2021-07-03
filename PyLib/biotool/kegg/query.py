@@ -2,7 +2,7 @@
 """
  * @Date: 2021-06-14 18:41:24
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-15 12:04:35
+ * @LastEditTime: 2021-07-02 16:59:23
  * @FilePath: /metaSC/PyLib/biotool/kegg/query.py
  * @Description:
 """
@@ -14,7 +14,7 @@ from typing import Callable, List, Dict, Tuple, Union
 
 from Bio.KEGG import REST
 
-from PyLib.biotool.kegg.kegg import KModule
+from PyLib.biotool.kegg.kmodule import KModule
 
 
 def load_KEGG_module_raw(source: Union[str, FileIO], cache_path: str = ''

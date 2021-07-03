@@ -2,14 +2,16 @@
 """
  * @Date: 2021-06-06 10:19:04
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-06 14:26:33
- * @FilePath: /metaSC/PyLib/biotool/kegg/LinkDB.py
+ * @LastEditTime: 2021-07-02 20:11:22
+ * @FilePath: /2021_05-MT10kSW/Scripts/PyLib/biotool/kegg/LinkDB.py
  * @Description:
 """
 
 
 from io import FileIO
-from typing import List, Tuple
+from .query import load_brite, load_KEGG_module_raw
+from .kmodule import KModule
+from typing import List, Tuple, Dict, Union
 
 
 def path2tsv_iter(text: FileIO) -> Tuple[str, List[str], str, List[str]]:
@@ -34,3 +36,21 @@ def path2tsv_iter(text: FileIO) -> Tuple[str, List[str], str, List[str]]:
             desc: str = desc.strip()
             EC = EC.split(']', 1)[0].split()
             yield ID, genes, desc, EC
+
+
+def module_from_brite(source: Union[str, FileIO], brite_path: str = '', module_path: str = ''
+                      ) -> Tuple[List[str], List[Tuple[str, KModule]]]:
+    _, brite = load_brite(source, brite_path)
+    module_levels = []
+    modules: List[Tuple[str, KModule]] = []
+    for modules1_name, modules1 in brite.items():
+        for metabolism_name, metabolism in modules1.items():
+            for metabolism_name2, metabolism2 in metabolism.items():
+                for entry, name in metabolism2.items():
+                    module_levels.append((modules1_name, metabolism_name,
+                                          metabolism_name2, entry, name))
+                    raw_module = load_KEGG_module_raw(entry, module_path)
+                    module = KModule(''.join(raw_module['DEFINITION']),
+                                     additional_info=''.join(raw_module['NAME']))
+                    modules.append((entry, module))
+    return module_levels, modules

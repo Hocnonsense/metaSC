@@ -2,14 +2,14 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-01 16:35:19
+ * @LastEditTime: 2021-07-02 20:28:20
  * @FilePath: /metaSC/PyLib/reader/iters.py
  * @Description:
 """
 
 from ast import literal_eval as eval
 from io import FileIO
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Set, Tuple
 
 from PyLib.PyLibTool.file_info import verbose_import
 
@@ -26,7 +26,7 @@ def read_table(text: FileIO, sep='\t', annot='#'):
             yield values
 
 
-def DASTool_summary_iter(text: FileIO):
+def DASTool_summary_iter(text: FileIO) -> Iterable[List[str]]:
     """{'header': ['bin',
             'uniqueBacSCGs', 'redundantBacSCGs', 'uniqueArcSCGs', 'redundantArcSCGs',
             'bacRatio', 'arcRatio',
@@ -41,6 +41,20 @@ def DASTool_summary_iter(text: FileIO):
         values = line.strip().split('\t')
         if values:
             yield values
+
+
+def DASTool_scaffolds2bin_iter(text: FileIO) -> Iterable[Tuple[str, Set[str]]]:
+    """{
+        'header': ['MAG_Id', 'Contigs']
+    }"""
+    MAG_Id, scaffolds = '', set()
+    for scaffold, MAG in read_table(text):
+        if MAG != MAG_Id:
+            if MAG_Id:
+                yield MAG_Id, scaffolds
+            MAG_Id, scaffolds = MAG, {scaffold}
+        scaffolds.add(scaffold)
+    yield MAG_Id, scaffolds
 
 
 def checkm_iter(text: FileIO) -> Iterable[Tuple[str, List[str]]]:
