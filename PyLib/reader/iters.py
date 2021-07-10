@@ -2,8 +2,8 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-02 20:28:20
- * @FilePath: /metaSC/PyLib/reader/iters.py
+ * @LastEditTime: 2021-07-09 14:35:40
+ * @FilePath: /2021_05-MT10kSW/home/hwrn/software/metaSC/PyLib/reader/iters.py
  * @Description:
 """
 
@@ -35,10 +35,10 @@ def DASTool_summary_iter(text: FileIO) -> Iterable[List[str]]:
         ],
         'version': '2021-5-19 12:54:57'
     }"""
-    header = text.readline()
-    assert header == '\t'.join(eval(DASTool_summary_iter.__doc__)['header'])
-    for line in text:
-        values = line.strip().split('\t')
+    header == eval(DASTool_summary_iter.__doc__)['header']
+    for values in read_table(text):
+        if values[0] == header[0]:
+            assert all((header_i == value for header_i, value in zip(header, values)))
         if values:
             yield values
 
@@ -120,12 +120,10 @@ def gtdbtk_iter(text: FileIO):
             ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
         )
     }"""
-    header = text.readline()
-    assert header == '\t'.join(eval(gtdbtk_iter.__doc__)['in_header']) + '\n'  # 12
-    for line in text:
-        if not line.strip():
-            continue
-        values = line.strip().split('\t')
+    header == eval(gtdbtk_iter.__doc__)['in_header']
+    for values in read_table(text):
+        if values[0] == header[0]:
+            assert all((header_i == value for header_i, value in zip(header, values)))
         yield values[0], [
             *values[1:4],
             values[7], values[12], values[15],
@@ -155,3 +153,20 @@ def featureCounts_iter(text: FileIO):
         bam = values[6:]
         yield (Geneid, Chr, int(Start), int(End), Strand, int(Length),
                [int(bami) for bami in bam])
+
+
+def emapper_ee27b8e_iter(text: FileIO):
+    """{
+        'header': [
+            'query', 'seed_ortholog', 'evalue', 'score', 'eggNOG_OGs',
+            'max_annot_lvl', 'COG_category', 'Description', 'Preferred_name',
+            'GOs', 'EC',
+            'KEGG_ko', 'KEGG_Pathway', 'KEGG_Module', 'KEGG_Reaction', 'KEGG_rclass', 'BRITE', 'KEGG_TC',
+            'CAZy', 'BiGG_Reaction', 'PFAMs'
+        ],
+        'version': 'emapper-2.1.3-ee27b8e'
+    }"""
+    for values in read_table(text):
+        yield values
+
+emapper_iter = emapper_ee27b8e_iter

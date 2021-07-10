@@ -3,8 +3,8 @@
  * @Date: 2021-06-30 20:05:10
  * @Editors: Hwrn, LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-02 23:34:15
- * @FilePath: /metaSC/PyLib/seqPipe/x03_link_gene.py
+ * @LastEditTime: 2021-07-09 14:48:51
+ * @FilePath: /2021_05-MT10kSW/home/hwrn/software/metaSC/PyLib/seqPipe/x03_link_gene.py
  * @Description:
     1.  it can generate/read subset gene or contig file, either fasta or table format.
     2.  it can intergrate KO
@@ -23,7 +23,7 @@ from sys import stdout
 from typing import Dict, Hashable, Iterable, List, Set, Tuple
 
 from Bio.SeqIO.FastaIO import SimpleFastaParser
-from PyLib.reader.iters import featureCounts_iter, read_table
+from PyLib.reader.iters import featureCounts_iter, read_table, emapper_iter
 
 logger = logging.getLogger(__name__)
 
@@ -60,11 +60,12 @@ def get_gene_KOs(ann_files: List[str],
                 yield gene, ko
 
     def eggnog_iter(text: FileIO) -> Iterable[Tuple[str, str]]:
-        for values in read_table(text):
-            ko = values[8].split(',')[0][3:]
-            if ko != '':
+        i_KEGG_ko = 11
+        for values in emapper_iter(text):
+            kos = values[i_KEGG_ko]
+            if kos:
                 gene = values[0]
-                yield gene, ko
+                yield gene, kos.split(',')[0][3:]
 
     formats_func = {
         "ghost": GhostKOALA_iter,
