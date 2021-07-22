@@ -2,8 +2,8 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-09 14:35:40
- * @FilePath: /2021_05-MT10kSW/home/hwrn/software/metaSC/PyLib/reader/iters.py
+ * @LastEditTime: 2021-07-22 18:23:09
+ * @FilePath: /metaSC/PyLib/reader/iters.py
  * @Description:
 """
 
@@ -35,7 +35,7 @@ def DASTool_summary_iter(text: FileIO) -> Iterable[List[str]]:
         ],
         'version': '2021-5-19 12:54:57'
     }"""
-    header == eval(DASTool_summary_iter.__doc__)['header']
+    header = eval(DASTool_summary_iter.__doc__)['header']
     for values in read_table(text):
         if values[0] == header[0]:
             assert all((header_i == value for header_i, value in zip(header, values)))
@@ -120,7 +120,7 @@ def gtdbtk_iter(text: FileIO):
             ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
         )
     }"""
-    header == eval(gtdbtk_iter.__doc__)['in_header']
+    header = eval(gtdbtk_iter.__doc__)['in_header']
     for values in read_table(text):
         if values[0] == header[0]:
             assert all((header_i == value for header_i, value in zip(header, values)))
@@ -168,5 +168,6 @@ def emapper_ee27b8e_iter(text: FileIO):
     }"""
     for values in read_table(text):
         yield values
+
 
 emapper_iter = emapper_ee27b8e_iter

@@ -2,8 +2,8 @@
 """
  * @Date: 2020-10-06 21:57:58
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-01 23:30:27
- * @FilePath: /Work/home/hwrn/software/metaSC/PyLib/reader/read_outputs.py
+ * @LastEditTime: 2021-07-22 19:50:59
+ * @FilePath: /metaSC/PyLib/reader/read_outputs.py
  * @Description:
         checkM, gtdbtk, iRep, contig_depths, fasta
 """
@@ -162,7 +162,7 @@ def jgi_depths(text: StringIO) \
     """
     # DEPTH_META = [(0, "contigName"), (1, "contigLen"), (2, "totalAvgDepth")]
     (sample_list, ctg_depth) = ([], {})
-    head = text.readline()
+    head = next(text)
     sample_index = check_head(head)
     sample_list = [i[1] for i in sample_index]
     #sample_index = DEPTH_META + sample_index
