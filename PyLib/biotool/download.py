@@ -2,8 +2,8 @@
 """
  * @Date: 2021-02-03 11:09:20
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-02-03 11:42:53
- * @FilePath: /HScripts/Python/mylib/biotool/download.py
+ * @LastEditTime: 2021-07-27 15:56:53
+ * @FilePath: /metaSC/PyLib/biotool/download.py
  * @Description:
         download genome from net
 """
@@ -15,7 +15,7 @@ import time
 import ftplib
 import json
 import xml.etree.ElementTree as ET
-from mylib.tool.path import makedirs
+from PyLib.tool.path import makedirs
 
 
 def byte_to_megabyte(byte):
@@ -142,7 +142,7 @@ def retrive_img_url(img_id, cookies='cookies'):
             return img_base_url + i.attrib['url']
 
 
-def download_fna(sequence_id: str, output, verbose=True, cookies='cookies'):
+def download_fna(sequence_id: str, output='./', verbose=True, cookies='cookies'):
     makedirs(output)
     print(time.time())
 

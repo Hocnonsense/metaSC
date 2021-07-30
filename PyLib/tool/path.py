@@ -2,8 +2,8 @@
 """
  * @Date: 2020-02-05 11:03:35
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-05 15:12:26
- * @FilePath: /HScripts/Python/mylib/tool/path.py
+ * @LastEditTime: 2021-07-27 15:54:17
+ * @FilePath: /metaSC/PyLib/tool/path.py
  * @Description: 文件和文件名操作子
  * @TODO:
 """
@@ -53,7 +53,7 @@ def verify_dir_exists(dir_path: str, message: str = '') -> None:
             errno.ENOENT, 'Missing dir "{}".  {}'.format(dir_path, message))
 
 
-def list_dir(dir: str, filter: Tuple[str, re.Pattern]) -> List:
+def list_dir(dir: str, filter: Tuple) -> List:
     """ List file or direcory in `dir`. """
     dir_list = []
     if isinstance(filter, str):
@@ -64,8 +64,9 @@ def list_dir(dir: str, filter: Tuple[str, re.Pattern]) -> List:
     return dir_list
 
 
-def fine_all_files(dir: str, filter: re.Pattern) -> List:
+def fine_all_files(dir: str, filter) -> List:
     """ List all files. """
+    # : re.Pattern is unavalible in python3.6
     files_list = []
     for parent, dirs, files in os.walk(dir):
         file_list = []
