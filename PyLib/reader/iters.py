@@ -2,7 +2,7 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-22 18:23:09
+ * @LastEditTime: 2021-07-31 14:43:42
  * @FilePath: /metaSC/PyLib/reader/iters.py
  * @Description:
 """
@@ -17,10 +17,12 @@ from PyLib.PyLibTool.file_info import verbose_import
 verbose_import(__name__, __doc__)
 
 
-def read_table(text: FileIO, sep='\t', annot='#'):
+def read_table(text: FileIO, sep='\t', annot='#', title: List[str] = None):
     for line in text:
         if line.startswith(annot):
-            continue
+            if title is not None:
+                title.clear()
+                title.extend(line[len(annot):].rstrip().split())
         values = line.strip().split(sep)
         if values:
             yield values
