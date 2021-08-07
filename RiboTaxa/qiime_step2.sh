@@ -3,7 +3,7 @@
  * @Editors: WangJing
  * @Date: 2020-12-30 21:03:03
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-04-10 14:13:33
+ * @LastEditTime: 2021-08-07 10:51:31
  * @FilePath: /metaSC/RiboTaxa/qiime_step2.sh
  * @Description:
 !EOF!
@@ -37,8 +37,9 @@ function show_usage (){
     echo ""
     echo "FILE output:"
     echo "   {outpath}/02.1-dada2_table.qzv"
-    echo "       View and check how many reads are used"
-    echo "       Evalue 'Feature Count' FOR beta diversity IN qiime_step3"
+    echo "       View and check total reads detected"
+    echo "   {outpath}/{domain}/02.4-{domain}_table.qza"
+    echo "       Evalue 'Feature Count' FOR beta diversity OF given domain IN qiime_step3"
          # 可以取 Interactive Sample Detail -> Feature Count 下所需的值进行 Beta 多样性对比
     echo "   {outpath}/02.2-rooted_tree.qza &"
     echo "   {outpath}/02.3-taxonomy.qza &"
