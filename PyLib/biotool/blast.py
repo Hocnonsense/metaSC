@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-31 15:28:13
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-07 22:27:34
+ * @LastEditTime: 2021-08-08 17:09:12
  * @FilePath: /metaSC/PyLib/biotool/blast.py
  * @Description:
 """
@@ -60,51 +60,68 @@ def blast_xml_iter(blast_file: FileIO):
                 yield [query_def] + Hit_values + Hsp_values
 
 
-def blast_unmatch_iter(values: List[str], wind=10, foreach=False) -> List[Tuple[str, List[int], List[int]]]:
+def blast_unmatch_iter(values: List[str], wind=10) -> List[Tuple[List[str], List[int], List[int]]]:
     """ read one of blast alignment and output each mismatch
     * @param {List[str]} values: values itered from blast_iter
     * @param {int} wind: length of wind sequence
-    * @param {bool} foreach:
-        ? WRANING: not implemented yet.
-        if True: return each alignment;
-        else: if mismatch is closed to another, they will be itered togather
     * @return List[str]: alignment of hit seq
         [
-            mismatch: enum(insert, delete, mismatch) compared to hit:
-                insert means query sequence have one more base at the unmatched position
+            mismatch, base_from, base_to:
+                mismatch: enum(insert, delete, mismatch) compared to hit:
+                    insert means query sequence have one more base at the unmatched position
             hit_from, hit_at, hit_to:
                 absolute 0-start index of hit sequence;
             hsp_qseq, hsp_midl, hsp_hseq:
                 alignment of unmatched segment;
         ]
     """
+    wind, half_wind = int(wind), int(wind) // 2
+
+    def lwind(index):
+        return (index - wind + half_wind) // wind * wind
+
+    def rwind(index):
+        return (index + wind + half_wind) // wind * wind
+
+    def extend_unmatch(index, newindex=0):
+        index, newindex = min(index, newindex), max(index, newindex)
+        newunmatch = Hsp_hseq.count('-', index, newindex)
+        while newunmatch:
+            index, newindex = newindex, newindex + newunmatch
+            newunmatch = Hsp_hseq.count('-', index, newindex)
+        return newindex
+
     Hsp_hit_from: int = int(values[10])
     Hsp_hit_to: int = int(values[11])
     Hsp_align_len = int(values[17])
+
     Hsp_qseq, Hsp_hseq, Hsp_midline = values[-3:]
     if Hsp_hit_to < Hsp_hit_from:
         Hsp_hit_from, Hsp_hit_to = Hsp_hit_to, Hsp_hit_from
         Hsp_qseq = Seq.Seq(Hsp_qseq).reverse_complement()
         Hsp_hseq = Seq.Seq(Hsp_hseq).reverse_complement()
         Hsp_midline = ''.join(reversed(Hsp_midline))
-    length = Hsp_midline.find(' ', 0)
-    wind, half_wind = int(wind), wind // 2 + 1
-    while length != -1:
-        extendleft = max((length - wind + half_wind) // wind * wind + 1,
-                         0)
-        extendright = min((length + wind + half_wind) // wind * wind + 1,
-                          Hsp_align_len)
-        if Hsp_qseq[length] == '-':
+
+    unmatch = Hsp_midline.find(' ', 0)
+    while unmatch != -1:
+        if Hsp_qseq[unmatch] == '-':
             mismatch_type = 'delete'
-        elif Hsp_hseq[length] == '-':
+        elif Hsp_hseq[unmatch] == '-':
             mismatch_type = 'insert'
         else:
             mismatch_type = 'mismatch'
-        yield (
-            mismatch_type,
-            [Hsp_hit_from + index - 1 - Hsp_hseq.count('-', 0, index)
-             for index in (extendleft, length + 1, extendright)],
-            [seq[extendleft: extendright] for seq in
-             (Hsp_qseq, Hsp_midline, Hsp_hseq)]
-        )
-        length = Hsp_midline.find(' ', length + 1)
+
+        ref_unmatch = unmatch - Hsp_hseq.count('-', 0, unmatch) + 1
+        ref_lextend = max(lwind(ref_unmatch), 0)
+        ref_rextend = min(rwind(ref_unmatch), Hsp_align_len)
+
+        lextend = extend_unmatch(ref_lextend)
+        rextend = extend_unmatch(ref_rextend)
+
+        yield ([mismatch_type, Hsp_hseq[unmatch], Hsp_qseq[unmatch]],
+               [Hsp_hit_from + index for index in
+                (ref_lextend, ref_unmatch - 1, ref_rextend - 1)],
+               [seq[lextend: rextend] for seq in
+                (Hsp_qseq, Hsp_midline, Hsp_hseq)])
+
+        unmatch = Hsp_midline.find(' ', unmatch + 1)
