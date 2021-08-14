@@ -2,7 +2,7 @@
 """
  * @Date: 2021-08-14 14:35:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-14 17:39:49
+ * @LastEditTime: 2021-08-14 17:43:11
  * @FilePath: /metaSC/PyLib/seqPipe/x04_bins.py
  * @Description:
 """
@@ -65,6 +65,9 @@ def merge_checkm_bin(basedir: str, metawrap: bool = False, depth_file: str = '',
         FORMAT_BIN_FILE_PATH = '_DASTool_bins'
         with open(depth_file) as fi:
             sample_list, ctg_depth = jgi_depths(fi)
+
+    merge_checkm_bin.__doc__ = merge_checkm_bin.__doc__.replace(
+        r'{depths}', "', '".join(sample_list))
 
     # read checkm
     if summary_dict is None:
