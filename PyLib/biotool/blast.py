@@ -2,8 +2,8 @@
 """
  * @Date: 2021-07-31 15:28:13
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-08 17:09:12
- * @FilePath: /metaSC/PyLib/biotool/blast.py
+ * @LastEditTime: 2021-08-11 17:51:07
+ * @FilePath: /2021_07-CH1/home/hwrn/software/metaSC/PyLib/biotool/blast.py
  * @Description:
 """
 
@@ -77,11 +77,11 @@ def blast_unmatch_iter(values: List[str], wind=10) -> List[Tuple[List[str], List
     """
     wind, half_wind = int(wind), int(wind) // 2
 
-    def lwind(index):
-        return (index - wind + half_wind) // wind * wind
+    def lwind(index, hseqstart):
+        return (index - wind + half_wind + hseqstart) // wind * wind - hseqstart + 1
 
-    def rwind(index):
-        return (index + wind + half_wind) // wind * wind
+    def rwind(index, hseqstart):
+        return (index + wind + half_wind + hseqstart) // wind * wind - hseqstart + 1
 
     def extend_unmatch(index, newindex=0):
         index, newindex = min(index, newindex), max(index, newindex)
@@ -93,7 +93,6 @@ def blast_unmatch_iter(values: List[str], wind=10) -> List[Tuple[List[str], List
 
     Hsp_hit_from: int = int(values[10])
     Hsp_hit_to: int = int(values[11])
-    Hsp_align_len = int(values[17])
 
     Hsp_qseq, Hsp_hseq, Hsp_midline = values[-3:]
     if Hsp_hit_to < Hsp_hit_from:
@@ -101,6 +100,7 @@ def blast_unmatch_iter(values: List[str], wind=10) -> List[Tuple[List[str], List
         Hsp_qseq = Seq.Seq(Hsp_qseq).reverse_complement()
         Hsp_hseq = Seq.Seq(Hsp_hseq).reverse_complement()
         Hsp_midline = ''.join(reversed(Hsp_midline))
+    Hsp_hseq_len = len(Hsp_hseq.replace('-', ''))
 
     unmatch = Hsp_midline.find(' ', 0)
     while unmatch != -1:
@@ -111,16 +111,18 @@ def blast_unmatch_iter(values: List[str], wind=10) -> List[Tuple[List[str], List
         else:
             mismatch_type = 'mismatch'
 
-        ref_unmatch = unmatch - Hsp_hseq.count('-', 0, unmatch) + 1
-        ref_lextend = max(lwind(ref_unmatch), 0)
-        ref_rextend = min(rwind(ref_unmatch), Hsp_align_len)
+        ref_unmatch = unmatch - Hsp_hseq.count('-', 0, unmatch)
+        ref_lextend = max(lwind(ref_unmatch, Hsp_hit_from), 0)
+        ref_rextend = min(rwind(ref_unmatch, Hsp_hit_from), Hsp_hseq_len)
 
         lextend = extend_unmatch(ref_lextend)
         rextend = extend_unmatch(ref_rextend)
 
+        assert len(Hsp_hseq[lextend: rextend].replace('-', '')) == ref_rextend - ref_lextend
+
         yield ([mismatch_type, Hsp_hseq[unmatch], Hsp_qseq[unmatch]],
                [Hsp_hit_from + index for index in
-                (ref_lextend, ref_unmatch - 1, ref_rextend - 1)],
+                (ref_lextend, ref_unmatch, ref_rextend - 1)],
                [seq[lextend: rextend] for seq in
                 (Hsp_qseq, Hsp_midline, Hsp_hseq)])
 
