@@ -2,7 +2,7 @@
 """
  * @Date: 2021-08-14 14:35:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-14 17:33:39
+ * @LastEditTime: 2021-08-14 17:39:49
  * @FilePath: /metaSC/PyLib/seqPipe/x04_bins.py
  * @Description:
 """
@@ -68,6 +68,7 @@ def merge_checkm_bin(basedir: str, metawrap: bool = False, depth_file: str = '',
 
     # read checkm
     if summary_dict is None:
+        summary_dict = {}
         file_checkm = f'{basedir}/checkms/report.tsv'
         with open(file_checkm) as fi:
             for MAG, values in checkm_iter(fi):
