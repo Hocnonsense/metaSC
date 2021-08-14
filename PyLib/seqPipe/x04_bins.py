@@ -2,7 +2,7 @@
 """
  * @Date: 2021-08-14 14:35:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-14 17:22:47
+ * @LastEditTime: 2021-08-14 17:33:39
  * @FilePath: /metaSC/PyLib/seqPipe/x04_bins.py
  * @Description:
 """
@@ -42,7 +42,7 @@ def wrap_depth(fi: TextIO):
         yield line.replace('\n', '\t0\n')
 
 
-def merge_checkm_bin(basedir: str, metawrap: bool = False,
+def merge_checkm_bin(basedir: str, metawrap: bool = False, depth_file: str = '',
                      summary_dict: Dict[str, List[str]] = None):
     """{
         'key': 'Bin_Id',
@@ -57,14 +57,13 @@ def merge_checkm_bin(basedir: str, metawrap: bool = False,
             'totalAvgDepth', '{depths}',
         ]
     }"""
-    DEPTH_FILE_PATH = f'{basedir}/work_files/mb2_master_depth.txt'
     if metawrap:
         FORMAT_BIN_FILE_PATH = '_bins'
-        with open(DEPTH_FILE_PATH) as fi:
+        with open(f'{basedir}/work_files/mb2_master_depth.txt') as fi:
             sample_list, ctg_depth = jgi_depths(wrap_depth(fi))
     else:
         FORMAT_BIN_FILE_PATH = '_DASTool_bins'
-        with open(DEPTH_FILE_PATH) as fi:
+        with open(depth_file) as fi:
             sample_list, ctg_depth = jgi_depths(fi)
 
     # read checkm
