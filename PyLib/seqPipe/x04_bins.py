@@ -2,8 +2,8 @@
 """
  * @Date: 2021-08-14 14:35:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-14 17:43:11
- * @FilePath: /metaSC/PyLib/seqPipe/x04_bins.py
+ * @LastEditTime: 2021-08-15 09:41:00
+ * @FilePath: /2021_08-Fluc/home/hwrn/software/metaSC/PyLib/seqPipe/x04_bins.py
  * @Description:
 """
 import os
@@ -42,7 +42,7 @@ def wrap_depth(fi: TextIO):
         yield line.replace('\n', '\t0\n')
 
 
-def merge_checkm_bin(basedir: str, metawrap: bool = False, depth_file: str = '',
+def merge_checkm_bin(binner_basedir: str, metawrap: bool = False, depth_file: str = '',
                      summary_dict: Dict[str, List[str]] = None):
     """{
         'key': 'Bin_Id',
@@ -59,7 +59,7 @@ def merge_checkm_bin(basedir: str, metawrap: bool = False, depth_file: str = '',
     }"""
     if metawrap:
         FORMAT_BIN_FILE_PATH = '_bins'
-        with open(f'{basedir}/work_files/mb2_master_depth.txt') as fi:
+        with open(f'{binner_basedir}/work_files/mb2_master_depth.txt') as fi:
             sample_list, ctg_depth = jgi_depths(wrap_depth(fi))
     else:
         FORMAT_BIN_FILE_PATH = '_DASTool_bins'
@@ -72,18 +72,18 @@ def merge_checkm_bin(basedir: str, metawrap: bool = False, depth_file: str = '',
     # read checkm
     if summary_dict is None:
         summary_dict = {}
-        file_checkm = f'{basedir}/checkms/report.tsv'
-        with open(file_checkm) as fi:
+        checkm_report = f'{binner_basedir}/checkms/report.tsv'
+        with open(checkm_report) as fi:
             for MAG, values in checkm_iter(fi):
                 summary_dict[MAG] = values
 
     for binId, values in summary_dict.items():
-        genome_features = MAG_seq_features(f'{basedir}/{FORMAT_BIN_FILE_PATH}/{binId}.fa', ctg_depth)
+        genome_features = MAG_seq_features(f'{binner_basedir}/{FORMAT_BIN_FILE_PATH}/{binId}.fa', ctg_depth)
         summary_dict[binId] = values + genome_features
     return summary_dict
 
 
-def merge_checkm_taxon(basedir: str, file_taxon: str,
+def merge_checkm_taxon(binner_basedir: str, file_taxon: str,
                        summary_dict: Dict[str, List[str]] = None):
     """{
         'key': 'Bin_Id',
@@ -103,8 +103,8 @@ def merge_checkm_taxon(basedir: str, file_taxon: str,
         ]
     }"""
     if summary_dict is None:
-        file_checkm = f'{basedir}/checkms/report.tsv'
-        with open(file_checkm) as fi:
+        checkm_report = f'{binner_basedir}/checkms/report.tsv'
+        with open(checkm_report) as fi:
             for MAG, values in checkm_iter(fi):
                 summary_dict[MAG] = values
 
