@@ -2,8 +2,8 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-08 22:26:34
- * @FilePath: /metaSC/PyLib/reader/iters.py
+ * @LastEditTime: 2021-08-15 10:33:41
+ * @FilePath: /2021_08-Fluc/lustre/home/acct-clsxx/clsxx/software/metaSC/PyLib/reader/iters.py
  * @Description:
 """
 
@@ -102,7 +102,7 @@ def checkm_iter(text: FileIO) -> Iterable[Tuple[str, List[str]]]:
         line = text.readline()
 
 
-def gtdbtk_iter(text: FileIO):
+def gtdbtk_1_0_2_iter(text: FileIO):
     """{
         'in_header': [
             'user_genome',  # 0
@@ -123,7 +123,7 @@ def gtdbtk_iter(text: FileIO):
             ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
         )
     }"""
-    header = eval(gtdbtk_iter.__doc__)['in_header']
+    header = eval(gtdbtk_1_0_2_iter.__doc__)['in_header']
     for values in read_table(text):
         if values[0] == header[0]:
             assert all((header_i == value for header_i, value in zip(header, values)))
@@ -135,6 +135,45 @@ def gtdbtk_iter(text: FileIO):
             taxon.split('__')[1]
             for taxon in values[1].split(';')
         ]
+
+
+def gtdbtk_1_5_1_iter(text: FileIO):
+    """{
+        'in_header': [
+            'user_genome',  # 0
+            'classification', 'fastani_reference', 'fastani_reference_radius',  # 3
+            'fastani_taxonomy', 'fastani_ani', 'fastani_af',  # 6
+            'closest_placement_reference',  # 7
+            'closest_placement_radius', 'closest_placement_taxonomy', 'closest_placement_ani', 'closest_placement_af',  # 11
+            'pplacer_taxonomy', 'classification_method', 'note', 'other_related_references(genome_id,species_name,radius,ANI,AF)',  # 15
+            'msa_percent', 'translation_table', 'red_value', 'warnings'  # 19
+        ],
+        'out_header': (
+            ['user_genome'],
+            [
+                'classification', 'fastani_reference', 'fastani_reference_radius',
+                'closest_placement_reference', 'classification_method', 'aa_percent',
+                'red_value', 'warnings'
+            ],
+            ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
+        )
+    }"""
+    header = eval(gtdbtk_1_5_1_iter.__doc__)['in_header']
+    for values in read_table(text):
+        if values[0] == header[0]:
+            assert all((header_i == value for header_i,
+                       value in zip(header, values)))
+        yield values[0], [
+            *values[1:4],
+            values[7], values[13], values[16],
+            values[18], values[19]
+        ], [
+            taxon.split('__')[1]
+            for taxon in values[1].split(';')
+        ]
+
+
+gtdbtk_iter = gtdbtk_1_5_1_iter
 
 
 def featureCounts_iter(text: FileIO):
