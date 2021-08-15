@@ -2,7 +2,7 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-15 10:33:41
+ * @LastEditTime: 2021-08-15 10:50:15
  * @FilePath: /2021_08-Fluc/lustre/home/acct-clsxx/clsxx/software/metaSC/PyLib/reader/iters.py
  * @Description:
 """
@@ -127,6 +127,7 @@ def gtdbtk_1_0_2_iter(text: FileIO):
     for values in read_table(text):
         if values[0] == header[0]:
             assert all((header_i == value for header_i, value in zip(header, values)))
+            continue
         yield values[0], [
             *values[1:4],
             values[7], values[12], values[15],
@@ -161,8 +162,8 @@ def gtdbtk_1_5_1_iter(text: FileIO):
     header = eval(gtdbtk_1_5_1_iter.__doc__)['in_header']
     for values in read_table(text):
         if values[0] == header[0]:
-            assert all((header_i == value for header_i,
-                       value in zip(header, values)))
+            assert all((header_i == value for header_i, value in zip(header, values)))
+            continue
         yield values[0], [
             *values[1:4],
             values[7], values[13], values[16],
