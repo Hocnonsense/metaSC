@@ -2,7 +2,7 @@
 """
  * @Date: 2020-08-19 18:13:55
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-14 16:01:16
+ * @LastEditTime: 2021-08-16 15:14:58
  * @FilePath: /metaSC/PyLib/tool/shell.py
  * @Description:
 """
@@ -62,7 +62,7 @@ def runsh(tokens: Sequence[str], env: Dict[str, str] = {},
 
 
 def runsh_safe(tokens: Tuple[str, list], env: Dict[str, str] = {},
-               trim: bool = True) -> Optional[str]:
+               trim: bool = True) -> Optional[Tuple[str, str]]:
     """Run a shell command-line string and return its output. This does not
     expand filename patterns or environment variables or do other shell
     processing steps.
