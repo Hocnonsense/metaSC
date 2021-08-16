@@ -3,7 +3,7 @@
  * @Date: 2020-10-24 10:24:10
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-30 20:02:44
+ * @LastEditTime: 2021-08-16 17:38:39
  * @FilePath: /metaSC/PyLib/seqPipe/x03.1_gene_cut.py
  * @Description:
         update from LYX's script
@@ -20,6 +20,7 @@
                                                 ./M001-prodigal.gff
                                         **NOTE**: '"in_file_prefix".faa' must
                                         exist.
+                        * <in_file_prefix>: other input file prefix.
                         <out_file_prefix>:  output file prefix. Similar to
                                         <in_file_prefix>
                         <threshold>:        threshold for aa, typtically, 33
@@ -32,7 +33,8 @@
 
 import os
 from sys import argv, stderr
-from Bio import SeqIO
+from Bio import SeqIO, SeqRecord
+from typing import Iterable, List, Optional, Set
 
 from PyLib.PyLibTool.file_info import verbose_import
 
@@ -43,6 +45,9 @@ verbose_import(__name__, __doc__)
 class prefix_files:
     def __init__(self, prefix) -> None:
         self.prefix = os.path.abspath(os.path.expanduser(prefix))
+
+    def __str__(self):
+        return f'<prefix_files: {self.prefix}>'
 
     def __call__(self, suffix: str, check_exist: bool = None) -> str:
         """
@@ -61,106 +66,97 @@ class prefix_files:
         return False
 
 
+def fa_filt_iter(fas: Iterable[SeqRecord.SeqRecord], keepIds: Set[str],
+                 threshold: Optional[int] = None):
+    """ Any sequence will be kept if
+        1.  in keepIds
+        2.  not less than threshold
+
+        @paran threshold: typtically, 33
+    """
+    keep_lens: List[int] = []
+    discard_lens: List[int] = []
+    for record in fas:
+        if threshold:
+            if len(record.seq) >= threshold:
+                keepIds.add(record.id)
+                keep_lens.append(len(record.seq))
+            else:
+                discard_lens.append(len(record.seq))
+        if record.id in keepIds:
+            yield record
+    if discard_lens:
+        print(f'discarded: {len(discard_lens)}, {sum(discard_lens)} bases(aa)')
+        print(f'kept: {len(keep_lens)}, {sum(keep_lens)} bases(aa)')
+
+
+def gff_filt_iter(gffin: Iterable[str], keepIds: Set[str]):
+    for line in gffin:
+        if line[0] == '#':
+            continue
+        temp = line.strip().split('\t')
+        scaffold = temp[0]
+        s_count = temp[8].split(';')[0].split('_')[1]
+        sid = scaffold + '_' + s_count
+        if sid in keepIds:
+            yield line
+
+
 def parse_args():
     if "-h" in argv or "--help" in argv or len(argv) == 1:
         exit(0)
 
-    sc, in_file_prefix, out_file_prefix, number = argv
-    in_file_prefix = prefix_files(in_file_prefix)
-    out_file_prefix = prefix_files(out_file_prefix)
-    num = int(number)
-    args = in_file_prefix, out_file_prefix, num
+    sc = argv[0]
+    in_file_prefixs = [prefix_files(in_file_prefix)
+                       for in_file_prefix in argv[1:-2]]
+    out_file_prefix = prefix_files(argv[-2])
+    num = int(argv[-1])
+    args = in_file_prefixs, out_file_prefix, num
     print(sc, *args, sep="\n" + " " * 4, file=stderr)
     return args
 
 
-def main(in_file_prefix, out_file_prefix, num):
-    #for (in_file, out_file, num, func) in args:
-    #    with open(out_file, "w") as fo \
-    #            , open(in_file) as fi \
-    #            :
-    #        discard_seqs, discard_bases = func(fi, fo, num)
-    #    print("    {seqs_n} seqs ({aas_n} aa) are discarded".format(
-    #        seqs_n=discard_seqs, aas_n=discard_aas), file=stderr)
+def main(in_file_prefix, num, out):
+    keepIds = set()
+    faao, fnao, gffo = out
 
-    genes_to_trim = {}
     suffix = ".faa"
     in_file = in_file_prefix(suffix, True)
-    out_file = out_file_prefix(suffix)
-    print("read", in_file, "and write to", out_file, file=stderr)
+    print("read", in_file, file=stderr)
     if in_file:
-        with open(in_file) as fin \
-                , open(out_file, 'w') as fout \
-                :
-            total_trimmed_genes, total_trimmed_aas = 0, 0
-            for record in SeqIO.parse(fin, 'fasta'):
-                seq = str(record.seq)
-                seq_len = len(seq)
-                if len(seq) >= num:
-                    total_trimmed_genes += 1
-                    total_trimmed_aas += seq_len
-
-                    des = str(record.description)
-                    print('>' + des, file=fout)
-                    print(seq, file=fout)
-                else:
-                    sid = str(record.id)
-                    genes_to_trim[sid] = seq_len
-
-            print("    {seqs_n} seqs ({aas_n} aa) are discarded".format(
-                seqs_n=len(genes_to_trim), aas_n=sum(genes_to_trim.values())), file=stderr)
-            print("    resulted in {seqs_n} seqs ({aas_n} bases(aa))".format(
-                seqs_n=total_trimmed_genes, aas_n=total_trimmed_aas), file=stderr)
+        with open(in_file) as fin:
+            for record in fa_filt_iter(SeqIO.parse(fin, 'fasta'), keepIds, num):
+                print(record.format('fasta'), file=faao)
     else:
         print("invalid", suffix, "file:", in_file, file=stderr)
-        exit(1)
+        return
 
     suffix = ".fna"
     in_file = in_file_prefix(suffix, True)
-    out_file = out_file_prefix(suffix)
-    print("read", in_file, "and write to", out_file, file=stderr)
+    print("read", in_file, file=stderr)
     if in_file:
-        #check_genes_to_trim = genes_to_trim.copy()
-        with open(in_file) as fin \
-                , open(out_file, 'w') as fout \
-                :
-            for record in SeqIO.parse(fin, 'fasta'):
-                sid = str(record.id)
-                if sid in genes_to_trim:
-                    #check_genes_to_trim.pop(sid)
-                    continue
-                seq = str(record.seq)
-                des = str(record.description)
-                print('>' + des, file=fout)
-                print(seq, file=fout)
-
+        with open(in_file) as fin:
+            for record in fa_filt_iter(SeqIO.parse(fin, 'fasta'), keepIds):
+                print(record.format('fasta'), file=fnao)
     else:
-        print("    {in_file} no found, pass".format(in_file=in_file_prefix(suffix)))
-
-    exit
+        print(f"    {in_file_prefix(suffix)} no found, pass")
 
     suffix = ".gff"
     in_file = in_file_prefix(suffix, True)
-    out_file = out_file_prefix(suffix)
-    print("read", in_file, "and write to", out_file, file=stderr)
+    print("read", in_file, file=stderr)
     if in_file:
-        #check_genes_to_trim = genes_to_trim.copy()
-        with open(in_file) as fin \
-                , open(out_file, 'w') as fout \
-                :
-            for line in fin:
-                if line[0] == '#':
-                    continue
-                temp = line.strip().split('\t')
-                scaffold = temp[0]
-                s_count = temp[8].split(';')[0].split('_')[1]
-                sid = scaffold + '_' + s_count
-                if sid not in genes_to_trim:
-                    fout.write(line)
-
+        with open(in_file) as fin:
+            for line in gff_filt_iter(fin, keepIds):
+                gffo.write(line)
     else:
         print("    {in_file} no found, pass".format(in_file=in_file_prefix(suffix)))
 
 
 if __name__ == "__main__":
-    main(*parse_args())
+    in_file_prefixs, out_file_prefix, num = parse_args()
+
+    with open(out_file_prefix('.faa', 'w')) as faao, \
+            open(out_file_prefix('.fna', 'w')) as fnao, \
+            open(out_file_prefix('.gff', 'w')) as gffo:
+        for in_file_prefix in in_file_prefixs:
+            main(in_file_prefix, num, (faao, fnao, gffo))
