@@ -2,8 +2,8 @@
 """
  * @Date: 2020-10-24 12:55:39
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-11 20:25:49
- * @FilePath: /HScripts/Python/mylib/biotool/checkm/reload.py
+ * @LastEditTime: 2021-08-16 15:10:07
+ * @FilePath: /metaSC/PyLib/biotool/checkm/reload.py
  * @Description:
     Reload from checkm output.
 """
@@ -17,7 +17,7 @@ from collections import OrderedDict
 from re import split as re_split
 from sys import stderr
 
-from mylib.biotool.checkm.interface import (
+from PyLib.biotool.checkm.interface import (
     BinMarkerSets, DefaultValues, HmmerHitDOM, ResultsManager
 )
 

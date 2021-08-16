@@ -9,8 +9,8 @@
 :<<!EOF!
  * @Date: 2020-09-20 15:33:13
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-12-10 23:02:11
- * @FilePath: /HScripts/Bash/checkMPipe.sh
+ * @LastEditTime: 2021-08-16 15:13:13
+ * @FilePath: /metaSC/Bash/checkMPipe.sh
  * @Description:
 !EOF!
 set -e && echo "$0 $*" >&2 && source ~/.bashrc
@@ -19,19 +19,25 @@ set -e && echo "$0 $*" >&2 && source ~/.bashrc
 if (( $# == 0 ));
 then
     cat >&2 <<!EOF!
-    useage: sbatch checkMPipe.py bin_dir tor_dir
+    useage: sbatch checkMPipe.sh bin_dir tor_dir PATH_TO_METASC_PYLIB
 
     args:
         bin_dir:    the dir of the raw bin to be checked.
+
         tor_dir:    the dir of checkm files output.
             tor_dir/checkm:
                     checkM resutls saved in
-            tor_dir/modify:
-                    bins to modify and their marker_gene.csv
             tor_dir/checkm.out:
                     checkm output
             tor_dir/checkm-good.list: good bins
             tor_dir/checkm-modify.list: bins can be modified
+
+        PATH_TO_METASC_PYLIB * :
+            /your/path/to/metaSC/PyLib
+            if privided, tor_dir/modify will be generated.
+
+            tor_dir/modify:
+                    bins to modify and their marker_gene.csv
 
     *tmp files:
         ./checkm-good.tmp
@@ -156,22 +162,29 @@ with open("checkm-good.tmp", "w") as gout, open("checkm-modify.tmp", "w") as mou
                           for match in zip(mdf_bins, uid_nums)])+"\n")
 !EOF!
 
-cat ./checkm-to-r.tmp | while read match
-do
-{
-    echo "${match} start" >&2
-    python \
-        ~/Users/Hwrn/Scripts/Python/checkMarkToR.py \
-        ${ckm_dir} \
-        ${match} \
-        ${mdf_dir} \
-    || echo "${match} fault" >&2
-    echo "${match} done" >&2
-} &
-done
+if [ ! -z "${PATH_TO_METASC_PYLIB}" ]
+then
+    export PYTHONPATH=`dirname "$PATH_TO_METASC_PYLIB"`
+    cat ./checkm-to-r.tmp | while read match
+    do
+    {
+        echo "${match} start" >&2
+        python \
+            $PATH_TO_METASC_PYLIB/biotool/checkm/manual.py \
+            ${ckm_dir} \
+            ${match} \
+            ${mdf_dir} \
+        || echo "${match} fault" >&2
+        echo "${match} done" >&2
+    } &
+    done
 
-wait
-echo "checkmToR ended" >&2
+    wait
+    echo "checkmToR ended" >&2
+else
+    echo "checkmToR skipped" >&2
+
+fi
 
 echo "move tmp files to ${tor_dir}" >&2
 mv ./checkm-good.tmp "${tor_dir}/checkm-good.list"

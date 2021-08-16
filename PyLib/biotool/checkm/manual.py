@@ -2,8 +2,8 @@
 """
  * @Date: 2020-10-02 22:32:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-03-10 10:03:34
- * @FilePath: /Work/home/hwrn/software/HScripts/Python/mylib/biotool/checkm/manual.py
+ * @LastEditTime: 2021-08-16 15:09:53
+ * @FilePath: /metaSC/PyLib/biotool/checkm/manual.py
  * @Description:
         Try to cluster each scaffold by the Mark Gene on it
         First, get a list of each Gene on each Scafflod
@@ -25,7 +25,7 @@ import os
 from collections import OrderedDict
 from sys import stderr
 
-from mylib.biotool.checkm.reload import (reload_binIdToBinMarkerSets,
+from PyLib.biotool.checkm.reload import (reload_binIdToBinMarkerSets,
                                          reload_resultsManagers)
 
 
