@@ -2,14 +2,14 @@
 """
  * @Date: 2021-08-09 17:43:13
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-09 18:14:43
+ * @LastEditTime: 2021-08-20 16:26:46
  * @FilePath: /metaSC/PyLib/biotool/featureReads.py
  * @Description:
 """
 
 import os
 import sys
-from typing import Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple
 
 from Bio import SeqFeature, SeqIO
 from PyLib.PyLibTool.file_info import verbose_import
@@ -127,14 +127,9 @@ def exon_iter(locat: int, locats: List[int], exon_loc: Dict[int, List[SeqFeature
             yield exon
 
 
-def reads_to_filted(read: pysam.AlignedSegment) -> Optional[bool]:
-    """
-     * @description:
-     * @param {pysam} read to be filted
-     * @return {bool} True if should be filtered else None
-    """
+def filter_OmicsPrj1(read: pysam.AlignedSegment) -> Iterator[pysam.AlignedSegment]:
     if read.mapping_quality < 2:
-        return True
+        yield read
     #mismatch = 0
     #for signal, seqlen in read.cigartuples:
     #    if signal not in {0,3}:
@@ -143,12 +138,29 @@ def reads_to_filted(read: pysam.AlignedSegment) -> Optional[bool]:
     #    return True
 
 
-def load_bam(filename: str) -> Dict[str, pysam.AlignedSegment]:
+def filter_cmseq(read: pysam.AlignedSegment,
+                 minlen=70, minqual=30, maxsnps=1.0, exclude_seqs: Dict[str]=None
+                 ) -> Iterator[pysam.AlignedSegment]:
+	alignment_len = int(read.query_alignment_length)
+
+	qualities = read.query_qualities
+	snps_rate =float(read.get_tag('NM')) / alignment_len
+	refname = read.reference_name
+	#meanqualities =np.mean(read.query_qualities)
+
+	if (not read.is_secondary) \
+            and (alignment_len >= minlen) \
+            and (qualities >= minqual) \
+            and (snps_rate <= maxsnps) \
+            and not (exclude_seqs and refname in exclude_seqs):
+		yield read
+
+
+def load_bam_2_memory(filename: str) -> Dict[str, pysam.AlignedSegment]:
     uniq_bamis: Dict[str, List[pysam.AlignedSegment]] = {}
     with pysam.AlignmentFile(filename, 'rb') as bami:  # pysam.AlignmentFile
-        for i, read in enumerate(bami.fetch()):
-            if not reads_to_filted(read):
-                uniq_bamis.setdefault(read.query_name + ('_1' if read.is_read1 else '_2'), []).append(read)
+        for read in filter_OmicsPrj1(bami.fetch()):
+            uniq_bamis.setdefault(read.query_name + ('_1' if read.is_read1 else '_2'), []).append(read)
 
     # Believe me duplicate reads don't exist
     assert not {tuple(reads) for reads in uniq_bamis.values() if len(reads) > 1}, \
@@ -250,7 +262,7 @@ def analyze(fo=sys.stderr):
     exon_num = sum((len(exons) for exons in exon_loc.values()))
     print(f'total exon number: {exon_num}')
 
-    uniq_bamis = load_bam()
+    uniq_bamis = load_bam_2_memory()
     innerexon, junctions, failreads = map_read_exon(
         uniq_bamis, locats, exon_loc, 'gencode')
     total_mapped_reads = len(uniq_bamis)  # 2818412
