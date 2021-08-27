@@ -2,12 +2,12 @@
 """
  * @Date: 2021-08-14 14:35:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-15 09:41:00
+ * @LastEditTime: 2021-08-27 11:24:07
  * @FilePath: /2021_08-Fluc/home/hwrn/software/metaSC/PyLib/seqPipe/x04_bins.py
  * @Description:
 """
 import os
-from typing import Dict, List, Set, TextIO, Tuple
+from typing import Dict, List, TextIO, Tuple
 
 from PyLib.reader.read_outputs import fasta, jgi_depths
 from PyLib.reader.iters import checkm_iter, gtdbtk_iter
@@ -108,10 +108,13 @@ def merge_checkm_taxon(binner_basedir: str, file_taxon: str,
             for MAG, values in checkm_iter(fi):
                 summary_dict[MAG] = values
 
+    if not os.path.isdir(file_taxon):
+        raise NotADirectoryError
     for kindom in ['ar122', 'bac120']:
         filename = f'{file_taxon}/gtdbtk.{kindom}.summary.tsv'
         if not os.path.exists(filename):
             logger.warning(f'{filename} not exists')
+            continue
         with open(filename) as fi:
             for MAG, values, taxon in gtdbtk_iter(fi):
                 summary_dict[MAG] += values + taxon
