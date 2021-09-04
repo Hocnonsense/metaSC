@@ -10,14 +10,14 @@
 :<<!EOF!
  * @Date: 2021-08-06 21:24:45
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-06 21:39:16
+ * @LastEditTime: 2021-09-04 13:19:55
  * @FilePath: /metaSC/Bash/relapwd.sh
  * @Description:
 !EOF!
 
 
-path_to=`cd $1; pwd`
-path_from=`cd $2; pwd`
+path_to=`readlink -m $1`
+path_from=`readlink -m $2`
 
 if [[ -z "${path_from}" ]]; then
     path_from=`pwd`
