@@ -2,8 +2,8 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-15 10:50:15
- * @FilePath: /2021_08-Fluc/lustre/home/acct-clsxx/clsxx/software/metaSC/PyLib/reader/iters.py
+ * @LastEditTime: 2021-09-05 16:20:16
+ * @FilePath: /metaSC/PyLib/reader/iters.py
  * @Description:
 """
 
@@ -153,7 +153,7 @@ def gtdbtk_1_5_1_iter(text: FileIO):
             ['user_genome'],
             [
                 'classification', 'fastani_reference', 'fastani_reference_radius',
-                'closest_placement_reference', 'classification_method', 'aa_percent',
+                'closest_placement_reference', 'classification_method', 'msa_percent',
                 'red_value', 'warnings'
             ],
             ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
