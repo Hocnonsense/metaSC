@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-09-10 15:42:56
+ * @LastEditTime: 2021-09-10 15:58:23
  * @FilePath: /2021_09-ZFMG_MG/home/hwrn/software/metaSC/PyLib/seqPipe/x00_Oerr.py
  * @Description:
 """
@@ -68,7 +68,7 @@ def assem_mapper(text: FileIO):
             'key',
             'SeqNumbers', 'MaxLength', 'GenomeSize',
             'GC', 'N50', 'L50',
-            'total_depth', '{depths}',
+            'total_depth',
             'Reads', 'Mapped reads', 'Mapped bases',
             'Percent mapped', 'Percent proper pairs',
             'Average coverage', 'Average coverage with deletions',
@@ -94,22 +94,22 @@ def assem_mapper(text: FileIO):
     for line in text:
         if line.startswith('+') and '+ depth=' in line:
             break
-    depth = re.match(re.compile(r'^\++ depth=(.+)$'), line).groups()[0]
+    (depth, ) = re.match(re.compile(r'^\++ depth=(.+)$'), line).groups()
 
     for line in text:
         if line.startswith('Executing dna.FastaToChromArrays2'):
             break
     (scf, ) = re.match(re.compile(
-        r'^Executing dna.FastaToChromArrays2 \[(.+), '), line).groups()
+        r'^Executing dna.FastaToChromArrays2 \[([^\s]+), '), line).groups()
 
     try:
         fna_msg = statistic_fna(fasta(scf))
         with open(depth) as fi:
             sample_list, ctg_depth = jgi_depths(fi)
         totalAvgDepth, depths = seq_total_depth(ctg_depth, fasta(scf))
-        values = list(fna_msg) + [totalAvgDepth] + depths
+        values = list(fna_msg) + [totalAvgDepth]
     except FileNotFoundError:
-        values = []
+        values = [""] * (6 + 1)
 
     for line in text:
         if line.startswith('   ------------------   Results   ------------------'):
