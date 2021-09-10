@@ -2,8 +2,8 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-14 10:57:59
- * @FilePath: /2021_08-Fluc/home/hwrn/software/metaSC/PyLib/seqPipe/x00_Oerr.py
+ * @LastEditTime: 2021-09-10 15:42:56
+ * @FilePath: /2021_09-ZFMG_MG/home/hwrn/software/metaSC/PyLib/seqPipe/x00_Oerr.py
  * @Description:
 """
 
@@ -92,14 +92,16 @@ def assem_mapper(text: FileIO):
         'suffix': '.err'
     }"""
     for line in text:
-        if line.startswith('+') and '+ scf=' in line:
-            break
-    scf = re.match(re.compile(r'^\++ scf=(.+)$'), line).groups()[0]
-
-    for line in text:
         if line.startswith('+') and '+ depth=' in line:
             break
     depth = re.match(re.compile(r'^\++ depth=(.+)$'), line).groups()[0]
+
+    for line in text:
+        if line.startswith('Executing dna.FastaToChromArrays2'):
+            break
+    (scf, ) = re.match(re.compile(
+        r'^Executing dna.FastaToChromArrays2 \[(.+), '), line).groups()
+
     try:
         fna_msg = statistic_fna(fasta(scf))
         with open(depth) as fi:
