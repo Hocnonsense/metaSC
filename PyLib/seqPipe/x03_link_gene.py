@@ -3,8 +3,8 @@
  * @Date: 2021-06-30 20:05:10
  * @Editors: Hwrn, LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-09 14:48:51
- * @FilePath: /2021_05-MT10kSW/home/hwrn/software/metaSC/PyLib/seqPipe/x03_link_gene.py
+ * @LastEditTime: 2021-09-12 15:52:35
+ * @FilePath: /metaSC/PyLib/seqPipe/x03_link_gene.py
  * @Description:
     1.  it can generate/read subset gene or contig file, either fasta or table format.
     2.  it can intergrate KO
@@ -45,7 +45,7 @@ formats_list = [
 
 
 def get_gene_KOs(ann_files: List[str],
-                 subsets: Tuple[Hashable, bool]
+                 subsets: Tuple[Hashable, bool] = None
                  ) -> Dict[str, str]:
     def GhostKOALA_iter(text: FileIO) -> Iterable[Tuple[str, str]]:
         for values in read_table(text):
@@ -75,14 +75,14 @@ def get_gene_KOs(ann_files: List[str],
 
     gene_KOs: Dict[str, str] = {}
     for format, file in zip(formats_list, ann_files):
-        if not file:
-            logger.warning(f"{format} does not exist, skip")
+        if not os.path.exists(file):
+            logger.warning(f"{format} file does not exist, skip")
             continue
         logger.info(f"reading {file}")
 
         with open(file) as file_in:
             for gene, ko in formats_func[format](file_in):
-                if drop_gene(gene, subsets):
+                if subsets and drop_gene(gene, subsets):
                     continue
                 gene_KOs.setdefault(gene, ko)
         logger.warning(f"{len(gene_KOs)} genes annotated...")
