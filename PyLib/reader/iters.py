@@ -2,7 +2,7 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-09-05 16:20:16
+ * @LastEditTime: 2021-09-13 21:13:49
  * @FilePath: /metaSC/PyLib/reader/iters.py
  * @Description:
 """
@@ -17,16 +17,20 @@ from PyLib.PyLibTool.file_info import verbose_import
 verbose_import(__name__, __doc__)
 
 
-def read_table(text: FileIO, sep='\t', annot='#', title: List[str] = None):
+def read_table(text: FileIO, sep='\t', annot='#', title: List[str] = None, openit=False):
+    if openit:
+        text = open(text)
     for line in text:
         if line.startswith(annot):
             if title is not None:
                 title.clear()
-                title.extend(line[len(annot):].rstrip().split())
+                title.extend(line[len(annot):].rstrip().split(sep))
             continue
         values = line.strip().split(sep)
         if values:
             yield values
+    if openit:
+        text.close()
 
 
 def DASTool_summary_iter(text: FileIO) -> Iterable[List[str]]:
