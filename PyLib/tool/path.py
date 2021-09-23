@@ -2,7 +2,7 @@
 """
  * @Date: 2020-02-05 11:03:35
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-27 15:54:17
+ * @LastEditTime: 2021-09-23 17:26:43
  * @FilePath: /metaSC/PyLib/tool/path.py
  * @Description: 文件和文件名操作子
  * @TODO:
@@ -12,7 +12,32 @@
 import errno
 import os
 import re
+import shutil
+import sys
+import tempfile
+from contextlib import contextmanager
 from typing import Iterable, List, Tuple
+
+
+def appendcwd():
+    """ Append python executing path to package directory.
+    """
+    sys.path.append(os.getcwd())
+
+
+@contextmanager
+def TemporaryDirectory(**kwargs):
+    """ Context manager so it's usable with "with" statement.
+        >>> with TemporaryDirectory(dir=None) as tempdirname:
+        ...     with open(os.path.join(tempdirname, 'temp'), 'w+') as tmp:
+        ...         pass
+        ...
+    """
+    name = tempfile.mkdtemp(**kwargs)
+    try:
+        yield name
+    finally:
+        shutil.rmtree(name)
 
 
 """
