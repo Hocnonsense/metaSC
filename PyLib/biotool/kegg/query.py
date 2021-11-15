@@ -2,7 +2,7 @@
 """
  * @Date: 2021-06-14 18:41:24
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-02 16:59:23
+ * @LastEditTime: 2021-11-14 16:21:14
  * @FilePath: /metaSC/PyLib/biotool/kegg/query.py
  * @Description:
 """
@@ -34,7 +34,8 @@ def load_KEGG_module_raw(source: Union[str, FileIO], cache_path: str = ''
             if is_k:
                 k = is_k
                 listv = raw_module.setdefault(k, [])
-            listv.append(v)
+            if v:
+                listv.append(v)
 
     return raw_module
 

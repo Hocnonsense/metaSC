@@ -2,8 +2,8 @@
 """
  * @Date: 2020-07-01 00:29:24
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-06-15 12:11:38
- * @FilePath: /metaSC/PyLib/biotool/kegg/kegg.py
+ * @LastEditTime: 2021-11-15 14:32:52
+ * @FilePath: /metaSC/PyLib/biotool/kegg/kmodule.py
  * @Description:
 """
 import pickle
@@ -74,22 +74,6 @@ class KModule():
         # print(*self.elements)
         self.elements.reverse()
 
-    def abundance(self, ko_match: Dict[str, float]):
-        return sum(ko_match.get(ko, 0) for ko in self.list_ko())
-
-    def completeness(self, ko_match: Hashable) -> float:
-        """Complessness of given match, ko is its dict"""
-        count = 0
-        if self.ko:
-            return 1 if self.ko in ko_match else 0
-        # multipy elements
-        if self.is_chain:
-            for element in self.elements:
-                count += element.completeness(ko_match)
-            return count / len(self.elements)
-        # self.is_chain is False
-        return max([element.completeness(ko_match) for element in self.elements])
-
     def list_ko(self) -> List[str]:
         if self.ko:
             return [self.ko]
@@ -128,6 +112,55 @@ class KModule():
             e.is_chain = is_chain
             e.additional_info = additional_info
         return e
+
+    def all_paths(self, ko_match: Dict[str, float] = None) -> List[str]:
+        """
+        module.all_paths():
+            return all potential metabolism paths with KO
+        module.all_paths(ko_match):
+            return all available metabolism paths if KO be found in ko_match
+        """
+        if self.is_chain:
+            if self.ko:
+                if ko_match is None or self.ko in ko_match:
+                    return [self.ko]
+                return []  # this KO is not in list/dict/set, should not be detected
+            last_paths = [""]
+            for kid in self.elements:
+                paths = kid.all_paths(ko_match)
+                if not paths:
+                    return []
+                last_paths = [f"{last_path} {path}" if last_path else path
+                              for last_path in last_paths
+                              for path in paths]
+            return last_paths
+        else:
+            paths = [path
+                     for kid in self.elements
+                     for path in kid.all_paths(ko_match)]
+            if paths == []:
+                return []
+            len_path = max(len(path) for path in paths)
+            paths = {"[{path:^{len_path}}]".format(path=path, len_path=len_path)
+                     for kid in self.elements
+                     for path in kid.all_paths(ko_match)}
+            return sorted(paths)
+
+    def abundance(self, ko_match: Dict[str, float]):
+        return sum(ko_match.get(ko, 0) for ko in self.list_ko())
+
+    def completeness(self, ko_match: Hashable) -> float:
+        """Complessness of given match, ko is its dict"""
+        count = 0
+        if self.ko:
+            return 1 if self.ko in ko_match else 0
+        # multipy elements
+        if self.is_chain:
+            for element in self.elements:
+                count += element.completeness(ko_match)
+            return count / len(self.elements)
+        # self.is_chain is False
+        return max([element.completeness(ko_match) for element in self.elements])
 
 
 def init_module(module_str):
