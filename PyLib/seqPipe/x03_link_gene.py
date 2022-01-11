@@ -3,8 +3,8 @@
  * @Date: 2021-06-30 20:05:10
  * @Editors: Hwrn, LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-11-06 09:24:36
- * @FilePath: /2021_09-ZFMG_MG/home/hwrn/software/metaSC/PyLib/seqPipe/x03_link_gene.py
+ * @LastEditTime: 2021-12-13 17:12:54
+ * @FilePath: /metaSC/PyLib/seqPipe/x03_link_gene.py
  * @Description:
     1.  it can generate/read subset gene or contig file, either fasta or table format.
     2.  it can intergrate KO
@@ -24,7 +24,7 @@ from sys import stdout
 from typing import Dict, Hashable, Iterable, List, Set, Tuple
 
 from Bio.SeqIO.FastaIO import SimpleFastaParser
-from PyLib.reader.iters import featureCounts_iter, read_table, emapper_iter
+from PyLib.reader.iters import emapper_iter, featureCounts_iter, read_table
 
 logger = logging.getLogger(__name__)
 
@@ -272,7 +272,7 @@ def set_args(parser: argparse.ArgumentParser):
                         help='set level of logger')
 
     parser.add_argument('-s', '--subset', nargs='*', type=str,
-                        help='Subset files to reduce geneset size'
+                        help='Subset files to reduce geneset size. '
                              'If subset is specified, then only genes match '
                              '"--subset" will be recorded. '
                              'Automatically recorded the suffix of files: '
@@ -280,12 +280,12 @@ def set_args(parser: argparse.ArgumentParser):
                              'or just regarded as feature names'
                         )
     parser.add_argument('--subset-threshold', default=33, type=int,
-                        help='threshold for feature to keep if supported. '
+                        help='Threshold for feature to keep if supported. '
                              'Only useful when "--subset" is specified. '
                              'Only feature is shorter then this threshold '
                              'will be discarded. '
                              '\n    e.g. If 33 <= len(gene A), '
-                             'then gene A will be kept.'
+                             'then gene A will be kept. '
                              'Else if set to 0 or no matched features in '
                              '"--subset", all genes will be kept.'
                         )
@@ -300,8 +300,8 @@ def set_args(parser: argparse.ArgumentParser):
     parser.add_argument('--ko', '--KO-pattern', default='', type=str,
                         help='Pattern of KO files. KO annotations from '
                              '"GhostKOALA, KofamKOALA, eggnog" '
-                             '(just in this order)'
-                             'will be merged and output.'
+                             '(just in this order) '
+                             'will be merged and output. '
                              '"ghost", "kofam" or "eggnog" MUST in its filename.'
                         )
     parser.add_argument('--RPb', '--featuer-counts', default='', type=str,
@@ -318,8 +318,8 @@ def set_args(parser: argparse.ArgumentParser):
                              '    -p ${bam}"'
                         )
     parser.add_argument('--show-contig', action='store_true',
-                        help='keep a new line of contig name.'
-                             'It can be useful if someone want to select gene'
+                        help='Keep a new line of contig name. '
+                             'It can be useful if someone want to select gene '
                              'according to contigs.'
                         )
     parser.add_argument('-o', '--output', type=str, default='stdout',
