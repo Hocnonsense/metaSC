@@ -2,8 +2,8 @@
 """
  * @Date: 2020-08-19 18:13:55
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-16 15:14:58
- * @FilePath: /metaSC/PyLib/tool/shell.py
+ * @LastEditTime: 2022-01-12 20:21:58
+ * @FilePath: /Analyze/home/hwrn/software/metaSC/PyLib/tool/shell.py
  * @Description:
 """
 
@@ -23,7 +23,7 @@ def printsh(value, flow=0, end="\n"):
 
 
 def runsh(tokens: Sequence[str], env: Dict[str, str] = {},
-          trim: bool = True) -> Tuple[str, str]:
+          trim: bool = True, check_call=False) -> Tuple[str, str]:
     """ @description: 在管道中运行 shell 命令
             Run a shell command-line (in token list form) and return its output.
             This does not expand filename patterns or environment variables or do other
@@ -58,11 +58,14 @@ def runsh(tokens: Sequence[str], env: Dict[str, str] = {},
     stdout, stderr = stdout.decode("utf-8"), stderr.decode("utf-8")
     if trim:
         stdout, stderr = stdout.strip(), stderr.strip()
+    if out.returncode and check_call:
+        raise subprocess.CalledProcessError(
+            out.returncode, tokens, stdout, stderr)
     return stdout, stderr
 
 
 def runsh_safe(tokens: Tuple[str, list], env: Dict[str, str] = {},
-               trim: bool = True) -> Optional[Tuple[str, str]]:
+               trim: bool = True, check_call=False) -> Optional[Tuple[str, str]]:
     """Run a shell command-line string and return its output. This does not
     expand filename patterns or environment variables or do other shell
     processing steps.
@@ -82,7 +85,9 @@ def runsh_safe(tokens: Tuple[str, list], env: Dict[str, str] = {},
     if sys.platform == 'win32':
         tokens = ["cmd", "/C"] + tokens
     try:
-        return runsh(tokens, trim=trim, env=env)
+        return runsh(tokens, trim=trim, env=env, check_call=check_call)
+    except subprocess.CalledProcessError:
+        raise
     # pylint: disable = broad-except
     except Exception as e:
         print('failed to run command line {}: {}'.format(tokens, e))

@@ -2,8 +2,8 @@
 """
  * @Date: 2020-08-20 00:16:45
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-05 14:27:10
- * @FilePath: /HScripts/Python/mylib/tool/fileIO.py
+ * @LastEditTime: 2022-01-12 14:41:42
+ * @FilePath: /Analyze/home/hwrn/software/metaSC/PyLib/tool/fileIO.py
  * @Description: 文件输入输出
 """
 
@@ -11,6 +11,14 @@ import os
 import io
 import json
 from typing import Any, AnyStr
+import gzip
+
+
+def open_r(filename: str, *nargs, **vargs):
+    if filename.endswith(".gz"):
+        return gzip.open(filename, *nargs, **vargs)
+    else:
+        return open(filename, *nargs, **vargs)
 
 
 def write_file(file_name: str, content: AnyStr) -> None:
