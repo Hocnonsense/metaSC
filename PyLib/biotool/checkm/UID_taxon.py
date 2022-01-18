@@ -2,8 +2,8 @@
 """
  * @Date: 2021-05-04 16:41:43
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-05-05 14:55:23
- * @FilePath: /2021_04_Manuscript/home/hwrn/software/metaSC/PyLib/biotool/checkm/UID_taxon.py
+ * @LastEditTime: 2022-01-18 11:13:00
+ * @FilePath: /metaSC/PyLib/biotool/checkm/UID_taxon.py
  * @Description:
     find and match UID and taxon.
 """

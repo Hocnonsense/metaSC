@@ -2,8 +2,8 @@
 """
  * @Date: 2020-08-20 00:16:45
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-01-12 14:41:42
- * @FilePath: /Analyze/home/hwrn/software/metaSC/PyLib/tool/fileIO.py
+ * @LastEditTime: 2022-01-18 11:13:37
+ * @FilePath: /metaSC/PyLib/tool/fileIO.py
  * @Description: 文件输入输出
 """
 

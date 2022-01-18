@@ -1,8 +1,8 @@
 <!--
  * @Date: 2020-10-01 15:19:07
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-06 21:50:41
- * @FilePath: /HScripts/README.md
+ * @LastEditTime: 2022-01-18 11:11:44
+ * @FilePath: /metaSC/README.md
  * @Description:
 -->
 Hwrn's Scripts
@@ -14,4 +14,4 @@ Hwrn's Scripts
 - [Bash](Bash/README.md)
 
 
-# [***$\not$<!-- @Hwrn -->*~~`\`~~**](file:///home/hwrn/README.md)
+# [***$\not$<!-- @Hwrn -->*~~`\`~~**](README.md)

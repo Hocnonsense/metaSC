@@ -2,8 +2,8 @@
 """
  * @Date: 2021-08-14 14:35:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-27 11:24:07
- * @FilePath: /2021_08-Fluc/home/hwrn/software/metaSC/PyLib/seqPipe/x04_bins.py
+ * @LastEditTime: 2022-01-18 11:13:08
+ * @FilePath: /metaSC/PyLib/seqPipe/x04_bins.py
  * @Description:
 """
 import os

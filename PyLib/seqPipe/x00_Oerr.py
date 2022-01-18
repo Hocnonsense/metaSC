@@ -2,8 +2,8 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-09-10 15:58:23
- * @FilePath: /2021_09-ZFMG_MG/home/hwrn/software/metaSC/PyLib/seqPipe/x00_Oerr.py
+ * @LastEditTime: 2022-01-18 11:13:04
+ * @FilePath: /metaSC/PyLib/seqPipe/x00_Oerr.py
  * @Description:
 """
 

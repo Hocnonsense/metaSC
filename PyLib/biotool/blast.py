@@ -2,8 +2,8 @@
 """
  * @Date: 2021-07-31 15:28:13
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-11 17:51:07
- * @FilePath: /2021_07-CH1/home/hwrn/software/metaSC/PyLib/biotool/blast.py
+ * @LastEditTime: 2022-01-18 11:12:42
+ * @FilePath: /metaSC/PyLib/biotool/blast.py
  * @Description:
 """
 

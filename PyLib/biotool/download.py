@@ -2,8 +2,8 @@
 """
  * @Date: 2021-02-03 11:09:20
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-01-15 16:15:00
- * @FilePath: /2021_12-g__pangenome/home/hwrn/software/metaSC/PyLib/biotool/download.py
+ * @LastEditTime: 2022-01-18 11:12:48
+ * @FilePath: /metaSC/PyLib/biotool/download.py
  * @Description:
         download genome from net
 """

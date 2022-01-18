@@ -2,8 +2,8 @@
 """
  * @Date: 2020-08-19 18:13:55
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-01-12 20:21:58
- * @FilePath: /Analyze/home/hwrn/software/metaSC/PyLib/tool/shell.py
+ * @LastEditTime: 2022-01-18 11:13:41
+ * @FilePath: /metaSC/PyLib/tool/shell.py
  * @Description:
 """
 

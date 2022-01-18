@@ -2,8 +2,8 @@
 """
  * @Date: 2020-12-11 10:22:23
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-07-01 22:42:11
- * @FilePath: /Work/home/hwrn/software/metaSC/PyLib/biotool/fna_msg.py
+ * @LastEditTime: 2022-01-18 11:12:07
+ * @FilePath: /metaSC/PyLib/biotool/fna_msg.py
  * @Description:
         Get message from a fna file.
 """
