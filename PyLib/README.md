@@ -1,7 +1,7 @@
 <!--
  * @Date: 2020-10-02 20:40:15
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-01-21 15:00:50
+ * @LastEditTime: 2022-01-21 15:44:57
  * @FilePath: /metaSC/PyLib/README.md
  * @Description:
 -->
@@ -39,6 +39,8 @@ Python files
 
 ## functions
 - [PyLibTool](PyLibTool/README.md)
+- [Tool](tool/README.md)
+- [BioTool](biotool/README.md)
 
 
 # [***$\not$<!-- @Hwrn -->*~~`\`~~**](../README.md)
