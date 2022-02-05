@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-31 15:28:13
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-01-18 11:12:42
+ * @LastEditTime: 2022-01-24 21:18:59
  * @FilePath: /metaSC/PyLib/biotool/blast.py
  * @Description:
 """
@@ -12,6 +12,73 @@ from io import FileIO
 from typing import List, Tuple
 
 from Bio import Seq
+
+
+BLAST_TSV_specifiers = """
+            qseqid means Query Seq-id
+               qgi means Query GI
+              qacc means Query accesion
+           qaccver means Query accesion.version
+              qlen means Query sequence length
+            sseqid means Subject Seq-id
+         sallseqid means All subject Seq-id(s), separated by a ';'
+               sgi means Subject GI
+            sallgi means All subject GIs
+              sacc means Subject accession
+           saccver means Subject accession.version
+           sallacc means All subject accessions
+              slen means Subject sequence length
+            qstart means Start of alignment in query
+              qend means End of alignment in query
+            sstart means Start of alignment in subject
+              send means End of alignment in subject
+              qseq means Aligned part of query sequence
+              sseq means Aligned part of subject sequence
+            evalue means Expect value
+          bitscore means Bit score
+             score means Raw score
+            length means Alignment length
+            pident means Percentage of identical matches
+            nident means Number of identical matches
+          mismatch means Number of mismatches
+          positive means Number of positive-scoring matches
+           gapopen means Number of gap openings
+              gaps means Total number of gaps
+              ppos means Percentage of positive-scoring matches
+            frames means Query and subject frames separated by a '/'
+            qframe means Query frame
+            sframe means Subject frame
+              btop means Blast traceback operations (BTOP)
+            staxid means Subject Taxonomy ID
+          ssciname means Subject Scientific Name
+          scomname means Subject Common Name
+        sblastname means Subject Blast Name
+         sskingdom means Subject Super Kingdom
+           staxids means unique Subject Taxonomy ID(s), separated by a ';'
+                         (in numerical order)
+         sscinames means unique Subject Scientific Name(s), separated by a ';'
+         scomnames means unique Subject Common Name(s), separated by a ';'
+        sblastnames means unique Subject Blast Name(s), separated by a ';'
+                         (in alphabetical order)
+        sskingdoms means unique Subject Super Kingdom(s), separated by a ';'
+                         (in alphabetical order)
+            stitle means Subject Title
+        salltitles means All Subject Title(s), separated by a '<>'
+           sstrand means Subject Strand
+             qcovs means Query Coverage Per Subject
+           qcovhsp means Query Coverage Per HSP
+            qcovus means Query Coverage Per Unique Subject (blastn only)
+""".strip()
+BLAST_TSV_specifiers = {
+    k: v for k, v in (
+        line.strip().split(" means ", 1) for line in
+        BLAST_TSV_specifiers.replace("\n                         (", " (").split("\n"))}
+
+BLAST_TSV_DEFAULT_keywords = [
+    i for i in
+    "qaccver saccver pident length mismatch gapopen qstart qend sstart send evalue bitscore".split()
+]
+
 
 BLAST_XML_Hit_TITLE = [
     'Hit_def', 'Hit_accession', 'Hit_len'
