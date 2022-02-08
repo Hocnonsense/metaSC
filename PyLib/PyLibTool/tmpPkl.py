@@ -2,7 +2,7 @@
 """
  * @Date: 2020-11-09 22:32:22
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-05-06 20:08:09
+ * @LastEditTime: 2022-02-08 13:18:43
  * @FilePath: /metaSC/PyLib/PyLibTool/tmpPkl.py
  * @Description:
     with which will build a tmp pickle file for its function.
@@ -18,21 +18,23 @@ import os
 import pickle
 from functools import wraps
 from datetime import datetime
-from typing import Callable
+from typing import Callable, Dict, Tuple
 
 
 class TmpPkl:
     """ Save a pickle file for the function or block. """
 
-    def __init__(self, PICKLE_FILE_name, desc="",
+    __cache: Dict[Tuple[Callable], str] = {}  #
+
+    def __init__(self, PICKLE_FILENAME, desc="",
                  force_rewrite=False, situ='') -> None:
         if situ:
             if os.path.isfile(situ):
                 situ = os.path.dirname(situ)
-            PICKLE_FILE_name = os.path.join(situ, PICKLE_FILE_name)
+            PICKLE_FILENAME = os.path.join(situ, PICKLE_FILENAME)
         else:
-            PICKLE_FILE_name = os.path.expanduser(PICKLE_FILE_name)
-        self.PICKLE_FILE_name = os.path.abspath(PICKLE_FILE_name)
+            PICKLE_FILENAME = os.path.expanduser(PICKLE_FILENAME)
+        self.PICKLE_FILENAME = os.path.abspath(PICKLE_FILENAME)
         self.force_rewrite = force_rewrite
         self.last_results = None
         self.meta = {
@@ -55,29 +57,32 @@ class TmpPkl:
                     tmppkl.last_results = func(*args, **kwargs)
             return tmppkl.last_results
         self.meta["desc"] = func.__doc__
+
+        self.__get_cache()[func] = self.PICKLE_FILENAME
+
         return wrappedFunction
 
     def __enter__(self):
         if not self.force_rewrite:
             try:
-                with open(self.PICKLE_FILE_name, "rb") as pi:
+                print(f"# load from {self.PICKLE_FILENAME} ... ",
+                      end="", file=stderr)
+                with open(self.PICKLE_FILENAME, "rb") as pi:
                     (self.meta, self.last_results) = pickle.load(pi)
             except (FileNotFoundError, EOFError):
                 self.force_rewrite = True
             else:
-                print("# load from",
-                      os.path.abspath(
-                          os.path.expanduser(self.PICKLE_FILE_name)),
+                print(f"finished",
                       file=stderr)
         return self
 
     def __exit__(self, exc_type=None, exc_val=None, exc_tb=None):
-        if self.force_rewrite:
-            with open(self.PICKLE_FILE_name, "wb") as po:
+        if self.force_rewrite and self.last_results:
+            print(f"# dump to {self.PICKLE_FILENAME} ... ",
+                  end="", file=stderr)
+            with open(self.PICKLE_FILENAME, "wb") as po:
                 pickle.dump((self.meta, self.last_results), po)
-            print("# dump to",
-                  os.path.abspath(
-                      os.path.expanduser(self.PICKLE_FILE_name)),
+            print(f"finished",
                   file=stderr)
         return False
 
@@ -87,6 +92,20 @@ class TmpPkl:
     desc = property(
         fget=lambda self: self.meta["desc"],
         fset=__set_desc
+    )
+
+    @classmethod
+    def __get_cache(cls, call):
+        return cls.__cache
+
+    @classmethod
+    def __show_cache(cls):
+        return {
+            k: os.path.isfile(v) for k, v in cls.__cache
+        }
+
+    cache = property(
+        fget=__show_cache
     )
 
 
