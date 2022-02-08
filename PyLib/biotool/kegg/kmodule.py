@@ -2,23 +2,24 @@
 """
  * @Date: 2020-07-01 00:29:24
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-11-15 14:32:52
+ * @LastEditTime: 2022-02-08 20:28:09
  * @FilePath: /metaSC/PyLib/biotool/kegg/kmodule.py
  * @Description:
 """
 import pickle
 from io import StringIO
-from typing import Dict, Hashable, List
+from typing import Dict, List, Set, Union
 
 
-class KModule():
+class KModule:
     """
-        @description:
-            KEGG module units
-            It contains the functions in elements.
+    @description:
+        KEGG module units
+        It contains the functions in elements.
 
-            if self.ko, then assert not self.elements, vice versa.
+        if self.ko, then assert not self.elements, vice versa.
     """
+
     def __init__(self, express="", additional_info=""):
         # print(express)
         self.is_chain: bool = True
@@ -41,7 +42,7 @@ class KModule():
         while p >= 0:
             c = express[p]
             if c in "0123456789":  # get a brief KO numbner
-                no_comma.append(KModule(express[p - 5: p + 1]))
+                no_comma.append(KModule(express[p - 5 : p + 1]))
                 p -= 5
             elif c in ")":  # you are trapped into a sub element
                 last_p = p
@@ -57,7 +58,7 @@ class KModule():
                         bracket_stack -= 1
                         p = plb
                         plb = express.rfind("(", 0, p)
-                no_comma.append(KModule(express[p + 1:last_p]))
+                no_comma.append(KModule(express[p + 1 : last_p]))
             elif c in ",":
                 if self.is_chain:
                     self.is_chain = False
@@ -90,7 +91,9 @@ class KModule():
             e_key, i_key = e[key]
             if i_key != -1:
                 if self.is_chain:  # all elements is important
-                    e_key = [e_key if e_chain is e else e_chain for e_chain in self.elements]
+                    e_key = [
+                        e_key if e_chain is e else e_chain for e_chain in self.elements
+                    ]
                     i_key = [self.elements.index(e)] + i_key
                 return e_key, i_key
         return [], -1
@@ -99,7 +102,9 @@ class KModule():
         if self.ko:
             return self.ko
         sep = " " if self.is_chain else ","
-        return sep.join([kid.ko if kid.ko else "(" + str(kid) + ")" for kid in self.elements])
+        return sep.join(
+            [kid.ko if kid.ko else "(" + str(kid) + ")" for kid in self.elements]
+        )
 
     @classmethod
     def from_list(cls, no_comma, is_chain=True, additional_info=""):
@@ -130,28 +135,32 @@ class KModule():
                 paths = kid.all_paths(ko_match)
                 if not paths:
                     return []
-                last_paths = [f"{last_path} {path}" if last_path else path
-                              for last_path in last_paths
-                              for path in paths]
+                last_paths = [
+                    f"{last_path} {path}" if last_path else path
+                    for last_path in last_paths
+                    for path in paths
+                ]
             return last_paths
         else:
-            paths = [path
-                     for kid in self.elements
-                     for path in kid.all_paths(ko_match)]
+            paths = [path for kid in self.elements for path in kid.all_paths(ko_match)]
             if paths == []:
                 return []
             len_path = max(len(path) for path in paths)
-            paths = {"[{path:^{len_path}}]".format(path=path, len_path=len_path)
-                     for kid in self.elements
-                     for path in kid.all_paths(ko_match)}
-            return sorted(paths)
+            paths = sorted(
+                {
+                    "[{path:^{len_path}}]".format(path=path, len_path=len_path)
+                    for kid in self.elements
+                    for path in kid.all_paths(ko_match)
+                }
+            )
+            return paths
 
     def abundance(self, ko_match: Dict[str, float]):
         return sum(ko_match.get(ko, 0) for ko in self.list_ko())
 
-    def completeness(self, ko_match: Hashable) -> float:
+    def completeness(self, ko_match: Union[List, Dict, Set]) -> float:
         """Complessness of given match, ko is its dict"""
-        count = 0
+        count = 0.0
         if self.ko:
             return 1 if self.ko in ko_match else 0
         # multipy elements
@@ -165,11 +174,11 @@ class KModule():
 
 def init_module(module_str):
     """
-        @description: init modules
-        @param module_str:
-            string or IO of modules from KEGG module
-            e.g. Amino_acid_metabolism
-        @return module{metabolism: {Entry: KModule(Definition)}}
+    @description: init modules
+    @param module_str:
+        string or IO of modules from KEGG module
+        e.g. Amino_acid_metabolism
+    @return module{metabolism: {Entry: KModule(Definition)}}
     """
     if isinstance(module_str, str):
         module_str = StringIO(module_str)
@@ -197,7 +206,7 @@ def init_module(module_str):
 
 def _load_module(module_name):
     """
-        @description: load module by pickle files or text files
+    @description: load module by pickle files or text files
     """
     try:
         pin = open(module_name + ".pickle", "rb")
