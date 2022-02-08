@@ -2,7 +2,7 @@
 """
  * @Date: 2020-11-09 22:32:22
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-08 13:18:43
+ * @LastEditTime: 2022-02-08 13:32:35
  * @FilePath: /metaSC/PyLib/PyLibTool/tmpPkl.py
  * @Description:
     with which will build a tmp pickle file for its function.
@@ -58,7 +58,7 @@ class TmpPkl:
             return tmppkl.last_results
         self.meta["desc"] = func.__doc__
 
-        self.__get_cache()[func] = self.PICKLE_FILENAME
+        self.__get_cache()[wrappedFunction] = self.PICKLE_FILENAME
 
         return wrappedFunction
 
@@ -71,9 +71,9 @@ class TmpPkl:
                     (self.meta, self.last_results) = pickle.load(pi)
             except (FileNotFoundError, EOFError):
                 self.force_rewrite = True
+                print(f"failed", file=stderr)
             else:
-                print(f"finished",
-                      file=stderr)
+                print(f"finished", file=stderr)
         return self
 
     def __exit__(self, exc_type=None, exc_val=None, exc_tb=None):
@@ -95,13 +95,12 @@ class TmpPkl:
     )
 
     @classmethod
-    def __get_cache(cls, call):
+    def __get_cache(cls):
         return cls.__cache
 
-    @classmethod
-    def __show_cache(cls):
+    def __show_cache(self):
         return {
-            k: os.path.isfile(v) for k, v in cls.__cache
+            k: os.path.isfile(v) for k, v in self.__class__.__cache.items()
         }
 
     cache = property(
@@ -122,4 +121,4 @@ if __name__ == "__main__":
             tmp1.desc["param"] = {"i": "ii", "j": "vi"}
         print(tmp1.meta)
         word = tmp1.last_results
-    print(word)
+    print(tmp1.cache[test], word)
