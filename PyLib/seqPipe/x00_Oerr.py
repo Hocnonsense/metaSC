@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-12 18:23:11
+ * @LastEditTime: 2022-02-12 18:26:17
  * @FilePath: /metaSC/PyLib/seqPipe/x00_Oerr.py
  * @Description:
 """
@@ -180,7 +180,7 @@ def assem_mapper(text: TextIO):
         for line in text
     ):
         if match:
-            depth, _ = match.groups()
+            depth = match.groups()[0]
             break
 
     try:
