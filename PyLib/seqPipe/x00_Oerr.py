@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-12 17:50:00
+ * @LastEditTime: 2022-02-12 18:13:04
  * @FilePath: /metaSC/PyLib/seqPipe/x00_Oerr.py
  * @Description:
 """
@@ -115,17 +115,72 @@ def assem_mapper(text: TextIO):
             ''',
         'suffix': '.err'
     }"""
-    for line in text:
-        if line.startswith("+") and "+ depth=" in line:
+    for match in (
+        re.match(  # type: ignore
+            re.compile(r"^Executing dna.FastaToChromArrays2 \[([^\s]+), "), line
+        )
+        for line in text
+    ):
+        if match:
+            scf, _ = match.groups()
             break
-    (depth,) = re.match(re.compile(r"^\++ depth=(.+)$"), line).groups()  # type: ignore
 
-    for line in text:
-        if line.startswith("Executing dna.FastaToChromArrays2"):
-            break
-    (scf,) = re.match(  # type: ignore
-        re.compile(r"^Executing dna.FastaToChromArrays2 \[([^\s]+), "), line
+    for match in (
+        re.match(  # type: ignore
+            re.compile(r"^Reads:                               	(\d+)$"), line
+        )
+        for line in text
+    ):
+        if match:
+            Reads, _ = match.groups()
+    line = text.readline()
+    M_reads, _ = re.match(  # type: ignore
+        re.compile(r"^Mapped reads:                        	(\d+)$"), line
     ).groups()
+    line = text.readline()
+    M_bases, _ = re.match(  # type: ignore
+        re.compile(r"^Mapped bases:                        	(\d+)$"), line
+    ).groups()
+    line = text.readline()
+    # re.match(re.compile(r'^Ref scaffolds:                       	(\d+)$'), line).groups()[0]
+    line = text.readline()
+    # re.match(re.compile(r'^Ref bases:                           	(\d+)$'), line).groups()[0]
+    line = text.readline()
+
+    line = text.readline()
+    P_mapped, _ = re.match(  # type: ignore
+        re.compile(r"^Percent mapped:                      	(\d+.\d+)$"), line
+    ).groups()
+    line = text.readline()
+    P_pairs, _ = re.match(  # type: ignore
+        re.compile(r"^Percent proper pairs:                	(\d+.\d+)$"), line
+    ).groups()
+    line = text.readline()
+    Avg_cover, _ = re.match(  # type: ignore
+        re.compile(r"^Average coverage:                    	(\d+.\d+)$"), line
+    ).groups()
+    line = text.readline()
+    Avg_cov_del, _ = re.match(  # type: ignore
+        re.compile(r"^Average coverage with deletions:     	(\d+.\d+)$"), line
+    ).groups()
+    line = text.readline()
+    SD, _ = re.match(  # type: ignore
+        re.compile(r"^Standard deviation:                    	(\d+.\d+)$"), line
+    ).groups()
+    line = text.readline()
+    # re.match(re.compile(r'^Percent scaffolds with any coverage: 	(\d+.\d+)$'), line).groups()[0]
+    line = text.readline()
+    (P_covered,) = re.match(  # type: ignore
+        re.compile(r"^Percent of reference bases covered:  	(\d+.\d+)$"), line
+    ).groups()
+
+    for match in (
+        re.match(re.compile(r"^Output depth matrix to ([^\s]+)$"), line)  # type: ignore
+        for line in text
+    ):
+        if match:
+            depth, _ = match.groups()
+            break
 
     try:
         fna_msg = statistic_fna(fasta(scf))
@@ -135,56 +190,6 @@ def assem_mapper(text: TextIO):
         values = list(fna_msg) + [totalAvgDepth]
     except FileNotFoundError:
         values = [""] * (6 + 1)
-
-    for line in text:
-        if line.startswith("   ------------------   Results   ------------------"):
-            break
-    for line in text:
-        if line.startswith("Reads:                               	"):
-            break
-    Reads = re.match(  # type: ignore
-        re.compile(r"^Reads:                               	(\d+)$"), line
-    ).groups()[0]
-    line = text.readline()
-    M_reads = re.match(  # type: ignore
-        re.compile(r"^Mapped reads:                        	(\d+)$"), line
-    ).groups()[0]
-    line = text.readline()
-    M_bases = re.match(  # type: ignore
-        re.compile(r"^Mapped bases:                        	(\d+)$"), line
-    ).groups()[0]
-    line = text.readline()
-    # re.match(re.compile(r'^Ref scaffolds:                       	(\d+)$'), line).groups()[0]
-    line = text.readline()
-    # re.match(re.compile(r'^Ref bases:                           	(\d+)$'), line).groups()[0]
-    line = text.readline()
-
-    line = text.readline()
-    P_mapped = re.match(  # type: ignore
-        re.compile(r"^Percent mapped:                      	(\d+.\d+)$"), line
-    ).groups()[0]
-    line = text.readline()
-    P_pairs = re.match(  # type: ignore
-        re.compile(r"^Percent proper pairs:                	(\d+.\d+)$"), line
-    ).groups()[0]
-    line = text.readline()
-    Avg_cover = re.match(  # type: ignore
-        re.compile(r"^Average coverage:                    	(\d+.\d+)$"), line
-    ).groups()[0]
-    line = text.readline()
-    Avg_cov_del = re.match(  # type: ignore
-        re.compile(r"^Average coverage with deletions:     	(\d+.\d+)$"), line
-    ).groups()[0]
-    line = text.readline()
-    SD = re.match(  # type: ignore
-        re.compile(r"^Standard deviation:                    	(\d+.\d+)$"), line
-    ).groups()[0]
-    line = text.readline()
-    # re.match(re.compile(r'^Percent scaffolds with any coverage: 	(\d+.\d+)$'), line).groups()[0]
-    line = text.readline()
-    P_covered = re.match(  # type: ignore
-        re.compile(r"^Percent of reference bases covered:  	(\d+.\d+)$"), line
-    ).groups()[0]
 
     return (
         [scf]
