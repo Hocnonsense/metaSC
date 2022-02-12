@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-12 18:26:17
+ * @LastEditTime: 2022-02-12 19:27:53
  * @FilePath: /metaSC/PyLib/seqPipe/x00_Oerr.py
  * @Description:
 """
@@ -15,6 +15,9 @@ from typing import Callable, Dict, List, Union, TextIO
 
 from PyLib.reader.read_outputs import fasta, jgi_depths
 from PyLib.biotool.fna_msg import statistic_fna, seq_total_depth
+
+
+line = ""
 
 
 def sickle_mapper(text: TextIO):
@@ -38,6 +41,7 @@ def sickle_mapper(text: TextIO):
             ''',
         'suffix': '.out'
     }"""
+    global line
     for line in text:
         if line.startswith("PE forward file:"):
             break
@@ -115,6 +119,7 @@ def assem_mapper(text: TextIO):
             ''',
         'suffix': '.err'
     }"""
+    global line
     for match in (
         re.match(  # type: ignore
             re.compile(r"^Executing dna.FastaToChromArrays2 \[([^\s]+), "), line
@@ -122,7 +127,7 @@ def assem_mapper(text: TextIO):
         for line in text
     ):
         if match:
-            scf = match.groups()[0]
+            (scf,) = match.groups()
             break
 
     for match in (
@@ -132,16 +137,16 @@ def assem_mapper(text: TextIO):
         for line in text
     ):
         if match:
-            Reads = match.groups()[0]
+            (Reads,) = match.groups()
             break
     line = text.readline()
-    M_reads = re.match(  # type: ignore
+    (M_reads,) = re.match(  # type: ignore
         re.compile(r"^Mapped reads:                        	(\d+)$"), line
-    ).groups()[0]
+    ).groups()
     line = text.readline()
-    M_bases = re.match(  # type: ignore
+    (M_bases,) = re.match(  # type: ignore
         re.compile(r"^Mapped bases:                        	(\d+)$"), line
-    ).groups()[0]
+    ).groups()
     line = text.readline()
     # re.match(re.compile(r'^Ref scaffolds:                       	(\d+)$'), line).groups()[0]
     line = text.readline()
@@ -149,38 +154,38 @@ def assem_mapper(text: TextIO):
     line = text.readline()
 
     line = text.readline()
-    P_mapped = re.match(  # type: ignore
+    (P_mapped,) = re.match(  # type: ignore
         re.compile(r"^Percent mapped:                      	(\d+.\d+)$"), line
-    ).groups()[0]
+    ).groups()
     line = text.readline()
-    P_pairs = re.match(  # type: ignore
+    (P_pairs,) = re.match(  # type: ignore
         re.compile(r"^Percent proper pairs:                	(\d+.\d+)$"), line
-    ).groups()[0]
+    ).groups()
     line = text.readline()
-    Avg_cover = re.match(  # type: ignore
+    (Avg_cover,) = re.match(  # type: ignore
         re.compile(r"^Average coverage:                    	(\d+.\d+)$"), line
-    ).groups()[0]
+    ).groups()
     line = text.readline()
-    Avg_cov_del = re.match(  # type: ignore
+    (Avg_cov_del,) = re.match(  # type: ignore
         re.compile(r"^Average coverage with deletions:     	(\d+.\d+)$"), line
-    ).groups()[0]
+    ).groups()
     line = text.readline()
-    SD = re.match(  # type: ignore
+    (SD,) = re.match(  # type: ignore
         re.compile(r"^Standard deviation:                    	(\d+.\d+)$"), line
-    ).groups()[0]
+    ).groups()
     line = text.readline()
     # re.match(re.compile(r'^Percent scaffolds with any coverage: 	(\d+.\d+)$'), line).groups()[0]
     line = text.readline()
-    P_covered = re.match(  # type: ignore
+    (P_covered,) = re.match(  # type: ignore
         re.compile(r"^Percent of reference bases covered:  	(\d+.\d+)$"), line
-    ).groups()[0]
+    ).groups()
 
     for match in (
         re.match(re.compile(r"^Output depth matrix to ([^\s]+)$"), line)  # type: ignore
         for line in text
     ):
         if match:
-            depth = match.groups()[0]
+            (depth,) = match.groups()
             break
 
     try:
@@ -193,9 +198,9 @@ def assem_mapper(text: TextIO):
         values = [""] * (6 + 1)
 
     return (
-        [scf]
-        + values
-        + [
+        scf,
+        *values,
+        *[
             Reads,
             M_reads,
             M_bases,
@@ -205,7 +210,7 @@ def assem_mapper(text: TextIO):
             Avg_cov_del,
             SD,
             P_covered,
-        ]
+        ],
     )
 
 
@@ -221,13 +226,20 @@ def collect_folder(path: str, mapper: Callable[[TextIO], List[str]], suffix=""):
                     values = mapper(file_in)
                     results[values[0]] = values[1:]
                 except AttributeError as e:
-                    print(f"AttributeError at file {file}")
-                    print(e)
+                    print(f"AttributeError at file {file}", file=sys.stderr)
+                    print("error line:\n", line, file=sys.stderr)
+                except Exception as e:
+                    print(e, file=sys.stderr)
+                    print("at file:", file, file=sys.stderr)
+                    print("line:\n", line, file=sys.stderr)
     return eval(mapper.__doc__)["header"], results  # type: ignore
 
 
 def print_table(
-    output: TextIO, header: List = [], results: Union[List, Dict] = [], sep="\t"
+    header: Union[List, Dict],
+    results: Union[List, Dict] = None,
+    output: TextIO = sys.stdout,
+    sep="\t",
 ):
     if not results:
         results = header
@@ -244,8 +256,8 @@ def print_table(
 
 
 def test():
-    print_table(sys.stdout, *collect_folder("log/01.2_trim", sickle_mapper))
-    print_table(sys.stdout, *collect_folder("log/02.3_depth", assem_mapper))
+    print_table(*collect_folder("log/01.2_trim", sickle_mapper), output=sys.stdout)
+    print_table(*collect_folder("log/02.3_depth", assem_mapper), output=sys.stdout)
 
 
 if __name__ == "__main__":
