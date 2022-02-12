@@ -2,7 +2,7 @@
 """
  * @Date: 2020-07-01 00:29:24
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-08 20:28:09
+ * @LastEditTime: 2022-02-09 10:26:07
  * @FilePath: /metaSC/PyLib/biotool/kegg/kmodule.py
  * @Description:
 """
@@ -22,9 +22,9 @@ class KModule:
 
     def __init__(self, express="", additional_info=""):
         # print(express)
-        self.is_chain: bool = True
-        self.elements: List[KModule] = []
-        self.ko: str = ""
+        self._is_chain: bool = True
+        self._elements: List[KModule] = []
+        self._ko: str = ""
         self.additional_info: str = additional_info
 
         self.__calculate(express)
@@ -36,7 +36,7 @@ class KModule:
         # print(express, "<")
         p = len(express) - 1
         if p == 5:  # ko
-            self.ko = express
+            self._ko = express
             return
         no_comma = []
         while p >= 0:
@@ -60,50 +60,52 @@ class KModule:
                         plb = express.rfind("(", 0, p)
                 no_comma.append(KModule(express[p + 1 : last_p]))
             elif c in ",":
-                if self.is_chain:
-                    self.is_chain = False
+                if self._is_chain:
+                    self._is_chain = False
                 # Stupid KEGG think "(K09880,K08965 K08966)" is equal to "(K09880,(K08965 K08966))".
                 no_comma.reverse()  # "," is in this express. Reverse "no_comma"
-                self.elements.append(KModule.from_list(no_comma))
+                self._elements.append(KModule.from_list(no_comma))
                 no_comma = []
             p -= 1
-        if self.elements:  # "," is in this express. Reverse "no_comma"
+        if self._elements:  # "," is in this express. Reverse "no_comma"
             no_comma.reverse()
-            self.elements.append(KModule.from_list(no_comma))
+            self._elements.append(KModule.from_list(no_comma))
         else:  # no "," is in this express, so just add it.
-            self.elements = no_comma
+            self._elements = no_comma
         # print(*self.elements)
-        self.elements.reverse()
+        self._elements.reverse()
 
     def list_ko(self) -> List[str]:
-        if self.ko:
-            return [self.ko]
-        return [ko for element in self.elements for ko in element.list_ko()]
+        if self._ko:
+            return [self._ko]
+        return [ko for element in self._elements for ko in element.list_ko()]
+
+    kos = property(fget=list_ko)
 
     def __len__(self):
-        return sum([len(e) for e in self.elements]) if self.elements else 1
+        return sum([len(e) for e in self._elements]) if self._elements else 1
 
     def __getitem__(self, key):
         """Return a way contains it"""
-        if key == self.ko:
-            return [self.ko], [0]
-        for e in self.elements:
+        if key == self._ko:
+            return [self._ko], [0]
+        for e in self._elements:
             e_key, i_key = e[key]
             if i_key != -1:
-                if self.is_chain:  # all elements is important
+                if self._is_chain:  # all elements is important
                     e_key = [
-                        e_key if e_chain is e else e_chain for e_chain in self.elements
+                        e_key if e_chain is e else e_chain for e_chain in self._elements
                     ]
-                    i_key = [self.elements.index(e)] + i_key
+                    i_key = [self._elements.index(e)] + i_key
                 return e_key, i_key
         return [], -1
 
     def __str__(self):
-        if self.ko:
-            return self.ko
-        sep = " " if self.is_chain else ","
+        if self._ko:
+            return self._ko
+        sep = " " if self._is_chain else ","
         return sep.join(
-            [kid.ko if kid.ko else "(" + str(kid) + ")" for kid in self.elements]
+            [kid._ko if kid._ko else "(" + str(kid) + ")" for kid in self._elements]
         )
 
     @classmethod
@@ -113,25 +115,25 @@ class KModule:
             e = no_comma[0]
         else:
             e = KModule()
-            e.elements = no_comma
-            e.is_chain = is_chain
+            e._elements = no_comma
+            e._is_chain = is_chain
             e.additional_info = additional_info
         return e
 
-    def all_paths(self, ko_match: Dict[str, float] = None) -> List[str]:
+    def all_paths(self, ko_match: Union[List, Dict, Set] = None) -> List[str]:
         """
         module.all_paths():
             return all potential metabolism paths with KO
         module.all_paths(ko_match):
             return all available metabolism paths if KO be found in ko_match
         """
-        if self.is_chain:
-            if self.ko:
-                if ko_match is None or self.ko in ko_match:
-                    return [self.ko]
+        if self._is_chain:
+            if self._ko:
+                if ko_match is None or self._ko in ko_match:
+                    return [self._ko]
                 return []  # this KO is not in list/dict/set, should not be detected
             last_paths = [""]
-            for kid in self.elements:
+            for kid in self._elements:
                 paths = kid.all_paths(ko_match)
                 if not paths:
                     return []
@@ -142,14 +144,14 @@ class KModule:
                 ]
             return last_paths
         else:
-            paths = [path for kid in self.elements for path in kid.all_paths(ko_match)]
+            paths = [path for kid in self._elements for path in kid.all_paths(ko_match)]
             if paths == []:
                 return []
             len_path = max(len(path) for path in paths)
             paths = sorted(
                 {
                     "[{path:^{len_path}}]".format(path=path, len_path=len_path)
-                    for kid in self.elements
+                    for kid in self._elements
                     for path in kid.all_paths(ko_match)
                 }
             )
@@ -161,15 +163,15 @@ class KModule:
     def completeness(self, ko_match: Union[List, Dict, Set]) -> float:
         """Complessness of given match, ko is its dict"""
         count = 0.0
-        if self.ko:
-            return 1 if self.ko in ko_match else 0
+        if self._ko:
+            return 1 if self._ko in ko_match else 0
         # multipy elements
-        if self.is_chain:
-            for element in self.elements:
+        if self._is_chain:
+            for element in self._elements:
                 count += element.completeness(ko_match)
-            return count / len(self.elements)
+            return count / len(self._elements)
         # self.is_chain is False
-        return max([element.completeness(ko_match) for element in self.elements])
+        return max([element.completeness(ko_match) for element in self._elements])
 
 
 def init_module(module_str):

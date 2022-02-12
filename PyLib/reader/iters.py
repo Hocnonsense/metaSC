@@ -2,38 +2,43 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-09-13 21:13:49
+ * @LastEditTime: 2022-02-12 17:35:00
  * @FilePath: /metaSC/PyLib/reader/iters.py
  * @Description:
 """
 
 from ast import literal_eval as eval
-from io import FileIO
-from typing import Iterable, List, Set, Tuple
+from typing import Iterable, List, Set, TextIO, Tuple, Union
 
+from PyLib.biotool.kraken import kraken_level_filter
 from PyLib.PyLibTool.file_info import verbose_import
-
 
 verbose_import(__name__, __doc__)
 
 
-def read_table(text: FileIO, sep='\t', annot='#', title: List[str] = None, openit=False):
+def read_table(
+    text: Union[List[str], str, TextIO],
+    sep="\t",
+    annot="#",
+    title: List[str] = None,
+    openit=False,
+):
     if openit:
-        text = open(text)
+        text = open(text)  # type: ignore
     for line in text:
         if line.startswith(annot):
             if title is not None:
                 title.clear()
-                title.extend(line[len(annot):].rstrip().split(sep))
+                title.extend(line[len(annot) :].rstrip().split(sep))
             continue
         values = line.strip().split(sep)
         if values:
             yield values
     if openit:
-        text.close()
+        text.close()  # type: ignore
 
 
-def DASTool_summary_iter(text: FileIO) -> Iterable[List[str]]:
+def DASTool_summary_iter(text: TextIO) -> Iterable[List[str]]:
     """{'header': ['bin',
             'uniqueBacSCGs', 'redundantBacSCGs', 'uniqueArcSCGs', 'redundantArcSCGs',
             'bacRatio', 'arcRatio',
@@ -42,7 +47,7 @@ def DASTool_summary_iter(text: FileIO) -> Iterable[List[str]]:
         ],
         'version': '2021-5-19 12:54:57'
     }"""
-    header = eval(DASTool_summary_iter.__doc__)['header']
+    header = eval(DASTool_summary_iter.__doc__)["header"]  # type: ignore
     for values in read_table(text):
         if values[0] == header[0]:
             assert all((header_i == value for header_i, value in zip(header, values)))
@@ -50,21 +55,23 @@ def DASTool_summary_iter(text: FileIO) -> Iterable[List[str]]:
             yield values
 
 
-def DASTool_scaffolds2bin_iter(text: FileIO) -> Iterable[Tuple[str, Set[str]]]:
+def DASTool_scaffolds2bin_iter(text: TextIO) -> Iterable[Tuple[str, Set[str]]]:
     """{
         'header': ['MAG_Id', 'Contigs']
     }"""
-    MAG_Id, scaffolds = '', set()
+    MAG_Id = ""
+    scaffolds: Set[str] = set()
     for scaffold, MAG in read_table(text):
         if MAG != MAG_Id:
-            if MAG_Id:
+            if MAG_Id:  # only work at very beginning
                 yield MAG_Id, scaffolds
-            MAG_Id, scaffolds = MAG, {scaffold}
+            MAG_Id = MAG
+            scaffolds = set()
         scaffolds.add(scaffold)
     yield MAG_Id, scaffolds
 
 
-def checkm_iter(text: FileIO) -> Iterable[Tuple[str, List[str]]]:
+def checkm_iter(text: TextIO) -> Iterable[Tuple[str, List[str]]]:
     """{
         'header': (
             'Bin Id',
@@ -76,37 +83,31 @@ def checkm_iter(text: FileIO) -> Iterable[Tuple[str, List[str]]]:
         )
     }"""
     for line in text:
-        if '\t' in line:
+        if "\t" in line:
             break
-        if line.startswith('--'):
+        if line.startswith("--"):
             continue
-        elif line.startswith('  Bin Id  '):
+        elif line.startswith("  Bin Id  "):
             header = line
-            assert text.readline().startswith('--')
+            assert text.readline().startswith("--")
             line = text.readline()
-            assert not line.startswith('  Bin Id  ')
+            assert not line.startswith("  Bin Id  ")
         values = line.strip().split()
-        yield values[0], [
-            values[1], values[2][1:-1], values[3],
-            *values[-3:]
-        ]
+        yield values[0], [values[1], values[2][1:-1], values[3], *values[-3:]]
     else:
         return
 
     while line:
-        if line.startswith('Bin Id'):
+        if line.startswith("Bin Id"):
             header = line
-            assert header.split()[12] in checkm_iter.__doc__
+            assert header.split()[12] in checkm_iter.__doc__  # type: ignore
             line = text.readline()
         values = line.strip().split()
-        yield values[0], [
-            values[1], values[2][1:-1], values[3],
-            *values[-3:]
-        ]
+        yield values[0], [values[1], values[2][1:-1], values[3], *values[-3:]]
         line = text.readline()
 
 
-def gtdbtk_1_0_2_iter(text: FileIO):
+def gtdbtk_1_0_2_iter(text: TextIO):
     """{
         'in_header': [
             'user_genome',  # 0
@@ -127,22 +128,22 @@ def gtdbtk_1_0_2_iter(text: FileIO):
             ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
         )
     }"""
-    header = eval(gtdbtk_1_0_2_iter.__doc__)['in_header']
+    header = eval(gtdbtk_1_0_2_iter.__doc__)["in_header"]  # type: ignore
     for values in read_table(text):
         if values[0] == header[0]:
             assert all((header_i == value for header_i, value in zip(header, values)))
             continue
         yield values[0], [
             *values[1:4],
-            values[7], values[12], values[15],
-            values[17], values[18]
-        ], [
-            taxon.split('__')[1]
-            for taxon in values[1].split(';')
-        ]
+            values[7],
+            values[12],
+            values[15],
+            values[17],
+            values[18],
+        ], [taxon.split("__")[1] for taxon in values[1].split(";")]
 
 
-def gtdbtk_1_5_1_iter(text: FileIO):
+def gtdbtk_1_5_1_iter(text: TextIO):
     """{
         'in_header': [
             'user_genome',  # 0
@@ -163,25 +164,25 @@ def gtdbtk_1_5_1_iter(text: FileIO):
             ['domain', 'phylum', 'class', 'order', 'family', 'genus', 'species']
         )
     }"""
-    header = eval(gtdbtk_1_5_1_iter.__doc__)['in_header']
+    header = eval(gtdbtk_1_5_1_iter.__doc__)["in_header"]  # type: ignore
     for values in read_table(text):
         if values[0] == header[0]:
             assert all((header_i == value for header_i, value in zip(header, values)))
             continue
         yield values[0], [
             *values[1:4],
-            values[7], values[13], values[16],
-            values[18], values[19]
-        ], [
-            taxon.split('__')[1]
-            for taxon in values[1].split(';')
-        ]
+            values[7],
+            values[13],
+            values[16],
+            values[18],
+            values[19],
+        ], [taxon.split("__")[1] for taxon in values[1].split(";")]
 
 
 gtdbtk_iter = gtdbtk_1_5_1_iter
 
 
-def featureCounts_iter(text: FileIO):
+def featureCounts_iter(text: TextIO):
     """ read <in_file> of featureCounts by:
             featureCounts \\
                 -a ${gff} \\
@@ -198,11 +199,18 @@ def featureCounts_iter(text: FileIO):
             return
         Geneid, Chr, Start, End, Strand, Length = values[:6]
         bam = values[6:]
-        yield (Geneid, Chr, int(Start), int(End), Strand, int(Length),
-               [int(bami) for bami in bam])
+        yield (
+            Geneid,
+            Chr,
+            int(Start),
+            int(End),
+            Strand,
+            int(Length),
+            [int(bami) for bami in bam],
+        )
 
 
-def emapper_ee27b8e_iter(text: FileIO):
+def emapper_ee27b8e_iter(text: TextIO):
     """{
         'header': [
             'query', 'seed_ortholog', 'evalue', 'score', 'eggNOG_OGs',
@@ -218,3 +226,6 @@ def emapper_ee27b8e_iter(text: FileIO):
 
 
 emapper_iter = emapper_ee27b8e_iter
+
+
+kraken_iter = kraken_level_filter
