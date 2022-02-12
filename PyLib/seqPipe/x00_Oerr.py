@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-12 18:13:04
+ * @LastEditTime: 2022-02-12 18:18:17
  * @FilePath: /metaSC/PyLib/seqPipe/x00_Oerr.py
  * @Description:
 """
@@ -122,7 +122,7 @@ def assem_mapper(text: TextIO):
         for line in text
     ):
         if match:
-            scf, _ = match.groups()
+            scf = match.groups()[0]
             break
 
     for match in (
@@ -132,15 +132,15 @@ def assem_mapper(text: TextIO):
         for line in text
     ):
         if match:
-            Reads, _ = match.groups()
+            Reads = match.groups()[0]
     line = text.readline()
-    M_reads, _ = re.match(  # type: ignore
+    M_reads = re.match(  # type: ignore
         re.compile(r"^Mapped reads:                        	(\d+)$"), line
-    ).groups()
+    ).groups()[0]
     line = text.readline()
-    M_bases, _ = re.match(  # type: ignore
+    M_bases = re.match(  # type: ignore
         re.compile(r"^Mapped bases:                        	(\d+)$"), line
-    ).groups()
+    ).groups()[0]
     line = text.readline()
     # re.match(re.compile(r'^Ref scaffolds:                       	(\d+)$'), line).groups()[0]
     line = text.readline()
@@ -148,31 +148,31 @@ def assem_mapper(text: TextIO):
     line = text.readline()
 
     line = text.readline()
-    P_mapped, _ = re.match(  # type: ignore
+    P_mapped = re.match(  # type: ignore
         re.compile(r"^Percent mapped:                      	(\d+.\d+)$"), line
-    ).groups()
+    ).groups()[0]
     line = text.readline()
-    P_pairs, _ = re.match(  # type: ignore
+    P_pairs = re.match(  # type: ignore
         re.compile(r"^Percent proper pairs:                	(\d+.\d+)$"), line
-    ).groups()
+    ).groups()[0]
     line = text.readline()
-    Avg_cover, _ = re.match(  # type: ignore
+    Avg_cover = re.match(  # type: ignore
         re.compile(r"^Average coverage:                    	(\d+.\d+)$"), line
-    ).groups()
+    ).groups()[0]
     line = text.readline()
-    Avg_cov_del, _ = re.match(  # type: ignore
+    Avg_cov_del = re.match(  # type: ignore
         re.compile(r"^Average coverage with deletions:     	(\d+.\d+)$"), line
-    ).groups()
+    ).groups()[0]
     line = text.readline()
-    SD, _ = re.match(  # type: ignore
+    SD = re.match(  # type: ignore
         re.compile(r"^Standard deviation:                    	(\d+.\d+)$"), line
-    ).groups()
+    ).groups()[0]
     line = text.readline()
     # re.match(re.compile(r'^Percent scaffolds with any coverage: 	(\d+.\d+)$'), line).groups()[0]
     line = text.readline()
-    (P_covered,) = re.match(  # type: ignore
+    P_covered = re.match(  # type: ignore
         re.compile(r"^Percent of reference bases covered:  	(\d+.\d+)$"), line
-    ).groups()
+    ).groups()[0]
 
     for match in (
         re.match(re.compile(r"^Output depth matrix to ([^\s]+)$"), line)  # type: ignore
