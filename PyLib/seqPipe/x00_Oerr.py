@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-12 18:18:17
+ * @LastEditTime: 2022-02-12 18:23:11
  * @FilePath: /metaSC/PyLib/seqPipe/x00_Oerr.py
  * @Description:
 """
@@ -133,6 +133,7 @@ def assem_mapper(text: TextIO):
     ):
         if match:
             Reads = match.groups()[0]
+            break
     line = text.readline()
     M_reads = re.match(  # type: ignore
         re.compile(r"^Mapped reads:                        	(\d+)$"), line
