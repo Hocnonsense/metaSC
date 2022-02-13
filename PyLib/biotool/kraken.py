@@ -2,12 +2,15 @@
 """
  * @Date: 2022-02-11 15:44:32
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-12 17:35:08
+ * @LastEditTime: 2022-02-13 14:07:46
  * @FilePath: /metaSC/PyLib/biotool/kraken.py
  * @Description:
 """
+from typing import Final, Generator, List, Literal, TextIO, Tuple, Union
 
-from typing import Dict, Final, Generator, Iterable, List, Literal, TextIO, Tuple
+import numpy as np
+import pandas as pd
+from tqdm import trange
 
 main_lvls: Final = ["R", "K", "D", "P", "C", "O", "F", "G", "S"]
 
@@ -89,7 +92,7 @@ def format_taxon(taxon: str, formatleveli=7):
 
 
 def kraken_level_filter(
-    in_file, level: Literal["k", "p", "c", "o", "f", "g", "s"] = None
+    in_file: TextIO, level: Literal["k", "p", "c", "o", "f", "g", "s"] = None
 ):
     """{
         'in_header': ['percents', 'all_reads', 'exact_reads', 'level_type', 'name'],
@@ -119,3 +122,37 @@ def kraken_level_filter(
             last_taxon, last_reads = last_reports.pop()
             yield format_taxon(last_taxon, leveli), last_reads
         print("total reads:", -total_reads)
+
+
+def rarefaction(otus, size, repeat=10, seed=0):
+    prng = np.random.RandomState(seed)  # reproducible results
+
+    otus = np.array(otus)
+    noccur = np.sum(otus)  # number of occurrences for each sample
+    nvar = otus.shape[0]
+    size = int(size)
+
+    return pd.DataFrame(
+        {
+            size: [
+                sum(
+                    np.bincount(
+                        prng.choice(nvar, size, p=otus / float(noccur)), minlength=nvar
+                    )
+                    > 0
+                )
+                for _ in trange(repeat, desc=f"repeating at {size}")
+            ]
+            for size in trange(size, otus.sum(), size)
+        }
+    )
+
+
+def kraken_rarefaction(filepath: str, size=2e6):
+    otus: pd.DataFrame = pd.read_csv(
+        filepath,
+        sep="\t",
+        names=["percents", "all_reads", "exact_reads", "level_type", "uid", "name"],
+        usecols=["exact_reads"],
+    ).dropna()["exact_reads"]
+    return rarefaction(otus, size)
