@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-15 17:06:18
+ * @LastEditTime: 2022-02-16 11:12:05
  * @FilePath: /metaSC/PyLib/seqPipe/x01.3_kraken.py
  * @Description:
 """
@@ -44,6 +44,10 @@ def easy_click(ctx, loglevel: str, output_prefix: str, kraken_report_pattern: st
     """deal with kraken report to summarize the metagenome sample"""
     logging.basicConfig(level=loglevel.upper())  # info
     kraken_reports = glob.glob(kraken_report_pattern)
+    # output_prefix
+    os.makedirs(os.path.dirname(output_prefix))
+    ctx.obj["output_prefix"] = output_prefix
+    # kraken_reports
     if not kraken_reports:
         raise FileNotFoundError(
             f"pattern {kraken_report_pattern} do not match any file"
@@ -69,7 +73,6 @@ def bar(ctx, taxon):
 @click.option(
     "-s",
     "--step",
-    type=int,
     default=2e6,
     help="Step size for sample sizes in rarefaction curves.",
 )
@@ -78,7 +81,7 @@ def rare(ctx, step):
     kraken_reports: List[str] = ctx.obj["kraken_reports"]
     output = ctx.obj["output_prefix"] + f"kraken_rare.csv"
     kraken_rare = pd.concat(
-        [kraken_rarefaction(report, step) for report in kraken_reports], axis=0
+        [kraken_rarefaction(report, int(step)) for report in kraken_reports], axis=0
     )
     kraken_rare.to_csv(output)
 
