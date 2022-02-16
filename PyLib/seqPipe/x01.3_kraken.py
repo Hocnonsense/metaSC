@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-16 11:12:05
+ * @LastEditTime: 2022-02-16 11:23:45
  * @FilePath: /metaSC/PyLib/seqPipe/x01.3_kraken.py
  * @Description:
 """
@@ -45,7 +45,7 @@ def easy_click(ctx, loglevel: str, output_prefix: str, kraken_report_pattern: st
     logging.basicConfig(level=loglevel.upper())  # info
     kraken_reports = glob.glob(kraken_report_pattern)
     # output_prefix
-    os.makedirs(os.path.dirname(output_prefix))
+    os.makedirs(os.path.dirname(output_prefix), exist_ok=True)
     ctx.obj["output_prefix"] = output_prefix
     # kraken_reports
     if not kraken_reports:
