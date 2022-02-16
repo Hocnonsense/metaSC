@@ -2,7 +2,7 @@
 """
  * @Date: 2022-02-11 15:44:32
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-15 16:48:23
+ * @LastEditTime: 2022-02-16 12:22:40
  * @FilePath: /metaSC/PyLib/biotool/kraken.py
  * @Description:
 """
@@ -124,7 +124,7 @@ def kraken_level_filter(
         print("total reads:", -total_reads)
 
 
-def rarefaction(otus, step, repeat=10, seed=0):
+def rarefaction(otus, step, repeat=10, seed=0, tdesc=""):
     prng = np.random.RandomState(seed)  # reproducible results
 
     otus = np.array(otus)
@@ -143,7 +143,7 @@ def rarefaction(otus, step, repeat=10, seed=0):
                 )
                 for _ in trange(repeat, desc=f"repeating at {step_}")
             ]
-            for step_ in trange(step, otus.sum(), step)
+            for step_ in trange(step, otus.sum(), step, desc=tdesc)
         }
     )
 
@@ -158,7 +158,7 @@ def kraken_rarefaction(filepath: str, step=2e6):
     otus = kraken_report[
         kraken_report["level_type"].apply(lambda x: x[0] not in ("U", "R"))
     ]["exact_reads"]
-    rare = rarefaction(otus, step)
+    rare = rarefaction(otus, step, tdesc=filepath)
     rare_long = rare.melt(var_name="sample_size", value_name="otus").append(
         {"sample_size": otus.sum(), "otus": otus.size}, ignore_index=True
     )

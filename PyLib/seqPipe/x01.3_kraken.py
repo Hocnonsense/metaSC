@@ -2,20 +2,18 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-16 11:23:45
+ * @LastEditTime: 2022-02-16 12:19:30
  * @FilePath: /metaSC/PyLib/seqPipe/x01.3_kraken.py
  * @Description:
 """
 
 import os
-import re
 import click
 import logging
 import glob
-from ast import literal_eval as eval
-import sys
 import pandas as pd
-from typing import Callable, Dict, List, Union, TextIO, Literal
+from typing import List, Literal
+import tqdm
 
 from PyLib.biotool.kraken import kraken_rarefaction, kraken_level_filter
 
@@ -27,10 +25,9 @@ def report_kraken_level(
     for kraken_report in kraken_reports:
         with open(kraken_report) as fi:
             kraken_reports_level[kraken_report] = {
-                k: v
-                for k, v in kraken_level_filter(fi, level)
-                if k.startswith("k__Bacteria") or k.startswith("k__Archaea")
+                k: v for k, v in kraken_level_filter(fi, level)
             }
+            # if k.startswith("k__Bacteria") or k.startswith("k__Archaea")
 
     return pd.DataFrame(kraken_reports_level, dtype=int).fillna(0)
 
@@ -81,7 +78,11 @@ def rare(ctx, step):
     kraken_reports: List[str] = ctx.obj["kraken_reports"]
     output = ctx.obj["output_prefix"] + f"kraken_rare.csv"
     kraken_rare = pd.concat(
-        [kraken_rarefaction(report, int(step)) for report in kraken_reports], axis=0
+        [
+            kraken_rarefaction(report, int(step))
+            for report in tqdm.trange(kraken_reports)
+        ],
+        axis=0,
     )
     kraken_rare.to_csv(output)
 
