@@ -3,7 +3,7 @@
  * @Date: 2020-10-24 10:24:10
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-16 17:38:39
+ * @LastEditTime: 2022-02-16 17:08:01
  * @FilePath: /metaSC/PyLib/seqPipe/x03.1_gene_cut.py
  * @Description:
         update from LYX's script
@@ -47,14 +47,14 @@ class prefix_files:
         self.prefix = os.path.abspath(os.path.expanduser(prefix))
 
     def __str__(self):
-        return f'<prefix_files: {self.prefix}>'
+        return f"<prefix_files: {self.prefix}>"
 
     def __call__(self, suffix: str, check_exist: bool = None) -> str:
         """
-           @param {check_exist: bool}:
-                True: return False if file not exist
-                False: return False if file exist
-                None: do not check
+        @param {check_exist: bool}:
+             True: return False if file not exist
+             False: return False if file exist
+             None: do not check
         """
         file_name = self.prefix + suffix
 
@@ -63,16 +63,19 @@ class prefix_files:
         if check_exist is None or check_exist is os.path.isfile(file_name):
             return file_name
 
-        return False
+        return ""
 
 
-def fa_filt_iter(fas: Iterable[SeqRecord.SeqRecord], keepIds: Set[str],
-                 threshold: Optional[int] = None):
-    """ Any sequence will be kept if
-        1.  in keepIds
-        2.  not less than threshold
+def fa_filt_iter(
+    fas: Iterable[SeqRecord.SeqRecord],
+    keepIds: Set[str],
+    threshold: Optional[int] = None,
+):
+    """Any sequence will be kept if
+    1.  in keepIds
+    2.  not less than threshold
 
-        @paran threshold: typtically, 33
+    @paran threshold: typtically, 33
     """
     keep_lens: List[int] = []
     discard_lens: List[int] = []
@@ -86,18 +89,18 @@ def fa_filt_iter(fas: Iterable[SeqRecord.SeqRecord], keepIds: Set[str],
         if record.id in keepIds:
             yield record
     if discard_lens:
-        print(f'discarded: {len(discard_lens)}, {sum(discard_lens)} bases(aa)')
-        print(f'kept: {len(keep_lens)}, {sum(keep_lens)} bases(aa)')
+        print(f"discarded: {len(discard_lens)}, {sum(discard_lens)} bases(aa)")
+        print(f"kept: {len(keep_lens)}, {sum(keep_lens)} bases(aa)")
 
 
 def gff_filt_iter(gffin: Iterable[str], keepIds: Set[str]):
     for line in gffin:
-        if line[0] == '#':
+        if line[0] == "#":
             continue
-        temp = line.strip().split('\t')
+        temp = line.strip().split("\t")
         scaffold = temp[0]
-        s_count = temp[8].split(';')[0].split('_')[1]
-        sid = scaffold + '_' + s_count
+        s_count = temp[8].split(";")[0].split("_")[1]
+        sid = scaffold + "_" + s_count
         if sid in keepIds:
             yield line
 
@@ -107,8 +110,7 @@ def parse_args():
         exit(0)
 
     sc = argv[0]
-    in_file_prefixs = [prefix_files(in_file_prefix)
-                       for in_file_prefix in argv[1:-2]]
+    in_file_prefixs = [prefix_files(in_file_prefix) for in_file_prefix in argv[1:-2]]
     out_file_prefix = prefix_files(argv[-2])
     num = int(argv[-1])
     args = in_file_prefixs, out_file_prefix, num
@@ -125,8 +127,8 @@ def main(in_file_prefix, num, out):
     print("read", in_file, file=stderr)
     if in_file:
         with open(in_file) as fin:
-            for record in fa_filt_iter(SeqIO.parse(fin, 'fasta'), keepIds, num):
-                print(record.format('fasta'), file=faao)
+            for record in fa_filt_iter(SeqIO.parse(fin, "fasta"), keepIds, num):
+                print(record.format("fasta"), file=faao)
     else:
         print("invalid", suffix, "file:", in_file, file=stderr)
         return
@@ -136,8 +138,8 @@ def main(in_file_prefix, num, out):
     print("read", in_file, file=stderr)
     if in_file:
         with open(in_file) as fin:
-            for record in fa_filt_iter(SeqIO.parse(fin, 'fasta'), keepIds):
-                print(record.format('fasta'), file=fnao)
+            for record in fa_filt_iter(SeqIO.parse(fin, "fasta"), keepIds):
+                print(record.format("fasta"), file=fnao)
     else:
         print(f"    {in_file_prefix(suffix)} no found, pass")
 
@@ -155,8 +157,8 @@ def main(in_file_prefix, num, out):
 if __name__ == "__main__":
     in_file_prefixs, out_file_prefix, num = parse_args()
 
-    with open(out_file_prefix('.faa', 'w')) as faao, \
-            open(out_file_prefix('.fna', 'w')) as fnao, \
-            open(out_file_prefix('.gff', 'w')) as gffo:
+    with open(out_file_prefix(".faa", "w")) as faao, open(
+        out_file_prefix(".fna", "w")
+    ) as fnao, open(out_file_prefix(".gff", "w")) as gffo:
         for in_file_prefix in in_file_prefixs:
             main(in_file_prefix, num, (faao, fnao, gffo))

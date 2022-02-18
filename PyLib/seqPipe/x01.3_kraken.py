@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-16 12:19:30
+ * @LastEditTime: 2022-02-17 10:26:11
  * @FilePath: /metaSC/PyLib/seqPipe/x01.3_kraken.py
  * @Description:
 """
@@ -73,13 +73,19 @@ def bar(ctx, taxon):
     default=2e6,
     help="Step size for sample sizes in rarefaction curves.",
 )
-def rare(ctx, step):
+@click.option(
+    "-r",
+    "--repeat",
+    default=10,
+    help="Repeat time at each step. ",
+)
+def rare(ctx, step, repeat):
     """generate rarefaction report from KRAKEN_REPORTs"""
     kraken_reports: List[str] = ctx.obj["kraken_reports"]
     output = ctx.obj["output_prefix"] + f"kraken_rare.csv"
     kraken_rare = pd.concat(
         [
-            kraken_rarefaction(report, int(step))
+            kraken_rarefaction(report, int(step), repeat)
             for report in tqdm.trange(kraken_reports)
         ],
         axis=0,

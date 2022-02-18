@@ -2,7 +2,7 @@
 """
  * @Date: 2022-02-11 15:44:32
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-16 12:22:40
+ * @LastEditTime: 2022-02-17 10:25:11
  * @FilePath: /metaSC/PyLib/biotool/kraken.py
  * @Description:
 """
@@ -148,7 +148,7 @@ def rarefaction(otus, step, repeat=10, seed=0, tdesc=""):
     )
 
 
-def kraken_rarefaction(filepath: str, step=2e6):
+def kraken_rarefaction(filepath: str, step=2e6, repeat=10):
     kraken_report: pd.DataFrame = pd.read_csv(
         filepath,
         sep="\t",
@@ -158,7 +158,7 @@ def kraken_rarefaction(filepath: str, step=2e6):
     otus = kraken_report[
         kraken_report["level_type"].apply(lambda x: x[0] not in ("U", "R"))
     ]["exact_reads"]
-    rare = rarefaction(otus, step, tdesc=filepath)
+    rare = rarefaction(otus, step, repeat, tdesc=filepath)
     rare_long = rare.melt(var_name="sample_size", value_name="otus").append(
         {"sample_size": otus.sum(), "otus": otus.size}, ignore_index=True
     )

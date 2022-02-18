@@ -2,13 +2,14 @@
 """
  * @Date: 2021-03-15 11:07:29
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-01-21 14:53:58
+ * @LastEditTime: 2022-02-17 11:19:09
  * @FilePath: /metaSC/PyLib/PyLibTool/file_info.py
  * @Description:
     Extract information in __doc__
 """
 
 import logging
+from typing import Dict
 
 
 def extract_doc(module_doc: str) -> dict:
@@ -22,29 +23,28 @@ def extract_doc(module_doc: str) -> dict:
     >>> extract_doc(PyLib.PyLibTool.file_info.__doc__)["Description"]
     '\n    Extract information in __doc__'
     """
-    doc_list = module_doc.split(' * @')
-    doc_dict = {}
-    k = 'description'
+    doc_list = module_doc.split(" * @")
+    doc_dict: Dict = {}
+    k = "description"
     for item in doc_list:
-        item = item.strip().split(':', 1)
-        if item == ['']:
+        item_ = item.strip().split(":", 1)
+        if item_ == [""]:
             continue
-        elif len(item) == 1:
-            doc_dict[k] += ' * @ ' + item[0]  # undefined action
+        elif len(item_) == 1:
+            doc_dict[k] += " * @ " + item_[0]  # undefined action
         elif len(item) == 2:
-            k, v = item
+            k, v = item_
             doc_dict[k] = v
 
     return doc_dict
 
 
 def verbose_import(module_name, module_doc) -> logging.Logger:
-    """
-    """
+    """ """
     doc_dict = extract_doc(module_doc)
     logger = logging.getLogger(module_name)
-    LastEditTime = doc_dict["LastEditTime"]
-    logger.debug(f'import version {LastEditTime} -- {module_name}')
+    LastEditTime = doc_dict.get("LastEditTime", "")
+    logger.debug(f"import version {LastEditTime} -- {module_name}")
     return logger
 
 
