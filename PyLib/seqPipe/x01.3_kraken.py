@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-23 16:35:09
+ * @LastEditTime: 2022-02-23 17:01:26
  * @FilePath: /metaSC/PyLib/seqPipe/x01.3_kraken.py
  * @Description:
 """
@@ -14,20 +14,25 @@ import glob
 import pandas as pd
 from typing import List, Literal
 from tqdm import tqdm
+from joblib import Parallel, delayed
 
 from PyLib.biotool.kraken import kraken_rarefaction, kraken_level_filter
 
 
 def report_kraken_level(
-    level: Literal["k", "p", "c", "o", "f", "g", "s"], kraken_reports
+    level: Literal["k", "p", "c", "o", "f", "g", "s"], kraken_reports, threads=1
 ):
-    kraken_reports_level = {}
-    for kraken_report in kraken_reports:
+    def get_kraken_report_level(kraken_report: str):
         with open(kraken_report) as fi:
-            kraken_reports_level[kraken_report] = {
-                k: v for k, v in kraken_level_filter(fi, level)
-            }
+            return kraken_report, {k: v for k, v in kraken_level_filter(fi, level)}
             # if k.startswith("k__Bacteria") or k.startswith("k__Archaea")
+
+    kraken_reports_level = dict(
+        Parallel(threads, verbose=11)(
+            delayed(get_kraken_report_level)(kraken_report)
+            for kraken_report in kraken_reports
+        )
+    )
 
     return pd.DataFrame(kraken_reports_level, dtype=int).fillna(0)
 
@@ -58,11 +63,17 @@ def easy_click(ctx, loglevel: str, output_prefix: str, kraken_report_pattern: st
 @click.argument(
     "taxon", type=click.Choice(["k", "p", "c", "o", "f", "g", "s"]), default="g"
 )
-def bar(ctx, taxon):
+@click.option(
+    "-t",
+    "--threads",
+    default=1,
+    help="Threads to speed up. ",
+)
+def bar(ctx, taxon, threads):
     """Filter kraken to given TAXON; output a table of these genomes"""
     kraken_reports = ctx.obj["kraken_reports"]
     output = ctx.obj["output_prefix"] + f"kraken_{taxon}.csv"
-    report_kraken_level(taxon, kraken_reports).to_csv(output)
+    report_kraken_level(taxon, kraken_reports, threads).to_csv(output)
 
 
 @easy_click.command()
@@ -79,14 +90,22 @@ def bar(ctx, taxon):
     default=10,
     help="Repeat time at each step. ",
 )
-def rare(ctx, step, repeat):
+@click.option(
+    "-t",
+    "--threads",
+    default=1,
+    help="Threads to speed up. ",
+)
+def rare(ctx, step, repeat, threads):
     """generate rarefaction report from KRAKEN_REPORTs"""
     kraken_reports: List[str] = ctx.obj["kraken_reports"]
     output = ctx.obj["output_prefix"] + f"kraken_rare.csv"
     kraken_rare = pd.concat(
         [
-            kraken_rarefaction(report, int(step), repeat)
-            for report in tqdm(kraken_reports, desc="rarefaction")
+            Parallel(threads, verbose=11)(
+                delayed(kraken_rarefaction)(report, int(step), repeat)
+                for report in kraken_reports
+            )
         ],
         axis=0,
     )
