@@ -2,7 +2,7 @@
 """
  * @Date: 2021-06-14 18:41:24
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-08 20:41:13
+ * @LastEditTime: 2022-02-23 16:15:53
  * @FilePath: /metaSC/PyLib/biotool/kegg/query.py
  * @Description:
 """
@@ -105,16 +105,42 @@ def cached(
 
 
 def demo1():
-    KEGG_DIR = "~/Work/2021_05-MT10kSW/00_data/KEGG/ko00002"
-    ko00002 = load_brite("br:ko00002", os.path.join(KEGG_DIR, "ko00002.json"))[1]
+    import pandas as pd
+    from PyLib.biotool.kegg import module_from_brite
 
-    module_name = list(
-        list(list(list(ko00002.values())[0].values())[0].values())[0].keys()
-    )[0]
-    raw_module = load_KEGG_module_raw(module_name, KEGG_DIR)
-    entry: str = raw_module["ENTRY"][0].split()[0]
-    module = KModule(
-        "".join(raw_module["DEFINITION"]), additional_info="".join(raw_module["NAME"])
+    KEGG_DIR = "./KEGG_DB"
+
+    module_levels, modules = module_from_brite(
+        "br:ko00002",
+        os.path.join(KEGG_DIR, "brite", "ko00002.json"),
+        os.path.join(KEGG_DIR, "module"),
     )
-    print(entry)
-    return module
+    module_levels_ = pd.DataFrame(
+        module_levels, columns=["A", "B", "C", "module", "desc"]
+    )
+    module_levels_.index = module_levels_["module"]
+    return module_levels_, dict(modules)
+
+
+def demo2():
+    module_levels, modules = demo1()
+    ko_abd = {
+        "K19746": 0,
+        "K19744": 1,
+        "K12658": 2,
+        "K21060": 3,
+        "K22549": 4,
+        "K21061": 5,
+        "K22550": 6,
+        "K21062": 7,
+        "K13877": 8,
+    }
+    print(
+        modules["M00947"].abundance(ko_abd),
+        modules["M00947"].completeness(ko_abd),
+        modules["M00947"].completeness({ko: abd for ko, abd in ko_abd if abd > 0}),
+    )
+    print(
+        modules["M00948"].abundance(ko_abd),
+        modules["M00948"].completeness(ko_abd),
+    )
