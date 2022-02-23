@@ -2,23 +2,20 @@
 """
  * @Date: 2021-06-14 18:41:24
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-23 16:15:53
+ * @LastEditTime: 2022-02-23 16:26:56
  * @FilePath: /metaSC/PyLib/biotool/kegg/query.py
  * @Description:
 """
 
 import os
-from io import FileIO
 import json
 from typing import Callable, List, Dict, TextIO, Tuple, Union
 
 from Bio.KEGG import REST
 
-from PyLib.biotool.kegg.kmodule import KModule
-
 
 def load_KEGG_module_raw(
-    source: Union[str, FileIO], cache_path: str = ""
+    source: Union[str, TextIO], cache_path: str = ""
 ) -> Dict[str, List[str]]:
     if isinstance(source, str):
         if cache_path:
@@ -105,15 +102,19 @@ def cached(
 
 
 def demo1():
+    """Database may be download from KEGG, including the file of module and description (ko00002.json)"""
     import pandas as pd
     from PyLib.biotool.kegg import module_from_brite
 
     KEGG_DIR = "./KEGG_DB"
 
+    if not os.path.isdir(KEGG_DIR):
+        os.makedirs(KEGG_DIR)
+
     module_levels, modules = module_from_brite(
         "br:ko00002",
-        os.path.join(KEGG_DIR, "brite", "ko00002.json"),
-        os.path.join(KEGG_DIR, "module"),
+        os.path.join(KEGG_DIR, "ko00002.json"),
+        KEGG_DIR,
     )
     module_levels_ = pd.DataFrame(
         module_levels, columns=["A", "B", "C", "module", "desc"]

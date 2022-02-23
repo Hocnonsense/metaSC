@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-17 10:26:11
+ * @LastEditTime: 2022-02-23 16:35:09
  * @FilePath: /metaSC/PyLib/seqPipe/x01.3_kraken.py
  * @Description:
 """
@@ -13,7 +13,7 @@ import logging
 import glob
 import pandas as pd
 from typing import List, Literal
-import tqdm
+from tqdm import tqdm
 
 from PyLib.biotool.kraken import kraken_rarefaction, kraken_level_filter
 
@@ -86,7 +86,7 @@ def rare(ctx, step, repeat):
     kraken_rare = pd.concat(
         [
             kraken_rarefaction(report, int(step), repeat)
-            for report in tqdm.trange(kraken_reports)
+            for report in tqdm(kraken_reports, desc="rarefaction")
         ],
         axis=0,
     )
