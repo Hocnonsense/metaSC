@@ -2,7 +2,7 @@
 """
  * @Date: 2021-03-15 11:07:29
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-18 10:28:44
+ * @LastEditTime: 2022-02-22 16:55:01
  * @FilePath: /metaSC/PyLib/PyLibTool/file_info.py
  * @Description:
     Extract information in __doc__
@@ -39,9 +39,9 @@ def extract_doc(module_doc: str) -> Dict:
     return doc_dict
 
 
-def verbose_import(module_name, module_doc) -> logging.Logger:
+def verbose_import(module_name, module_doc="") -> logging.Logger:
     """ """
-    doc_dict = extract_doc(module_doc)
+    doc_dict = extract_doc(module_doc or "")
     logger = logging.getLogger(module_name)
     LastEditTime = doc_dict.get("LastEditTime", "")
     logger.debug(f"import version {LastEditTime} -- {module_name}")
@@ -53,7 +53,11 @@ def basicConfig(logger_level: str = None, _logger_level=["INFO"]):
     if logger_level:
         _logger_level[0] = logger_level.upper()
     logger_level = _logger_level[0]
-    logging.basicConfig(level=logger_level)
+    logging.basicConfig(
+        level=logger_level,
+        format="%(asctime)s  %(filename)s : %(levelname)s  %(message)s",  # 定义输出log的格式
+        datefmt="%Y-%m-%d %H:%M:%S",  # 时间
+    )
     return logger_level
 
 
