@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-23 17:01:26
+ * @LastEditTime: 2022-02-23 19:25:37
  * @FilePath: /metaSC/PyLib/seqPipe/x01.3_kraken.py
  * @Description:
 """
@@ -45,7 +45,7 @@ def report_kraken_level(
 def easy_click(ctx, loglevel: str, output_prefix: str, kraken_report_pattern: str):
     """deal with kraken report to summarize the metagenome sample"""
     logging.basicConfig(level=loglevel.upper())  # info
-    kraken_reports = glob.glob(kraken_report_pattern)
+    kraken_reports = sorted(glob.glob(kraken_report_pattern))
     # output_prefix
     os.makedirs(os.path.dirname(output_prefix), exist_ok=True)
     ctx.obj["output_prefix"] = output_prefix
@@ -101,12 +101,10 @@ def rare(ctx, step, repeat, threads):
     kraken_reports: List[str] = ctx.obj["kraken_reports"]
     output = ctx.obj["output_prefix"] + f"kraken_rare.csv"
     kraken_rare = pd.concat(
-        [
-            Parallel(threads, verbose=11)(
-                delayed(kraken_rarefaction)(report, int(step), repeat)
-                for report in kraken_reports
-            )
-        ],
+        Parallel(threads, verbose=11)(
+            delayed(kraken_rarefaction)(report, int(step), repeat)
+            for report in kraken_reports
+        ),
         axis=0,
     )
     kraken_rare.to_csv(output)
