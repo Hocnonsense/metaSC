@@ -2,7 +2,7 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-12 17:35:00
+ * @LastEditTime: 2022-02-23 19:57:23
  * @FilePath: /metaSC/PyLib/reader/iters.py
  * @Description:
 """
@@ -182,7 +182,7 @@ def gtdbtk_1_5_1_iter(text: TextIO):
 gtdbtk_iter = gtdbtk_1_5_1_iter
 
 
-def featureCounts_iter(text: TextIO):
+def featureCounts_iter(text: TextIO, ititle: List[str] = None):
     """ read <in_file> of featureCounts by:
             featureCounts \\
                 -a ${gff} \\
@@ -194,9 +194,10 @@ def featureCounts_iter(text: TextIO):
             Geneid, Chr, Start, End, Strand, Length, bam1  ...
     """
     for values in read_table(text):
-        if values[0].startswith("Geneid"):  # drop title line
-            yield (*values[:6], values[6:])
-            return
+        # drop title line
+        if values[0].startswith("Geneid") and isinstance(ititle, list):
+            ititle.clear()
+            ititle.extend((*values[:6], values[6:]))
         Geneid, Chr, Start, End, Strand, Length = values[:6]
         bam = values[6:]
         yield (

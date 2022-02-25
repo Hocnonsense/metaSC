@@ -2,7 +2,7 @@
 """
  * @Date: 2022-02-11 15:44:32
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-23 17:14:33
+ * @LastEditTime: 2022-02-23 19:38:27
  * @FilePath: /metaSC/PyLib/biotool/kraken.py
  * @Description:
 """
@@ -141,7 +141,7 @@ def rarefaction(otus, step, repeat=10, seed=0, tdesc=""):
                     )
                     > 0
                 )
-                for _ in trange(repeat, desc=f"step {step_}\trepeat of {tdesc}")
+                for _ in trange(repeat, desc=f"step {step_} repeat of {tdesc}")
             ]
             for step_ in trange(step, otus.sum(), step, desc=tdesc)
         }
