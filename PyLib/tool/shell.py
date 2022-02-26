@@ -2,7 +2,7 @@
 """
  * @Date: 2020-08-19 18:13:55
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-08 20:17:22
+ * @LastEditTime: 2022-02-25 11:02:04
  * @FilePath: /metaSC/PyLib/tool/shell.py
  * @Description:
 """
@@ -96,4 +96,4 @@ def runsh_safe(
     # pylint: disable = broad-except
     except Exception as e:
         print("failed to run command line {}: {}".format(tokens, e))
-        return None
+        return "", ""
