@@ -1,9 +1,10 @@
 ###
 #* @Date: 2022-02-27 13:23:46
 #* @LastEditors: Hwrn
-#* @LastEditTime: 2022-02-27 13:29:52
+#* @LastEditTime: 2022-02-28 10:44:56
 #* @FilePath: /metaSC/R/RLib.r
 #* @Description:
+#     source me!
 ###
 
 
@@ -28,7 +29,7 @@ suppressMessages(library(pathview))
 #install.packages("roxygen2", depend = TRUE)
 library(roxygen2)
 
-expand.source.abs <- function(x, ...) {
+reload.RLib <- function() {
   dir <- "."
   if (sys.nframe() > 0) {
     frame <- sys.frame(1)
@@ -36,12 +37,12 @@ expand.source.abs <- function(x, ...) {
       dir <- dirname(frame$ofile)
     }
   }
-  return(file.path(dir, x, ...))
+  abs.dir = file.path(dir, "RLib/")
+  roxygenize(abs.dir)
+  system(paste("R CMD build", abs.dir))
+  #system(paste("R CMD check", abs.dir))
+  system(paste("R CMD INSTALL", abs.dir))
 }
-abs.dir = expand.source.abs("RLib/")
-roxygenize(expand.source.abs("RLib/"))
-system(paste("R CMD build", abs.dir))
-#system(paste("R CMD check", abs.dir))
-system(paste("R CMD INSTALL", abs.dir))
+reload.RLib()
 
 library(RLib)

@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-02-27 13:19:01
 #* @LastEditors: Hwrn
-#* @LastEditTime: 2022-02-27 14:18:08
+#* @LastEditTime: 2022-02-27 20:58:57
 #* @FilePath: /metaSC/R/RLib/R/load.r
 #* @Description:
 ###
@@ -67,8 +67,6 @@ load_if_not <- function(var, ..., .force.reload=FALSE) {
 #' @export
 #' @description or just use this:
 #'              source(here::here('load.r'))
-#'
-#' @examples
 source_here <- function(x, ...) {
     dir <- "."
     if (sys.nframe() > 0) {
