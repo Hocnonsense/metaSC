@@ -3,7 +3,7 @@
  * @Date: 2021-06-30 20:05:10
  * @Editors: Hwrn, LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-23 20:04:04
+ * @LastEditTime: 2022-03-01 13:48:41
  * @FilePath: /metaSC/PyLib/seqPipe/x03_link_gene.py
  * @Description:
     1.  it can generate/read subset gene or contig file, either fasta or table format.
@@ -17,12 +17,12 @@
 import argparse
 import logging
 import os
-import re
 from datetime import datetime
 from sys import stdout
-from typing import Dict, Iterable, List, Set, Tuple, Union, TextIO
+from typing import Dict, List, Set, Tuple, Union, TextIO
 
 from Bio.SeqIO.FastaIO import SimpleFastaParser
+from PyLib.seqPipe.getannot import infer_annot_filename, get_gene_KOs
 from PyLib.reader.iters import emapper_iter, featureCounts_iter, read_table
 
 logger = logging.getLogger(__name__)
@@ -36,60 +36,6 @@ def drop_gene(gene: str, subsets: Tuple[Union[Set, List, Dict], bool]) -> bool:
         else:
             return gene not in subset
     return False
-
-
-## collect gene KO
-formats_list = [
-    "ghost",
-    "kofam",
-    "eggnog",
-]
-
-
-def get_gene_KOs(
-    ann_files: List[str], subsets: Tuple[Union[Set, List, Dict], bool] = None
-) -> Dict[str, str]:
-    def GhostKOALA_iter(text: TextIO) -> Iterable[Tuple[str, str]]:
-        for values in read_table(text):
-            if len(values) > 1:
-                gene, ko = values[0:2]
-                yield gene, ko
-
-    def KofamKOALA_iter(text: TextIO) -> Iterable[Tuple[str, str]]:
-        for values in read_table(text):
-            if len(values) > 1:
-                gene, ko = values[1:3]
-                yield gene, ko
-
-    def eggnog_iter(text: TextIO) -> Iterable[Tuple[str, str]]:
-        i_KEGG_ko = 11
-        for values in emapper_iter(text):
-            kos = values[i_KEGG_ko]
-            if kos:
-                gene = values[0]
-                yield gene, kos.split(",")[0][3:]
-
-    formats_func = {
-        "ghost": GhostKOALA_iter,
-        "kofam": KofamKOALA_iter,
-        "eggnog": eggnog_iter,
-    }
-
-    gene_KOs: Dict[str, str] = {}
-    for format, file in zip(formats_list, ann_files):
-        if not os.path.exists(file):
-            logger.warning(f"{format} file does not exist, skip")
-            continue
-        logger.info(f"reading {file}")
-
-        with open(file) as file_in:
-            for gene, ko in formats_func[format](file_in):
-                if subsets and drop_gene(gene, subsets):
-                    continue
-                gene_KOs.setdefault(gene, ko)
-        logger.warning(f"{len(gene_KOs)} genes annotated...")
-
-    return gene_KOs
 
 
 def get_gene_RPb(countfile, subsets) -> Tuple[List[str], Dict[str, List[float]]]:
@@ -118,7 +64,7 @@ def get_gene_RPb(countfile, subsets) -> Tuple[List[str], Dict[str, List[float]]]
             gene_RPb[gene] = [readCount / length for readCount in readCounts]
 
     samples = ititle[6]
-    logger.info(f"total {len(samples)} bam")
+    logger.info(f"{countfile} total {len(samples)} bam")
     return samples, gene_RPb
 
 
@@ -223,29 +169,15 @@ def get_args() -> Tuple[
     else:
         subsets = set(), False
 
-    ann_files = ["", "", ""]
-    pattern = args.ko
-    if pattern:
-        in_dir = ""
-        index = pattern.rfind("/") + 1
-        if index:
-            in_dir = pattern[:index]
-            pattern = pattern[index:]
-            if not os.path.exists(in_dir):
-                logger.warning("illigal pattern, ignore")
-                pattern = ""
-        # find avaiable annotation file
-        pattern = re.compile(pattern)
-        for file in sorted(os.listdir(in_dir)):
-            if pattern.search(file):
-                for i, source in enumerate(formats_list):
-                    if source in file.lower():
-                        ann_files[i] = os.path.join(in_dir, file)
-
-        if not any(ann_files):
+    if args.ko:
+        try:
+            ann_files = infer_annot_filename(args.ko)
+        except FileNotFoundError as e:
             parser.print_help()
             logger.fatal("illigal pattern, please check!")
-            exit(1)
+            raise e
+        else:
+            ann_files = ["", "", ""]
 
     countfile = args.RPb
     if countfile:

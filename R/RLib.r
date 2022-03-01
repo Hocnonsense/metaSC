@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-02-27 13:23:46
 #* @LastEditors: Hwrn
-#* @LastEditTime: 2022-02-28 10:44:56
+#* @LastEditTime: 2022-03-01 13:55:38
 #* @FilePath: /metaSC/R/RLib.r
 #* @Description:
 #     source me!
@@ -11,19 +11,21 @@
 library(data.table)
 library(zeallot)
 
+library(stringr)
 library(reshape2)
 library(plyr)
 library(dplyr)
 library(vegan)
 library(ape)
-library(stringr)
 
-library(DESeq2)
 library(pheatmap)
 library(ggplot2)
 library(ggrepel)
 library(scales)
 library(ggpubr)
+
+library(DESeq2)
+library(edgeR)
 
 suppressMessages(library(pathview))
 #install.packages("roxygen2", depend = TRUE)
