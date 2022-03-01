@@ -2,7 +2,7 @@
 """
  * @Date: 2022-03-01 10:55:42
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-03-01 13:48:04
+ * @LastEditTime: 2022-03-01 14:18:32
  * @FilePath: /metaSC/PyLib/seqPipe/getannot.py
  * @Description:
 """
@@ -101,3 +101,5 @@ def infer_annot_filename(pattern: str):
     if not any(ann_files):
         logger.fatal("illigal pattern, please check!")
         raise FileNotFoundError(f"pattren '{pattern}' donot match any file!")
+
+    return ann_files
