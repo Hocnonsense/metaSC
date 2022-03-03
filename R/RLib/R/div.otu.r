@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-02-27 16:52:29
 #* @LastEditors: Hwrn
-#* @LastEditTime: 2022-02-28 15:32:33
+#* @LastEditTime: 2022-03-02 22:29:03
 #* @FilePath: /metaSC/R/RLib/R/div.otu.r
 #* @Description:
 ###
@@ -12,8 +12,11 @@ library(data.table)
 #' @title get most abundant otu
 #'
 #' @param div.otu table of diversity
+#'
 #'                colnames(div.otu) -> sample
+#'
 #'                rownames(div.otu) -> otu
+#'
 #' @param topi if an otu is the topi of one of all samples, return it
 #' @param min.value,min.sample
 #'      filter before selecting topi.
@@ -22,10 +25,9 @@ library(data.table)
 #' @return name of otu (from rownames)
 #' @export
 otu.div.top <- function(div.otu,
-                          # index: taxon; column: sample
-                          topi = 10,
-                          min.value = 10,
-                          min.sample = 2) {
+                        topi = 10,
+                        min.value = 10,
+                        min.sample = 2) {
   # filter zero samples
   div.otu = div.otu[apply(div.otu, 1, function(x)
     (sum(x) >= min.value & sum(x > 0) >= min.sample)), ]
@@ -40,6 +42,51 @@ otu.div.top <- function(div.otu,
 }
 
 
+#' @title annot an otu table for geom_bar
+#'
+#' @param div.otu table of diversity
+#'
+#'                colnames(div.otu) -> sample
+#'
+#'                rownames(div.otu) -> otu
+#'
+#' @param taxon.sort a subset of rowname
+#'                   usually generate by "otu.div.top(div.otu, topi)"
+#' @param cutoff for a bar plot, detect the bar height to only show the name of the majority otus
+#' @param convert_to_pct convert the otu table to percent format
+#'                       if (1. you provide a table already transfered to percent format)
+#'                           or (2. you want to keep the raw count):
+#'                         set it to FALSE
+#' @return long format of this table with these columns:
+#'
+#'         1.  sample: colnames (see location)
+#'
+#'         2.  name: rownames
+#'
+#'                   WARNING: rownames shall not different by any word except [a-zA-Z0-9_], which will be changed to "."
+#'
+#'         3.  annot.percent: percent * 100 of otu in each sample
+#'
+#'         4.  location: recognized automatically by the first string
+#'                       seperated by "_" of sample (and sample will be cut)
+#'                       e.g. the column LOC_SAMPLE1 will result in location LOC and sample SAMPLE1
+#'
+#'         5.  index
+#'
+#'         6.  label.y: center height of each bar
+#'
+#'         7.  label.text: name if annot.percent > cutoff else NA
+#'
+#' @export
+#' @examples
+#' se = bar.pct.annot(div.otu, otu.div.top(div.otu, topi))
+#' ggpolt(data = se) +
+#'   geom_bar(
+#'     mapping = aes_string(x = "sample", y = "annot.percent", fill = "name"),
+#'     position = position_stack(reverse = TRUE),
+#'     stat = "identiy",
+#'     col = "black"
+#'   )
 bar.pct.annot <- function(div.otu,
                           taxon.sort,
                           cutoff = 0.5,
@@ -93,25 +140,47 @@ bar.pct.annot <- function(div.otu,
 }
 
 
+#' @title show diversity of otu table
+#'
+#' @param div.otu table of diversity
+#'
+#'                colnames(div.otu) -> sample
+#'
+#'                rownames(div.otu) -> otu
+#'
+#' @param pname description of table. or name of div.otu
+#' @param method: method of Dimension Reduction
+#'                choices: pcoa, nmds
+#' @param dist: method of distance between samples
+#'              choices: see vegdist. default: jaccard
+#' @param binary: see vegdist
+#' @param area: method to note different location
+#'
+#'              location: recognized automatically by the first string
+#'                        seperated by "_" of sample (and sample will be cut)
+#'                        e.g. the column LOC_SAMPLE1 will colored by location LOC
+#'                             and noted as sample SAMPLE1
+#'
+#' @return ggplot
+#' @export
 plot.beta.div <- function(div.otu,
-                            pname = NA,
-                            method = c("pcoa", "nmds"),
-                            dist = c("bray", "jaccard"),
-                            area = c("none", "ellipse", "polygon")) {
+                          pname = NA,
+                          method = c("pcoa", "nmds"),
+                          dist = "jaccard",
+                          binary = TRUE,
+                          area = c("none", "ellipse", "polygon")) {
   method <- match.arg(method)
-  dist <- match.arg(dist)
   area <- match.arg(area)
   if (is.na(pname)) {
     pname = deparse(substitute(div.otu, ))
   }
   if (method == "pcoa") {
-    pcoa.16s = pcoa(vegdist(div.otu, method = dist))
+    pcoa.16s = pcoa(vegdist(div.otu, method = dist, binary = binary))
     div.otu.point = data.frame(pcoa.16s$vectors[, 1:2])
-    colnames(div.otu.point) = c("Axis.1", "Axis.2")
     xylab = paste0(
       "PCo", 1:2, " [", round(pcoa.16s$values$Relative_eig[1:2] * 100, 2), "%]")
   } else {
-    nmds.dis = metaMDS(vegdist(div.otu, method = dist))
+    nmds.dis = metaMDS(vegdist(div.otu, method = dist, binary = binary), trace = 0)
     if (nmds.dis$stress >= 0.02) {
       warning("应力函数值 >= 0.2, 不合理")
       pname = paste0(
@@ -119,9 +188,9 @@ plot.beta.div <- function(div.otu,
     }
     #nmds.dis.species = wascores(nmds.dis$points, t(div.otu))
     div.otu.point = data.frame(nmds.dis$points)
-    colnames(div.otu.point) = c("Axis.1", "Axis.2")
     xylab = paste0("MDS", 1:2)
   }
+  colnames(div.otu.point) = c("Axis.1", "Axis.2")
   div.otu.point$location = sapply(
     rownames(div.otu.point),
     function(x) {unlist(strsplit(x, "\\_"))[1]})
@@ -145,7 +214,7 @@ plot.beta.div <- function(div.otu,
       values = color[1:length(unique(div.otu.point$location))]) +
     scale_fill_manual(
       values = color[1:length(unique(div.otu.point$location))]) +
-    labs(title = paste(paste0(method, " plot of ", dist, " distance"),
+    labs(title = paste(paste0(method, " plot of ", ifelse(binary, "binary ", ""), dist, " distance"),
                        pname, sep = "\n"),
          x = xylab[1], y = xylab[2]) +
     theme(
@@ -164,7 +233,8 @@ plot.beta.div <- function(div.otu,
     p = p +
       stat_ellipse(aes_string(x = "Axis.1", y = "Axis.2",
                               color = "location"),
-                   level = 0.95, show.legend = FALSE, size = 1)
+                   level = 0.95, size = 1,
+                   alpha = 0.66, linetype = 3)
   } else if (area == "polygon") {
     p = p +
       geom_polygon(
