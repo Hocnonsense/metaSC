@@ -2,7 +2,7 @@
 """
  * @Date: 2021-06-14 18:41:24
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-23 16:26:56
+ * @LastEditTime: 2022-03-01 15:21:32
  * @FilePath: /metaSC/PyLib/biotool/kegg/query.py
  * @Description:
 """
@@ -101,20 +101,20 @@ def cached(
     return open(os.path.join(filename))
 
 
-def demo1():
+def load_ko00002(KEGG_DIR="./KEGG_DB"):
     """Database may be download from KEGG, including the file of module and description (ko00002.json)"""
     import pandas as pd
     from PyLib.biotool.kegg import module_from_brite
 
-    KEGG_DIR = "./KEGG_DB"
+    KEGG_DIR = os.path.expanduser(KEGG_DIR)
 
     if not os.path.isdir(KEGG_DIR):
         os.makedirs(KEGG_DIR)
 
     module_levels, modules = module_from_brite(
         "br:ko00002",
-        os.path.join(KEGG_DIR, "ko00002.json"),
-        KEGG_DIR,
+        os.path.join(KEGG_DIR, "brite", "ko00002.json"),
+        os.path.join(KEGG_DIR, "module"),
     )
     module_levels_ = pd.DataFrame(
         module_levels, columns=["A", "B", "C", "module", "desc"]
@@ -124,7 +124,7 @@ def demo1():
 
 
 def demo2():
-    module_levels, modules = demo1()
+    module_levels, modules = load_ko00002()
     ko_abd = {
         "K19746": 0,
         "K19744": 1,
