@@ -2,30 +2,31 @@
 """
  * @Date: 2020-02-05 17:15:25
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-05 15:17:43
- * @FilePath: /HScripts/Python/mylib/tool/timer.py
+ * @LastEditTime: 2022-03-06 16:29:57
+ * @FilePath: /metaSC/PyLib/tool/timer.py
  * @Description: Record time.
 """
 
-
+from time import perf_counter
+from functools import wraps
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Any, Callable, Optional
 
 
-def get_time(str_time: str()):
+def get_time(str_time: str):
     """Get time"""
     return datetime.strptime(str_time, "%Y-%m-%d %H:%M:%S")
 
 
 def timestamp(dt: Optional[datetime] = None) -> str:
-    """ @description 返回时间戳
-            Construct a datetime-timestamp from `dt` [default = `now()`], such as
-            we use to timestamp a simulation output directory.
+    """@description 返回时间戳
+    Construct a datetime-timestamp from `dt` [default = `now()`], such as
+    we use to timestamp a simulation output directory.
     """
     if not dt:
         dt = datetime.now()
 
-    return dt.strftime('%Y%m%d.%H%M%S')
+    return dt.strftime("%Y%m%d.%H%M%S")
 
 
 class Timer(object):
@@ -66,6 +67,7 @@ class Timer(object):
             else: return delta to end
 
     """
+
     def __init__(self):
         self.__init_at = datetime.now()
         self.begin_at: datetime = None
@@ -83,7 +85,7 @@ class Timer(object):
         else:
             return True
 
-    def time_on(self, alarm_time, begin_at: datetime = "now"):
+    def time_on(self, alarm_time, begin_at: datetime = None):
         """
         Make timer start at time `begin_at` and stay awake durning `alarm_time`.
         @param alarm_time if alarm_time is datetime, it will end at that time.
@@ -98,7 +100,7 @@ class Timer(object):
         """
         if self.is_time_on():
             return False
-        if begin_at == "now":
+        if begin_at is None:
             begin_at = datetime.now()
         if isinstance(alarm_time, datetime):
             alarm_time = alarm_time - begin_at
@@ -163,9 +165,9 @@ class Timer(object):
         else:
             return None
 
-    def regular_time(self, seconds: int = "self.alarm_delta"):
+    def regular_time(self, seconds: int = None):
         """Return time in a regurlar format."""
-        if seconds == "self.alarm_delta":
+        if seconds is None:
             seconds = self.alarm_delta.seconds
         day, hour, minute, sec = 0, 0, 0, int(seconds)
         minute, sec = sec // 60, sec % 60
@@ -173,19 +175,47 @@ class Timer(object):
         day, hour = hour // 24, hour % 24
         return day, hour, minute, sec
 
-    def show_time(self, seconds: int = "self.alarm_delta"):
+    def show_time(self, seconds: int = None):
         """Show time in a regurlar format."""
         if isinstance(seconds, datetime):
-            return ":".join([str(i) for i in (seconds.hour, seconds.minute, seconds.second)])
-        elif seconds:
+            return ":".join(
+                [str(i) for i in (seconds.hour, seconds.minute, seconds.second)]
+            )
+        else:
             day, hour, minute, sec = self.regular_time(seconds)
             if day:
                 return ":".join([str(i) for i in [day, hour, minute, sec]])
             if hour:
                 return ":".join([str(i) for i in [hour, minute, sec]])
             return ":".join([str(i) for i in [minute, sec]])
-        else:
-            return ""
+
+
+class timeit:
+    def __init__(self, reporter: Callable[[str], Any] = print):
+        self.init = None
+        self.reporter = reporter
+
+    def __enter__(self):
+        self.init = perf_counter()
+
+    @property
+    def timeit(self):
+        if self.init is None:
+            return None
+        return perf_counter() - self.init
+
+    def __exit__(self, exc_type, exc_value, trace):
+        self.reporter(self.timeit)
+        self.init = None
+
+    def __call__(self, func: Callable):
+        @wraps(func)
+        def wrappedFunction(*args, **kwargs):
+            with self as ti:
+                result = func(*args, **kwargs)
+            return result
+
+        return wrappedFunction
 
 
 if __name__ == "__main__":
