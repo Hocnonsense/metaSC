@@ -2,7 +2,7 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-23 19:57:23
+ * @LastEditTime: 2022-03-06 13:56:04
  * @FilePath: /metaSC/PyLib/reader/iters.py
  * @Description:
 """
@@ -209,6 +209,21 @@ def featureCounts_iter(text: TextIO, ititle: List[str] = None):
             int(Length),
             [int(bami) for bami in bam],
         )
+
+
+def emapper_g5f52332_iter(text: TextIO):
+    """{
+        'header': [
+            'query_name', 'seed_eggNOG_ortholog', 'seed_ortholog_value', 'seed_ortholog_score',
+            'Predicted_taxonomic_group', 'Predicted_protein_name', 'Gene_Ontology_terms',
+            'EC_number', 'KEGG_ko', 'KEGG_Pathway', 'KEGG_Module', 'KEGG_Reaction', 'KEGG_rclass', 'BRITE', 'KEGG_TC',
+            'CAZy', 'BiGG_Reaction', 'tax_scope',
+            'eggNOG_OGs', 'bestOG', 'COG_Functional_Category', 'eggNOG_free_text'
+        ],
+        'version': 'emapper-2.1.3-ee27b8e'
+    }"""
+    for values in read_table(text):
+        yield values
 
 
 def emapper_ee27b8e_iter(text: TextIO):

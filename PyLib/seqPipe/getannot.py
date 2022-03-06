@@ -2,7 +2,7 @@
 """
  * @Date: 2022-03-01 10:55:42
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-03-01 14:18:32
+ * @LastEditTime: 2022-03-04 15:16:15
  * @FilePath: /metaSC/PyLib/seqPipe/getannot.py
  * @Description:
 """
@@ -43,6 +43,8 @@ def KofamKOALA_iter(text: TextIO) -> Iterable[Tuple[str, str]]:
 
 
 def eggnog_iter(text: TextIO) -> Iterable[Tuple[str, str]]:
+    """Only report the first match:
+    >>> yield gene, kos.split(",")[0][3:]"""
     i_KEGG_ko = 11
     for values in emapper_iter(text):
         kos = values[i_KEGG_ko]
@@ -62,7 +64,8 @@ formats_func = OrderedDict(
 def get_gene_KOs(
     ann_files: List[str], subsets: Tuple[Union[Set, List, Dict], bool] = None
 ) -> Dict[str, str]:
-
+    """Only keep the first match:
+    >>> gene_KOs.setdefault(gene, ko)"""
     gene_KOs: Dict[str, str] = {}
     for format, file in zip(formats_func, ann_files):
         if not os.path.exists(file):
