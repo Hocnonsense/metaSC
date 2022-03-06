@@ -2,7 +2,7 @@
 """
  * @Date: 2020-11-09 22:32:22
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-08 17:36:38
+ * @LastEditTime: 2022-03-06 19:01:11
  * @FilePath: /metaSC/PyLib/PyLibTool/tmpPkl.py
  * @Description:
     with which will build a tmp pickle file for its function.
@@ -35,6 +35,7 @@ class TmpPkl:
             PICKLE_FILENAME = os.path.expanduser(PICKLE_FILENAME)
         self.PICKLE_FILENAME = os.path.abspath(PICKLE_FILENAME)
         self.force_rewrite = force_rewrite
+        self.__force_rewrite = force_rewrite
         self.last_results = None
         self.meta = {
             "date": datetime.now(),
@@ -71,9 +72,9 @@ class TmpPkl:
                     (self.meta, self.last_results) = pickle.load(pi)
             except (FileNotFoundError, EOFError):
                 self.force_rewrite = True
-                print(f"failed", file=stderr)
+                print(f"\r# load from {self.PICKLE_FILENAME} ... failed", file=stderr)
             else:
-                print(f"finished", file=stderr)
+                print(f"\r# load from {self.PICKLE_FILENAME} ... finished", file=stderr)
         return self
 
     def __exit__(self, exc_type=None, exc_val=None, exc_tb=None):
@@ -81,7 +82,8 @@ class TmpPkl:
             print(f"# dump to {self.PICKLE_FILENAME} ... ", end="", file=stderr)
             with open(self.PICKLE_FILENAME, "wb") as po:
                 pickle.dump((self.meta, self.last_results), po)
-            print(f"finished", file=stderr)
+            print(f"\r# dump to {self.PICKLE_FILENAME} ... finished", file=stderr)
+        self.force_rewrite = self.__force_rewrite
         return False
 
     def __set_desc(self, desc):
@@ -89,29 +91,12 @@ class TmpPkl:
 
     desc = property(fget=lambda self: self.meta["desc"], fset=__set_desc)
 
-    @classmethod
-    def __get_cache(cls):
-        return cls.__cache
+    # unused
+    # @classmethod
+    # def __get_cache(cls):
+    #    return cls.__cache
 
     def __show_cache(self):
         return {k: os.path.isfile(v) for k, v in self.__class__.__cache.items()}
 
     cache = property(fget=__show_cache)
-
-
-if __name__ == "__main__":
-
-    @TmpPkl("test.pkl", True)
-    def test(i, j):
-        """Test i+j."""
-        return i + j
-
-    print(test("yy", "sy"))
-    with TmpPkl("test.pkl", desc="with i + j") as tmp1:
-        tmp1.desc = "with yybsy"
-        if tmp1.force_rewrite:
-            tmp1.last_results = "ii" + "Vi"
-            tmp1.desc = {"i": "ii", "j": "vi"}
-        print(tmp1.meta)
-        word = tmp1.last_results
-    print(tmp1.cache[test], word)
