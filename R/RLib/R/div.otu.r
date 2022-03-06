@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-02-27 16:52:29
 #* @LastEditors: Hwrn
-#* @LastEditTime: 2022-03-02 22:29:03
+#* @LastEditTime: 2022-03-04 10:45:27
 #* @FilePath: /metaSC/R/RLib/R/div.otu.r
 #* @Description:
 ###
@@ -232,9 +232,10 @@ plot.beta.div <- function(div.otu,
   } else if (area == "ellipse") {
     p = p +
       stat_ellipse(aes_string(x = "Axis.1", y = "Axis.2",
-                              color = "location"),
-                   level = 0.95, size = 1,
-                   alpha = 0.66, linetype = 3)
+                              fill = "location"),
+                   type = "norm", geom = "polygon",
+                   alpha = 0.2, level = 0.95,  # show.legend = FALSE,
+                   linetype = 'dashed', size = 3)
   } else if (area == "polygon") {
     p = p +
       geom_polygon(
