@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-02-27 16:52:29
 #* @LastEditors: Hwrn
-#* @LastEditTime: 2022-03-04 10:45:27
+#* @LastEditTime: 2022-03-09 19:12:30
 #* @FilePath: /metaSC/R/RLib/R/div.otu.r
 #* @Description:
 ###
@@ -111,12 +111,18 @@ bar.pct.annot <- function(div.otu,
     value.name = "annot.percent"
   )
 
-  div.grouped$location = sapply(
-    div.grouped$sample,
+  div.location_ = sapply(
+    rownames(div.otu.pct),
     function(x) {unlist(strsplit(x, "\\_"))[1]})
-  div.grouped$sample = sapply(
-    div.grouped$sample,
+  div.location = factor(div.location_, levels = unique(div.location_))
+
+  div.sample_ = sapply(
+    rownames(div.otu.pct),
     function(x) {paste(unlist(strsplit(x, "\\_"))[-1], collapse = "_")})
+  div.sample = factor(div.sample_, levels = unique(div.sample_))
+
+  div.grouped$location = div.location[div.grouped$sample]
+  div.grouped$sample = div.sample[div.grouped$sample]
 
   div.grouped$name = sapply(div.grouped$name,
                             function(x)
