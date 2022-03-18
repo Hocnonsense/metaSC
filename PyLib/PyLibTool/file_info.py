@@ -2,7 +2,7 @@
 """
  * @Date: 2021-03-15 11:07:29
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-03-06 18:31:44
+ * @LastEditTime: 2022-03-18 23:26:27
  * @FilePath: /metaSC/PyLib/PyLibTool/file_info.py
  * @Description:
     Extract information in __doc__
@@ -29,14 +29,12 @@ def extract_doc(module_doc: str) -> Dict:
     for item in doc_list:
         item_ = item.strip().split(":", 1)
         if item_ == [""]:
-            print(1)
             continue
         # undefined action
         # elif len(item_) == 1:
         #    print(2)
         #    doc_dict[k] += " * @ " + item_[0]
         elif len(item_) == 2:
-            print(3)
             k, v = item_
             doc_dict[k] = v.strip()
 

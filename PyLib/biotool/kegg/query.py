@@ -2,7 +2,7 @@
 """
  * @Date: 2021-06-14 18:41:24
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-03-01 15:21:32
+ * @LastEditTime: 2022-03-18 10:35:33
  * @FilePath: /metaSC/PyLib/biotool/kegg/query.py
  * @Description:
 """
@@ -117,9 +117,9 @@ def load_ko00002(KEGG_DIR="./KEGG_DB"):
         os.path.join(KEGG_DIR, "module"),
     )
     module_levels_ = pd.DataFrame(
-        module_levels, columns=["A", "B", "C", "module", "desc"]
+        module_levels, columns=["A", "B", "C", "entry", "name"]
     )
-    module_levels_.index = module_levels_["module"]
+    module_levels_.index = module_levels_["entry"]
     return module_levels_, dict(modules)
 
 
