@@ -2,7 +2,7 @@
 """
  * @Date: 2020-08-19 18:13:55
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-25 11:02:04
+ * @LastEditTime: 2022-03-19 19:10:27
  * @FilePath: /metaSC/PyLib/tool/shell.py
  * @Description:
 """
@@ -11,6 +11,15 @@ import os
 import subprocess
 import sys
 from typing import Optional, Sequence, Tuple, Dict, List, Union
+
+
+def split_kw_args(sh_kwargs: str):
+    """split kwargs for shell to a dict
+    >>> split_kw_args('--loglevel INFO')
+    {"--loglevel": "INFO"}
+    """
+    kwiter = (i for i in sh_kwargs.split())
+    return {k: w for k, w in zip(kwiter, kwiter)}
 
 
 def printsh(value, flow=0, end="\n"):
