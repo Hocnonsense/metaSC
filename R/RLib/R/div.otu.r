@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-02-27 16:52:29
 #* @LastEditors: Hwrn
-#* @LastEditTime: 2022-03-09 19:12:30
+#* @LastEditTime: 2022-03-22 16:52:56
 #* @FilePath: /metaSC/R/RLib/R/div.otu.r
 #* @Description:
 ###
@@ -93,13 +93,14 @@ bar.pct.annot <- function(div.otu,
                           convert_to_pct = TRUE) {
   taxon.sort.g = sapply(sort(taxon.sort),
                         function(x) {
-                          x = gsub("^(\\d)", "X\\1", gsub("[^a-zA-Z0-9_]", ".", x))
+                          x = gsub("^(\\d)", "X\\1",
+                                   gsub("[^a-zA-Z0-9_]", ".", x))
                           return(x)
                         })
   if (convert_to_pct) {
-    div.otu.pct = div.otu / apply(div.otu, 1, sum) * 100
+    div.otu.pct = t(div.otu) / apply(div.otu, 2, sum) * 100
   } else {
-    div.otu.pct = div.otu
+    div.otu.pct = t(div.otu)
   }
 
   div.grouped = reshape2::melt(
@@ -159,7 +160,8 @@ bar.pct.annot <- function(div.otu,
 #'                choices: pcoa, nmds
 #' @param dist: method of distance between samples
 #'              choices: see vegdist. default: jaccard
-#' @param binary: see vegdist
+#' @param binary: if jaccard: set to TRUE, otherwise FALSE
+#'                see vegdist
 #' @param area: method to note different location
 #'
 #'              location: recognized automatically by the first string
@@ -172,21 +174,45 @@ bar.pct.annot <- function(div.otu,
 plot.beta.div <- function(div.otu,
                           pname = NA,
                           method = c("pcoa", "nmds"),
-                          dist = "jaccard",
-                          binary = TRUE,
+                          dist = "jaccard", binary = NA,
                           area = c("none", "ellipse", "polygon")) {
+  # >>->> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> >>->> argParse
   method <- match.arg(method)
+  if (is.na(binary)) {
+    binary = tryCatch(expr = {match.arg(idist, c("jaccard")) == "jaccard"},
+                      error = function(e) FALSE)
+  }
   area <- match.arg(area)
   if (is.na(pname)) {
     pname = deparse(substitute(div.otu, ))
   }
+  # <<-<<                                                                 <<-<<
+  div.otu.t = t(div.otu)
+  title.test.method = paste0(method, " plot of ",
+                             ifelse(binary, "binary ", ""), dist, " distance")
+
+  # >>->> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> >>->> adonis2
+  group = data.frame(location = sapply(
+    rownames(div.otu.t),
+    function(x) {unlist(strsplit(x, "\\_"))[1]})
+  )
+  group.adonis2 = adonis2(formula("div.otu.t~location"), group,
+                          method = dist, binary = binary)
+  # <<-<<                                                                 <<-<<
+  title.adonis.sgnf = paste0("ADONIS",
+                             " R^2=", round(group.adonis2$F[1], 4),
+                             " p(Pr(>F))=", group.adonis2$`Pr(>F)`[1])
+
+  # >>->> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> >>->> Dimensionality reduction
   if (method == "pcoa") {
-    pcoa.16s = pcoa(vegdist(div.otu, method = dist, binary = binary))
+    pcoa.16s = pcoa(vegdist(div.otu.t, method = dist, binary = binary))
     div.otu.point = data.frame(pcoa.16s$vectors[, 1:2])
     xylab = paste0(
-      "PCo", 1:2, " [", round(pcoa.16s$values$Relative_eig[1:2] * 100, 2), "%]")
+      "PCo", 1:2,
+      " [", round(pcoa.16s$values$Relative_eig[1:2] * 100, 2), "%]")
   } else {
-    nmds.dis = metaMDS(vegdist(div.otu, method = dist, binary = binary), trace = 0)
+    nmds.dis = metaMDS(vegdist(div.otu.t, method = dist, binary = binary),
+                       trace = 0)
     if (nmds.dis$stress >= 0.02) {
       warning("应力函数值 >= 0.2, 不合理")
       pname = paste0(
@@ -196,6 +222,7 @@ plot.beta.div <- function(div.otu,
     div.otu.point = data.frame(nmds.dis$points)
     xylab = paste0("MDS", 1:2)
   }
+  # <<-<<                                                                 <<-<<
   colnames(div.otu.point) = c("Axis.1", "Axis.2")
   div.otu.point$location = sapply(
     rownames(div.otu.point),
@@ -220,8 +247,8 @@ plot.beta.div <- function(div.otu,
       values = color[1:length(unique(div.otu.point$location))]) +
     scale_fill_manual(
       values = color[1:length(unique(div.otu.point$location))]) +
-    labs(title = paste(paste0(method, " plot of ", ifelse(binary, "binary ", ""), dist, " distance"),
-                       pname, sep = "\n"),
+    labs(title = paste(title.test.method, title.adonis.sgnf, pname,
+                       sep = "\n"),
          x = xylab[1], y = xylab[2]) +
     theme(
       panel.grid.major = element_line(color = 'gray', size = 0.2),
@@ -233,6 +260,7 @@ plot.beta.div <- function(div.otu,
       legend.title = element_blank()
     )
 
+  # >>->> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> >>->> add ellipse or polygon
   if (area == "none") {
     p = p
   } else if (area == "ellipse") {
@@ -245,12 +273,14 @@ plot.beta.div <- function(div.otu,
   } else if (area == "polygon") {
     p = p +
       geom_polygon(
-        data = Reduce(rbind, lapply(split(div.otu.point, div.otu.point$location),
-                                    function(x) x[chull(x[c("Axis.1", "Axis.2")]),])),
+        data = Reduce(rbind,
+                      lapply(split(div.otu.point, div.otu.point$location),
+                             function(x) x[chull(x[c("Axis.1", "Axis.2")]),])),
         aes_string(x = "Axis.1", y = "Axis.2",
                    fill = "location", color = "location"),
         alpha = 0.1, linetype = 3)
   }
+  # <<-<<                                                                 <<-<<
 
   return(p)
 }
