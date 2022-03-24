@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-02-27 16:52:29
 #* @LastEditors: Hwrn
-#* @LastEditTime: 2022-03-22 16:52:56
+#* @LastEditTime: 2022-03-23 11:56:49
 #* @FilePath: /metaSC/R/RLib/R/div.otu.r
 #* @Description:
 ###
@@ -57,6 +57,7 @@ otu.div.top <- function(div.otu,
 #'                       if (1. you provide a table already transfered to percent format)
 #'                           or (2. you want to keep the raw count):
 #'                         set it to FALSE
+#' @param do_cumsum set to FALSE to avoid time-consuming-caluclation
 #' @return long format of this table with these columns:
 #'
 #'         1.  sample: colnames (see location)
@@ -90,7 +91,8 @@ otu.div.top <- function(div.otu,
 bar.pct.annot <- function(div.otu,
                           taxon.sort,
                           cutoff = 0.5,
-                          convert_to_pct = TRUE) {
+                          convert_to_pct = TRUE,
+                          do_cumsum = TRUE) {
   taxon.sort.g = sapply(sort(taxon.sort),
                         function(x) {
                           x = gsub("^(\\d)", "X\\1",
@@ -128,7 +130,9 @@ bar.pct.annot <- function(div.otu,
   div.grouped$name = sapply(div.grouped$name,
                             function(x)
                               sort(taxon.sort)[which(x == taxon.sort.g)[1]])
-  div.grouped$name[is.na(div.grouped$name)] = "others"
+  if (any(is.na(div.grouped$name))) {
+    div.grouped$name[is.na(div.grouped$name)] = "others"
+  }
   div.grouped = div.grouped[!is.na(div.grouped$annot.percent) &
                               div.grouped$annot.percent > 0,]
   div.grouped$index = sapply(div.grouped$name,
@@ -136,10 +140,12 @@ bar.pct.annot <- function(div.otu,
                                which(x == sort(taxon.sort))[1])
 
   ce = arrange(div.grouped, location, sample, index, annot.percent)
-  ce = ddply(ce,
+  if (do_cumsum) {
+      ce = ddply(ce,
              "sample",
              transform,
              label.y = cumsum(annot.percent) - annot.percent / 2)
+  }
   ce$label.text = ifelse(ce$annot.percent >= cutoff,
                          as.character(ce$name), NA)
 
@@ -168,6 +174,7 @@ bar.pct.annot <- function(div.otu,
 #'                        seperated by "_" of sample (and sample will be cut)
 #'                        e.g. the column LOC_SAMPLE1 will colored by location LOC
 #'                             and noted as sample SAMPLE1
+#' @param draw_labels: draw the labels by repel
 #'
 #' @return ggplot
 #' @export
@@ -175,7 +182,8 @@ plot.beta.div <- function(div.otu,
                           pname = NA,
                           method = c("pcoa", "nmds"),
                           dist = "jaccard", binary = NA,
-                          area = c("none", "ellipse", "polygon")) {
+                          area = c("none", "ellipse", "polygon"),
+                          draw_labels = TRUE) {
   # >>->> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> >>->> argParse
   method <- match.arg(method)
   if (is.na(binary)) {
@@ -227,7 +235,7 @@ plot.beta.div <- function(div.otu,
   div.otu.point$location = sapply(
     rownames(div.otu.point),
     function(x) {unlist(strsplit(x, "\\_"))[1]})
-  rownames(div.otu.point) = sapply(
+  div.otu.point$label = sapply(
     rownames(div.otu.point),
     function(x) {paste(unlist(strsplit(x, "\\_"))[-1], collapse = "_")})
 
@@ -240,9 +248,7 @@ plot.beta.div <- function(div.otu,
   p = ggplot(data = div.otu.point) +
     geom_point(aes_string(x = "Axis.1", y = "Axis.2",
                           color = "location"),
-               size = 2) +
-    geom_text_repel(aes_string(x = "Axis.1", y = "Axis.2",
-                               label = "rownames(div.otu.point)")) +
+               size = 2, alpha = 0.65) +
     scale_color_manual(
       values = color[1:length(unique(div.otu.point$location))]) +
     scale_fill_manual(
@@ -260,7 +266,12 @@ plot.beta.div <- function(div.otu,
       legend.title = element_blank()
     )
 
-  # >>->> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> >>->> add ellipse or polygon
+  # >>->> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> >>->> add plugins
+  if (draw_labels) {
+    p = p +
+      geom_text_repel(aes_string(x = "Axis.1", y = "Axis.2", label = "label"))
+  }
+
   if (area == "none") {
     p = p
   } else if (area == "ellipse") {
@@ -268,7 +279,7 @@ plot.beta.div <- function(div.otu,
       stat_ellipse(aes_string(x = "Axis.1", y = "Axis.2",
                               fill = "location"),
                    type = "norm", geom = "polygon",
-                   alpha = 0.2, level = 0.95,  # show.legend = FALSE,
+                   alpha = 0.15, level = 0.95,  # show.legend = FALSE,
                    linetype = 'dashed', size = 3)
   } else if (area == "polygon") {
     p = p +
@@ -278,7 +289,7 @@ plot.beta.div <- function(div.otu,
                              function(x) x[chull(x[c("Axis.1", "Axis.2")]),])),
         aes_string(x = "Axis.1", y = "Axis.2",
                    fill = "location", color = "location"),
-        alpha = 0.1, linetype = 3)
+        alpha = 0.15, linetype = 3)
   }
   # <<-<<                                                                 <<-<<
 
