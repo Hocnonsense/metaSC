@@ -2,22 +2,23 @@
 """
  * @Date: 2021-02-03 11:09:20
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-08 20:18:52
+ * @LastEditTime: 2022-04-13 22:55:18
  * @FilePath: /metaSC/PyLib/biotool/download.py
  * @Description:
         download genome from net
 """
 
-import sys
-import os
-from urllib.request import urlretrieve, urlopen
-import time
 import ftplib
 import json
+import os
+import sys
+import time
 import xml.etree.ElementTree as ET
+from urllib.request import urlopen, urlretrieve
+
+from PyLib.PyLibTool.file_info import basicConfig, verbose_import
 from PyLib.tool.path import makedirs
 from PyLib.tool.shell import runsh_safe
-from PyLib.PyLibTool.file_info import verbose_import
 
 logger = verbose_import(__name__, __doc__)
 
@@ -38,6 +39,7 @@ class ReportHook:
         """
         Print download progress message
         """
+        basicConfig()
 
         if blocknum == 0:
             self.start_time = time.time()
@@ -74,6 +76,7 @@ def download(url, download_file=None, overwrite=False):
     """
     Download a file from a url
     """
+    basicConfig()
     if download_file is None:
         download_file = url.split("/")[-1]
 
@@ -160,22 +163,24 @@ def retrive_img_url(img_id, cookies="cookies"):
             return img_base_url + i.attrib["url"]
 
 
-def download_fna(sequence_id: str, output="./", cookies="cookies"):
+def download_fna(sequence_id: str, output="./", cookies="cookies", overwrite=False):
     makedirs(output)
+    basicConfig()
     logger.info(time.time())
-    fna_file = os.path.join(output, f"{sequence_id}.fna.gz")
+    fna_file = os.path.join(output, f"{sequence_id}.fna")
 
-    if sequence_id.startswith("GCA") or sequence_id.startswith("GCF"):
-        if not os.path.isfile(f"{sequence_id}.fna"):
-            download(retrieve_refseq_url(sequence_id), f"{fna_file}")
+    if overwrite or not os.path.isfile(f"{sequence_id}.fna"):
+        if sequence_id.startswith("GCA") or sequence_id.startswith("GCF"):
+            download(retrieve_refseq_url(sequence_id), f"{fna_file}.gz")
             runsh_safe(f"gunzip {fna_file}")
-    elif sequence_id.startswith("GWH"):
-        if not os.path.isfile(f"{sequence_id}.fna"):
-            download(retrive_gwh_url(sequence_id), f"{fna_file}")
+        elif sequence_id.startswith("GWH"):
+            download(retrive_gwh_url(sequence_id), f"{fna_file}.gz")
             runsh_safe(f"gunzip {fna_file}")
-    elif sequence_id.startswith("IMG"):
-        img_url = retrive_img_url(sequence_id, cookies)
-        os.system(f"curl '{img_url}' -b {cookies} > {fna_file}")
+        elif sequence_id.startswith("IMG"):
+            img_url = retrive_img_url(sequence_id, cookies)
+            os.system(f"curl '{img_url}' -b {cookies} > {fna_file}")
+    else:
+        logger.warning(f"{fna_file} already exists, skip. ")
 
     return fna_file
 
