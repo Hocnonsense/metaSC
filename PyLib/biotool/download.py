@@ -2,7 +2,7 @@
 """
  * @Date: 2021-02-03 11:09:20
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-13 22:55:18
+ * @LastEditTime: 2022-04-13 23:17:36
  * @FilePath: /metaSC/PyLib/biotool/download.py
  * @Description:
         download genome from net
@@ -13,7 +13,9 @@ import json
 import os
 import sys
 import time
+from typing import Union
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from urllib.request import urlopen, urlretrieve
 
 from PyLib.PyLibTool.file_info import basicConfig, verbose_import
@@ -69,7 +71,7 @@ class ReportHook:
                 )
 
             status += "        \r"
-            logger.info(status)
+            logger.debug(status)
 
 
 def download(url, download_file=None, overwrite=False):
@@ -163,24 +165,30 @@ def retrive_img_url(img_id, cookies="cookies"):
             return img_base_url + i.attrib["url"]
 
 
-def download_fna(sequence_id: str, output="./", cookies="cookies", overwrite=False):
-    makedirs(output)
+def download_fna(
+    sequence_id: str,
+    output: Union[str, Path] = "./",
+    cookies="cookies",
+    overwrite=False,
+):
     basicConfig()
-    logger.info(time.time())
-    fna_file = os.path.join(output, f"{sequence_id}.fna")
+    output = Path(output)
+    output.mkdir(parents=True, exist_ok=True)
+    fna_file = output / f"{sequence_id}.fna"
+    logger.info(f"download to {fna_file}")
 
-    if overwrite or not os.path.isfile(f"{sequence_id}.fna"):
+    if overwrite or not os.path.isfile(fna_file):
         if sequence_id.startswith("GCA") or sequence_id.startswith("GCF"):
             download(retrieve_refseq_url(sequence_id), f"{fna_file}.gz")
-            runsh_safe(f"gunzip {fna_file}")
+            runsh_safe(f"gunzip {fna_file}.gz")
         elif sequence_id.startswith("GWH"):
             download(retrive_gwh_url(sequence_id), f"{fna_file}.gz")
-            runsh_safe(f"gunzip {fna_file}")
+            runsh_safe(f"gunzip {fna_file}.gz")
         elif sequence_id.startswith("IMG"):
             img_url = retrive_img_url(sequence_id, cookies)
             os.system(f"curl '{img_url}' -b {cookies} > {fna_file}")
     else:
-        logger.warning(f"{fna_file} already exists, skip. ")
+        logger.warning(f"{fna_file} already exists, skip.")
 
     return fna_file
 
