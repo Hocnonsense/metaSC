@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-02-27 16:52:29
 #* @LastEditors: Hwrn
-#* @LastEditTime: 2022-03-23 11:56:49
+#* @LastEditTime: 2022-04-21 11:55:18
 #* @FilePath: /metaSC/R/RLib/R/div.otu.r
 #* @Description:
 ###
@@ -228,7 +228,7 @@ plot.beta.div <- function(div.otu,
     }
     #nmds.dis.species = wascores(nmds.dis$points, t(div.otu))
     div.otu.point = data.frame(nmds.dis$points)
-    xylab = paste0("MDS", 1:2)
+    xylab = paste0("NMDS ", 1:2)
   }
   # <<-<<                                                                 <<-<<
   colnames(div.otu.point) = c("Axis.1", "Axis.2")
