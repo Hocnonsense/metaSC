@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-12 19:27:53
+ * @LastEditTime: 2022-04-24 18:53:03
  * @FilePath: /metaSC/PyLib/seqPipe/x00_Oerr.py
  * @Description:
 """
@@ -90,45 +90,31 @@ def sickle_mapper(text: TextIO):
     )
 
 
-def assem_mapper(text: TextIO):
+def bbmap_mapper(text: TextIO, lastline:str = None):
     """{
-        'header': [
-            'key',
-            'SeqNumbers', 'MaxLength', 'GenomeSize',
-            'GC', 'N50', 'L50',
-            'total_depth',
+        'header': scaffold, [
+            'Mapped Read 1 File',
             'Reads', 'Mapped reads', 'Mapped bases',
             'Percent mapped', 'Percent proper pairs',
             'Average coverage', 'Average coverage with deletions',
             'Standard deviation', 'Percent of reference bases covered'
-        ],
-        'demo': '''
-            Reads:                               	124372186
-            Mapped reads:                        	116818023
-            Mapped bases:                        	17630289518
-            Ref scaffolds:                       	223406
-            Ref bases:                           	375304290
-
-            Percent mapped:                      	93.926
-            Percent proper pairs:                	90.296
-            Average coverage:                    	46.976
-            Average coverage with deletions:     	46.827
-            Standard deviation:                    	179.611
-            Percent scaffolds with any coverage: 	100.00
-            Percent of reference bases covered:  	99.75
-            ''',
-        'suffix': '.err'
+        ]
     }"""
-    global line
-    for match in (
-        re.match(  # type: ignore
-            re.compile(r"^Executing dna.FastaToChromArrays2 \[([^\s]+), "), line
-        )
-        for line in text
-    ):
-        if match:
-            (scf,) = match.groups()
-            break
+    if lastline is None:
+        for lastline in text:
+            match = re.match(  # type: ignore
+                    re.compile(r"^Executing align2.BBMap \[.+, in=([^\s]+), .*ref=([^\s]+), "),
+                    lastline,
+                )
+            if match:
+                break
+    match = re.match(  # type: ignore
+        re.compile(r"^Executing align2.BBMap \[.+, in=([^\s]+), .*ref=([^\s]+), "),
+        lastline,
+    )
+    if not match:
+        return
+    (in1_trim, scf) = match.groups()
 
     for match in (
         re.match(  # type: ignore
@@ -179,11 +165,61 @@ def assem_mapper(text: TextIO):
     (P_covered,) = re.match(  # type: ignore
         re.compile(r"^Percent of reference bases covered:  	(\d+.\d+)$"), line
     ).groups()
+    return scf, (
+        in1_trim,
+        Reads,
+        M_reads,
+        M_bases,
+        P_mapped,
+        P_pairs,
+        Avg_cover,
+        Avg_cov_del,
+        SD,
+        P_covered,
+    )
 
-    for match in (
-        re.match(re.compile(r"^Output depth matrix to ([^\s]+)$"), line)  # type: ignore
-        for line in text
-    ):
+
+def assem_mapper(text: TextIO):
+    """{
+        'header': [
+            'key',
+            'SeqNumbers', 'MaxLength', 'GenomeSize',
+            'GC', 'N50', 'L50',
+            'total_depth',
+            'Mapped Read 1 File,',
+            'Reads,', 'Mapped reads,', 'Mapped bases,',
+            'Percent mapped,', 'Percent proper pairs,',
+            'Average coverage,', 'Average coverage with deletions,',
+            'Standard deviation,', 'Percent of reference bases covered,'
+        ],
+        'demo': '''
+            Reads:                               	124372186
+            Mapped reads:                        	116818023
+            Mapped bases:                        	17630289518
+            Ref scaffolds:                       	223406
+            Ref bases:                           	375304290
+
+            Percent mapped:                      	93.926
+            Percent proper pairs:                	90.296
+            Average coverage:                    	46.976
+            Average coverage with deletions:     	46.827
+            Standard deviation:                    	179.611
+            Percent scaffolds with any coverage: 	100.00
+            Percent of reference bases covered:  	99.75
+            ''',
+        'suffix': '.err',
+        'desc': '''
+            some times, multipile bbmap will be called, and should handle this
+        '''
+    }"""
+    global line
+    bbmap_outs = []
+    for line in text:
+        bbmap_out = bbmap_mapper(text, line)
+        if bbmap_out:
+            bbmap_outs.append(bbmap_out[0])
+            scf = bbmap_out[1]  # only keep the last result
+        match = re.match(re.compile(r"^Output depth matrix to ([^\s]+)$"), line)
         if match:
             (depth,) = match.groups()
             break
@@ -200,17 +236,7 @@ def assem_mapper(text: TextIO):
     return (
         scf,
         *values,
-        *[
-            Reads,
-            M_reads,
-            M_bases,
-            P_mapped,
-            P_pairs,
-            Avg_cover,
-            Avg_cov_del,
-            SD,
-            P_covered,
-        ],
+        *[",".join(i) for i in zip(*bbmap_outs)],
     )
 
 

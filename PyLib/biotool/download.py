@@ -2,7 +2,7 @@
 """
  * @Date: 2021-02-03 11:09:20
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-13 23:17:36
+ * @LastEditTime: 2022-04-16 10:59:55
  * @FilePath: /metaSC/PyLib/biotool/download.py
  * @Description:
         download genome from net
@@ -19,7 +19,6 @@ from pathlib import Path
 from urllib.request import urlopen, urlretrieve
 
 from PyLib.PyLibTool.file_info import basicConfig, verbose_import
-from PyLib.tool.path import makedirs
 from PyLib.tool.shell import runsh_safe
 
 logger = verbose_import(__name__, __doc__)
