@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-01 20:30:00
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-24 18:53:03
+ * @LastEditTime: 2022-04-24 19:03:23
  * @FilePath: /metaSC/PyLib/seqPipe/x00_Oerr.py
  * @Description:
 """
@@ -90,7 +90,7 @@ def sickle_mapper(text: TextIO):
     )
 
 
-def bbmap_mapper(text: TextIO, lastline:str = None):
+def bbmap_mapper(text: TextIO, lastline: str = None):
     """{
         'header': scaffold, [
             'Mapped Read 1 File',
@@ -103,9 +103,11 @@ def bbmap_mapper(text: TextIO, lastline:str = None):
     if lastline is None:
         for lastline in text:
             match = re.match(  # type: ignore
-                    re.compile(r"^Executing align2.BBMap \[.+, in=([^\s]+), .*ref=([^\s]+), "),
-                    lastline,
-                )
+                re.compile(
+                    r"^Executing align2.BBMap \[.+, in=([^\s]+), .*ref=([^\s]+), "
+                ),
+                lastline,
+            )
             if match:
                 break
     match = re.match(  # type: ignore
@@ -217,8 +219,8 @@ def assem_mapper(text: TextIO):
     for line in text:
         bbmap_out = bbmap_mapper(text, line)
         if bbmap_out:
-            bbmap_outs.append(bbmap_out[0])
-            scf = bbmap_out[1]  # only keep the last result
+            bbmap_outs.append(bbmap_out[1])
+            scf = bbmap_out[0]  # only keep the last result
         match = re.match(re.compile(r"^Output depth matrix to ([^\s]+)$"), line)
         if match:
             (depth,) = match.groups()
