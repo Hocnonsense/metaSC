@@ -2,17 +2,32 @@
 """
  * @Date: 2022-02-11 15:44:32
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-23 19:38:27
+ * @LastEditTime: 2022-04-24 20:17:45
  * @FilePath: /metaSC/PyLib/biotool/kraken.py
  * @Description:
 """
-from typing import Final, Generator, List, Literal, TextIO, Tuple, Union
 
-import numpy as np
+from pathlib import Path
+from typing import Dict, List, Final, Generator, Literal, TextIO, Tuple
+
 import pandas as pd
-from tqdm import trange
+
+from PyLib.PyLibTool.file_info import verbose_import
+
+
+logger = verbose_import(__name__, __doc__)
+
 
 main_lvls: Final = ["R", "K", "D", "P", "C", "O", "F", "G", "S"]
+levels: Final[List[Literal["k", "p", "c", "o", "f", "g", "s"]]] = [
+    "k",
+    "p",
+    "c",
+    "o",
+    "f",
+    "g",
+    "s",
+]
 
 
 def process_kraken_report_line(curr_str: str):
@@ -92,75 +107,59 @@ def format_taxon(taxon: str, formatleveli=7):
 
 
 def kraken_level_filter(
-    in_file: TextIO, level: Literal["k", "p", "c", "o", "f", "g", "s"] = None
+    in_file: TextIO,
+    level: Literal["k", "p", "c", "o", "f", "g", "s"],
+    prokaryotes_only=True,
 ):
-    """{
-        'in_header': ['percents', 'all_reads', 'exact_reads', 'level_type', 'name'],
-        'out_header': [format_taxon, reads_at_level]
-    }"""
-
-    if level is None:
-        for taxon, all_reads in kraken_iter(in_file, include_x=False):
-            yield format_taxon(taxon), all_reads
-    else:
-        levels: Final = ["k", "p", "c", "o", "f", "g", "s"]
-        leveli: Final = levels.index(level) + 1  # type: ignore
-        supresslevels: Final = [f"{i}__" for i in levels[leveli:]]
-
-        last_reports: List[Tuple[str, int]] = [("", 0)]
-        for taxon, all_reads in kraken_iter(in_file, include_x=False):
-            if sum(supresslevel in taxon for supresslevel in supresslevels):
+    leveli: Final = levels.index(level)
+    last_taxon = "r__root"  # impossible in any taxon
+    for taxon, all_reads in kraken_iter(in_file, include_x=False):
+        if prokaryotes_only and (
+            not (taxon.startswith("k__Archaea") or taxon.startswith("k__Bacteria"))
+        ):
+            continue
+        taxoni = taxon.split(";")[-1][0]
+        if taxoni in levels[:leveli]:
+            continue
+        if taxoni == level:
+            yield taxon, all_reads
+            last_taxon = taxon
+        else:
+            if taxon.startswith(last_taxon):
                 continue
-            while last_reports and not taxon.startswith(last_reports[-1][0]):
-                last_taxon, last_reads = last_reports.pop()
-                yield format_taxon(last_taxon, leveli), last_reads
-            last_taxon, last_reads = last_reports[-1]
-            last_reports[-1] = last_taxon, last_reads - all_reads
-            last_reports.append((taxon, all_reads))
-        total_reads = last_reports.pop(0)[1]
-        while last_reports:
-            last_taxon, last_reads = last_reports.pop()
-            yield format_taxon(last_taxon, leveli), last_reads
-        print("total reads:", -total_reads)
+            yield taxon, all_reads
+            last_taxon = taxon
 
 
-def rarefaction(otus, step, repeat=10, seed=0, tdesc=""):
-    prng = np.random.RandomState(seed)  # reproducible results
-
-    otus = np.array(otus)
-    noccur = np.sum(otus)  # number of occurrences for each sample
-    nvar = otus.shape[0]
-    step = int(step)
-
-    return pd.DataFrame(
-        {
-            step_: [
-                sum(
-                    np.bincount(
-                        prng.choice(nvar, step_, p=otus / float(noccur)), minlength=nvar
-                    )
-                    > 0
+def kraken_summary(outdir: Path, *files):
+    sample_all: Dict[str, Tuple[int, int]] = {}
+    all_reads = pd.DataFrame()
+    for file in files:
+        logger.info(f"reading {file}")
+        with open(file) as fi:
+            uroot = fi.readline().strip().split("\t")
+            root = fi.readline().strip().split("\t")
+            total_reads = int(uroot[1]) + int(root[1])
+            sample_all[file] = total_reads, int(uroot[1])
+        for level in levels:
+            with open(file) as fi:
+                taxon_reads_prok = pd.DataFrame(
+                    kraken_level_filter(fi, level, prokaryotes_only=True),
+                    columns=["taxon", "reads"],
                 )
-                for _ in trange(repeat, desc=f"step {step_} repeat of {tdesc}")
-            ]
-            for step_ in trange(step, otus.sum(), step, desc=tdesc)
-        }
-    )
+            taxon_reads_prok["taxon"] = taxon_reads_prok["taxon"].apply(
+                lambda x: "d" + x[1:]
+            )
+            taxon_reads_prok["level"] = level
+            taxon_reads_prok["sample"] = file
 
+            all_reads = pd.concat([all_reads, taxon_reads_prok])
 
-def kraken_rarefaction(filepath: str, step=2e6, repeat=10):
-    kraken_report: pd.DataFrame = pd.read_csv(
-        filepath,
-        sep="\t",
-        names=["percents", "all_reads", "exact_reads", "level_type", "uid", "name"],
-        # usecols=["exact_reads"],
-    ).dropna()
-    otus = kraken_report[
-        kraken_report["level_type"].apply(lambda x: x[0] not in ("U", "R"))
-    ]["exact_reads"]
-    rare = rarefaction(otus, step, repeat, tdesc=filepath)
-    rare_long = rare.melt(var_name="sample_size", value_name="otus").append(
-        {"sample_size": otus.sum(), "otus": otus.size}, ignore_index=True
+    outdir.mkdir(exist_ok=True)
+    pd.DataFrame(sample_all, index=["total_reads", "unroot_reads"]).T.to_csv(
+        outdir / "kraken-root.csv"
     )
-    rare_long["sample"] = filepath
-    return rare_long
+    for level, taxon_reads in all_reads.groupby("level"):
+        taxon_reads.pivot_table(
+            values="reads", index="taxon", columns="sample", aggfunc=sum, fill_value=0
+        ).to_csv(outdir / f"kraken-{level}.csv")
