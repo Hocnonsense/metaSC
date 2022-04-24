@@ -2,7 +2,7 @@
 """
  * @Date: 2020-12-11 10:22:23
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-23 20:07:02
+ * @LastEditTime: 2022-04-24 19:21:33
  * @FilePath: /metaSC/PyLib/biotool/fna_msg.py
  * @Description:
         Get message from a fna file.
@@ -102,7 +102,7 @@ def seq_total_depth(
     """
     (totalLength, totalBases) = (0, 0.0)
     for values in ctg_depth:
-        sample_len = len(values[1])
+        sample_len = len(ctg_depth[values][1])
         break  # get the length and leave
     sampleBases = [0.0] * sample_len
     for contigName, _ in seqs:
