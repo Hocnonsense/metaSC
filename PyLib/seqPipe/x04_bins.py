@@ -2,7 +2,7 @@
 """
  * @Date: 2021-08-14 14:35:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-01-18 11:13:08
+ * @LastEditTime: 2022-02-23 20:09:22
  * @FilePath: /metaSC/PyLib/seqPipe/x04_bins.py
  * @Description:
 """
@@ -17,9 +17,10 @@ from PyLib.PyLibTool.file_info import verbose_import
 logger = verbose_import(__name__, __doc__)
 
 
-def MAG_seq_features(bin_filename: str,
-                     ctg_depth: Dict[str, Tuple[Tuple[int, float],
-                                                List[float], List[float]]] = []):
+def MAG_seq_features(
+    bin_filename: str,
+    ctg_depth: Dict[str, Tuple[Tuple[int, float], List[float], List[float]]],
+):
     """{
         'values': [
             'SeqNumbers', 'MaxLength', 'GenomeSize',
@@ -37,13 +38,17 @@ def MAG_seq_features(bin_filename: str,
 
 def wrap_depth(fi: TextIO):
     title = next(fi).split()
-    yield '\t'.join(title + [title[-1] + '-var'])
+    yield "\t".join(title + [title[-1] + "-var"])
     for line in fi:
-        yield line.replace('\n', '\t0\n')
+        yield line.replace("\n", "\t0\n")
 
 
-def merge_checkm_bin(binner_basedir: str, metawrap: bool = False, depth_file: str = '',
-                     summary_dict: Dict[str, List[str]] = None):
+def merge_checkm_bin(
+    binner_basedir: str,
+    metawrap: bool = False,
+    depth_file: str = "",
+    summary_dict: Dict[str, List[str]] = None,
+):
     """{
         'key': 'Bin_Id',
         'values': [
@@ -58,33 +63,37 @@ def merge_checkm_bin(binner_basedir: str, metawrap: bool = False, depth_file: st
         ]
     }"""
     if metawrap:
-        FORMAT_BIN_FILE_PATH = '_bins'
-        with open(f'{binner_basedir}/work_files/mb2_master_depth.txt') as fi:
+        FORMAT_BIN_FILE_PATH = "_bins"
+        with open(f"{binner_basedir}/work_files/mb2_master_depth.txt") as fi:
             sample_list, ctg_depth = jgi_depths(wrap_depth(fi))
     else:
-        FORMAT_BIN_FILE_PATH = '_DASTool_bins'
+        FORMAT_BIN_FILE_PATH = "_DASTool_bins"
         with open(depth_file) as fi:
             sample_list, ctg_depth = jgi_depths(fi)
 
-    merge_checkm_bin.__doc__ = merge_checkm_bin.__doc__.replace(
-        r'{depths}', "', '".join(sample_list))
+    merge_checkm_bin.__doc__ = (merge_checkm_bin.__doc__ or "").replace(
+        r"{depths}", "', '".join(sample_list)
+    )
 
     # read checkm
     if summary_dict is None:
         summary_dict = {}
-        checkm_report = f'{binner_basedir}/checkms/report.tsv'
+        checkm_report = f"{binner_basedir}/checkms/report.tsv"
         with open(checkm_report) as fi:
             for MAG, values in checkm_iter(fi):
                 summary_dict[MAG] = values
 
     for binId, values in summary_dict.items():
-        genome_features = MAG_seq_features(f'{binner_basedir}/{FORMAT_BIN_FILE_PATH}/{binId}.fa', ctg_depth)
+        genome_features = MAG_seq_features(
+            f"{binner_basedir}/{FORMAT_BIN_FILE_PATH}/{binId}.fa", ctg_depth
+        )
         summary_dict[binId] = values + genome_features
     return summary_dict
 
 
-def merge_checkm_taxon(binner_basedir: str, file_taxon: str,
-                       summary_dict: Dict[str, List[str]] = None):
+def merge_checkm_taxon(
+    binner_basedir: str, file_taxon: str, summary_dict: Dict[str, List[str]] = None
+):
     """{
         'key': 'Bin_Id',
         'values': [
@@ -103,17 +112,18 @@ def merge_checkm_taxon(binner_basedir: str, file_taxon: str,
         ]
     }"""
     if summary_dict is None:
-        checkm_report = f'{binner_basedir}/checkms/report.tsv'
+        summary_dict = {}
+        checkm_report = f"{binner_basedir}/checkms/report.tsv"
         with open(checkm_report) as fi:
             for MAG, values in checkm_iter(fi):
                 summary_dict[MAG] = values
 
     if not os.path.isdir(file_taxon):
         raise NotADirectoryError
-    for kindom in ['ar122', 'bac120']:
-        filename = f'{file_taxon}/gtdbtk.{kindom}.summary.tsv'
+    for kindom in ["ar122", "bac120"]:
+        filename = f"{file_taxon}/gtdbtk.{kindom}.summary.tsv"
         if not os.path.exists(filename):
-            logger.warning(f'{filename} not exists')
+            logger.warning(f"{filename} not exists")
             continue
         with open(filename) as fi:
             for MAG, values, taxon in gtdbtk_iter(fi):
