@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-02-27 16:52:29
 #* @LastEditors: Hwrn
-#* @LastEditTime: 2022-04-21 11:55:18
+#* @LastEditTime: 2022-04-25 11:02:49
 #* @FilePath: /metaSC/R/RLib/R/div.otu.r
 #* @Description:
 ###
@@ -187,7 +187,7 @@ plot.beta.div <- function(div.otu,
   # >>->> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> >>->> argParse
   method <- match.arg(method)
   if (is.na(binary)) {
-    binary = tryCatch(expr = {match.arg(idist, c("jaccard")) == "jaccard"},
+    binary = tryCatch(expr = {match.arg(dist, c("jaccard")) == "jaccard"},
                       error = function(e) FALSE)
   }
   area <- match.arg(area)

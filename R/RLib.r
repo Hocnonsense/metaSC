@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-02-27 13:23:46
 #* @LastEditors: Hwrn
-#* @LastEditTime: 2022-03-01 13:55:38
+#* @LastEditTime: 2022-04-25 00:50:33
 #* @FilePath: /metaSC/R/RLib.r
 #* @Description:
 #     source me!
@@ -15,14 +15,18 @@ library(stringr)
 library(reshape2)
 library(plyr)
 library(dplyr)
+library(tidyr)
 library(vegan)
 library(ape)
+library(multcomp)
 
 library(pheatmap)
 library(ggplot2)
+library(ggExtra)
 library(ggrepel)
 library(scales)
 library(ggpubr)
+library(patchwork)
 
 library(DESeq2)
 library(edgeR)
