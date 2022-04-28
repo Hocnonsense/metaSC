@@ -1,7 +1,7 @@
 <!--
  * @Date: 2020-10-02 20:40:15
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-01-21 15:44:57
+ * @LastEditTime: 2022-04-28 23:00:07
  * @FilePath: /metaSC/PyLib/README.md
  * @Description:
 -->
@@ -20,6 +20,8 @@ Python files
             - other useful functions: biotool
     2.  Demo to show example of other package
         - tool
+
+- to test, run `pytest --cov --cov-report=html`
 
 ---
 ## [tmp](tmp/__init__.py)
