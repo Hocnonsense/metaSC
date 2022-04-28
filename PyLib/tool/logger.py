@@ -2,7 +2,7 @@
 """
  * @Date: 2020-02-06 16:18:59
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-28 22:00:16
+ * @LastEditTime: 2022-04-28 23:01:47
  * @FilePath: /metaSC/PyLib/tool/logger.py
  * @Description:
 """
@@ -28,7 +28,8 @@ class Tee:
         self.log.write(message)
 
     def flush(self):
-        pass
+        self.logger.flush()
+        self.log.flush()
 
 
 class Redirector:
