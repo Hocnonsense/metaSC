@@ -2,7 +2,7 @@
 """
  * @Date: 2022-04-28 21:31:33
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-28 21:59:00
+ * @LastEditTime: 2022-04-29 00:14:18
  * @FilePath: /metaSC/PyLib/test/tool/test_logger.py
  * @Description:
 """
@@ -28,4 +28,5 @@ def test_logger():
 
 def test_tee():
     sys.stdout = mylogger.Tee("w", filename=test_file_path / "tee.log")
+    sys.stdout.flush()
     print(3)
