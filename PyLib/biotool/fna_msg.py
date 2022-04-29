@@ -2,13 +2,13 @@
 """
  * @Date: 2020-12-11 10:22:23
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-24 19:21:33
+ * @LastEditTime: 2022-04-29 12:01:10
  * @FilePath: /metaSC/PyLib/biotool/fna_msg.py
  * @Description:
         Get message from a fna file.
 """
 
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Tuple, Dict
 
 # from PyLib.reader.read_outputs import jgi_depths
 from PyLib.PyLibTool.file_info import verbose_import
@@ -17,16 +17,18 @@ from PyLib.PyLibTool.file_info import verbose_import
 verbose_import(__name__, __doc__)
 
 
-def seq_GC_len(seqs: Iterable[Tuple[str, str]]) -> dict:
+def seq_GC_len(seqs: Iterable[Tuple[str, str]]) -> Dict[str, Tuple[int, int, int]]:
     """Read fasta files.
-    * @param {dict} seqs: Iterable[Tuple[str, str]] -> {record.id: record.seq}
+    * @param {Dict} seqs: Iterable[Tuple[str, str]] -> {record.id: record.seq}
     * @return {dict} {ctg_name: [GC count, genome size]}
     """
     GC_len = {}
     for id, seq in seqs:
+        seq = seq.upper().replace("-", "").replace(" ", "").replace("\n", "")
         gc_count = seq.count("G") + seq.count("C")
         seq_len = len(seq)
-        GC_len[id] = gc_count, seq_len
+        N_count = seq_len - gc_count - seq.count("A") - seq.count("T")
+        GC_len[id] = gc_count, seq_len, N_count
     return GC_len
 
 
@@ -57,10 +59,10 @@ def statistic_fna(seqs: Iterable[Tuple[str, str]]) -> Tuple:
 
     total_len = sum(i[1] for i in GC_len)
     GenomeSize = total_len
-    GC = sum(i[0] for i in GC_len) / total_len
+    GC = sum(i[0] for i in GC_len) / sum(i[1] - i[2] for i in GC_len)
 
     pcg_len = total_len * 50 / 100
-    for i, (gc, length) in enumerate(GC_len):
+    for i, (gc, length, _) in enumerate(GC_len):
         pcg_len -= length
         if pcg_len <= 0:
             N50 = length
