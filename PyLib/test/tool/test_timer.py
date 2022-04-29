@@ -2,7 +2,7 @@
 """
  * @Date: 2022-04-28 23:53:07
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-29 00:20:35
+ * @LastEditTime: 2022-04-29 11:43:07
  * @FilePath: /metaSC/PyLib/test/tool/test_timer.py
  * @Description:
 """
@@ -71,17 +71,17 @@ def test_TimeCode():
 
     # EXAMPLE 1
     with TimeCode() as t:
-        time.sleep(5)
+        time.sleep(2)
 
     # EXAMPLE 2
     try:
         with TimeCode() as t:
-            time.sleep(5)
+            time.sleep(2)
             raise Exception  # undefined variable
     except Exception:
         pass
 
     # EXAMPLE 3
     with TimeCode(quiet=True) as t:
-        time.sleep(5)
+        time.sleep(2)
     print(t.time)

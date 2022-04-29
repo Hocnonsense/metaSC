@@ -11,7 +11,7 @@ import os
 import sys
 
 import PyLib.tool.logger as mylogger
-from PyLib.test import test_file_path
+from PyLib.test import test_temp_path
 
 
 def test_logger():
@@ -19,8 +19,8 @@ def test_logger():
         print(1)
 
     red = mylogger.Redirector(
-        stderr=open(test_file_path / "logger.err", "w"),
-        stdout=open(test_file_path / "logger.out", "w"),
+        stderr=open(test_temp_path / "logger.err", "w"),
+        stdout=open(test_temp_path / "logger.out", "w"),
     )
     with red:
         print(2)
@@ -30,7 +30,7 @@ def test_logger():
 
 
 def test_tee():
-    sys.stdout = mylogger.Tee("w", filename=test_file_path / "tee.log")
+    sys.stdout = mylogger.Tee("w", filename=test_temp_path / "tee.log")
     sys.stdout.flush()
     print(3)
 

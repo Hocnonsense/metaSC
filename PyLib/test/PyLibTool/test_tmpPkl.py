@@ -2,7 +2,7 @@
 """
  * @Date: 2022-03-06 16:51:44
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-28 21:44:29
+ * @LastEditTime: 2022-04-29 11:40:00
  * @FilePath: /metaSC/PyLib/test/PyLibTool/test_tmpPkl.py
  * @Description:
 """
@@ -10,10 +10,10 @@
 import os
 
 from PyLib.PyLibTool.tmpPkl import TmpPkl
-from PyLib.test import test_file_path
+from PyLib.test import test_temp_path
 
 
-@TmpPkl(test_file_path / "test.pkl", force_rewrite=False)
+@TmpPkl(test_temp_path / "test.pkl", force_rewrite=False)
 def atest(i, j):
     """Test i+j."""
     return i + j
