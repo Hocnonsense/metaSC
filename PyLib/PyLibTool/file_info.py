@@ -2,13 +2,16 @@
 """
  * @Date: 2021-03-15 11:07:29
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-03-18 23:26:27
+ * @LastEditTime: 2022-04-29 11:35:23
  * @FilePath: /metaSC/PyLib/PyLibTool/file_info.py
  * @Description:
     Extract information in __doc__
 """
 
 import logging
+from pathlib import Path
+from typing import List, TextIO, Union
+from hashlib import md5
 from typing import Dict
 
 
@@ -61,6 +64,34 @@ def basicConfig(logger_level: str = None, _logger_level=["INFO"]):
         datefmt="%Y-%m-%d %H:%M:%S",  # 时间
     )
     return logger_level
+
+
+def md5sum(text: bytes = None, file: Path = None, c: str = None):
+    assert text is not None or file is not None, "text or file must be provided"
+
+    md5s: List[str] = []
+
+    if text:
+        textmd5 = md5(text).hexdigest()
+        md5s.append(textmd5)
+    if file:
+        filem = md5()
+        with file.open("rb") as fobj:
+            while True:
+                data = fobj.read(4096)
+                if not data:
+                    break
+                filem.update(data)  # 更新md5对象
+        filemd5 = filem.hexdigest()
+        md5s.append(filemd5)
+    if c:
+        md5s.append(c)
+
+    for i in md5s[1:]:
+        if i != md5s[0]:
+            return False
+
+    return md5s[0]
 
 
 verbose_import(__name__, __doc__)
