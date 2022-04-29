@@ -2,7 +2,7 @@
 """
  * @Date: 2021-02-03 11:09:20
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-16 10:59:55
+ * @LastEditTime: 2022-04-29 11:16:17
  * @FilePath: /metaSC/PyLib/biotool/download.py
  * @Description:
         download genome from net
@@ -47,7 +47,7 @@ class ReportHook:
 
             if total_size > 0:
                 logger.info(
-                    "Downloading file of size: {:.2f} MB\n".format(
+                    "Downloading file of size: {:.2f} MB".format(
                         byte_to_megabyte(total_size)
                     )
                 )
@@ -83,10 +83,9 @@ def download(url, download_file=None, overwrite=False):
 
     if (not os.path.isfile(download_file)) or overwrite:
         try:
-            logger.info('Downloading "{}" to "{}"\n'.format(url, download_file))
+            logger.info('Downloading "{}" to "{}"'.format(url, download_file))
 
             urlretrieve(url, download_file, reporthook=ReportHook().report)
-            logger.info("\n")
             return download_file
         except EnvironmentError as e:
             sys.stderr.write('unable to download "{}"'.format(url))
@@ -99,7 +98,7 @@ def download(url, download_file=None, overwrite=False):
             return ""
 
     else:
-        logger.warning('File "{}" present\n'.format(download_file))
+        logger.warning('File "{}" present'.format(download_file))
         return download_file
 
 
