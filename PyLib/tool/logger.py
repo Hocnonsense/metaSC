@@ -2,7 +2,7 @@
 """
  * @Date: 2020-02-06 16:18:59
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-28 23:01:47
+ * @LastEditTime: 2022-04-29 10:49:26
  * @FilePath: /metaSC/PyLib/tool/logger.py
  * @Description:
 """
@@ -20,7 +20,7 @@ class Tee:
 
     def __init__(self, *args, filename="Default.log", **kwargs):
         self.log = open(filename, *args, **kwargs)
-        self.logger=sys.stdout
+        self.logger = sys.stdout
 
     def write(self, message):
         # message= message.encode('unicode_escape').decode('utf-8')
@@ -36,19 +36,20 @@ class Redirector:
     def __init__(self, stderr=os.devnull, stdout=os.devnull):
         self.stdout = stdout
         self.stderr = stderr
+        self.mode = "w"
 
     def __enter__(self):
         sys.stderr.flush()
         self.old_stderr = sys.stderr
         if isinstance(self.stderr, str):
-            sys.stderr = open(self.stderr, "w")
+            sys.stderr = open(self.stderr, self.mode)
         else:
             sys.stderr = self.stderr
 
         sys.stdout.flush()
         self.old_stdout = sys.stdout
         if isinstance(self.stdout, str):
-            sys.stdout = open(self.stdout, "w")
+            sys.stdout = open(self.stdout, self.mode)
         else:
             sys.stdout = self.stdout
 
@@ -57,3 +58,4 @@ class Redirector:
         sys.stderr = self.old_stderr
         sys.stdout.flush()
         sys.stdout = self.old_stdout
+        self.mode = "a"
