@@ -2,7 +2,7 @@
 """
  * @Date: 2020-11-09 22:32:22
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-03-06 19:01:11
+ * @LastEditTime: 2022-05-19 22:08:02
  * @FilePath: /metaSC/PyLib/PyLibTool/tmpPkl.py
  * @Description:
     with which will build a tmp pickle file for its function.
@@ -12,34 +12,45 @@
 """
 __version__ = "0.0.4"
 
-import sys
-from sys import stderr
-import os
+from sys import argv
+from pathlib import Path
 import pickle
 from functools import wraps
 from datetime import datetime
-from typing import Callable, Dict, Tuple
+from typing import Callable, Dict
+
+from PyLib.PyLibTool.file_info import verbose_import, md5sum
+
+logger = verbose_import(__name__, __doc__)
 
 
 class TmpPkl:
     """Save a pickle file for the function or block."""
 
-    __cache: Dict[Callable, str] = {}  #
+    __cache: Dict[Callable, Path] = {}  #
 
-    def __init__(self, PICKLE_FILENAME, desc="", force_rewrite=False, situ="") -> None:
+    def __init__(
+        self, PICKLE_FILENAME: str, desc="", force_rewrite=False, situ=Path(".")
+    ) -> None:
         if situ:
-            if os.path.isfile(situ):
-                situ = os.path.dirname(situ)
-            PICKLE_FILENAME = os.path.join(situ, PICKLE_FILENAME)
+            if not isinstance(situ, Path):
+                logger.warning(
+                    "var situ is not a Path, may cause problems in future versions"
+                )
+                situ = Path(situ)
+            if situ.is_file():
+                pickle_filename = situ.parent / PICKLE_FILENAME
+            else:
+                pickle_filename = situ / PICKLE_FILENAME
         else:
-            PICKLE_FILENAME = os.path.expanduser(PICKLE_FILENAME)
-        self.PICKLE_FILENAME = os.path.abspath(PICKLE_FILENAME)
+            pickle_filename = Path(PICKLE_FILENAME)
+        self.PICKLE_FILENAME = pickle_filename.expanduser().absolute()
         self.force_rewrite = force_rewrite
         self.__force_rewrite = force_rewrite
         self.last_results = None
         self.meta = {
             "date": datetime.now(),
-            "pwd": sys.argv[0] or os.getcwd(),
+            "pwd": Path(argv[0] or ".").absolute(),
             "desc": desc,
         }
 
@@ -67,22 +78,28 @@ class TmpPkl:
     def __enter__(self):
         if not self.force_rewrite:
             try:
-                print(f"# load from {self.PICKLE_FILENAME} ... ", end="", file=stderr)
+                logger.info(f"# load from {self.PICKLE_FILENAME} ... ")
                 with open(self.PICKLE_FILENAME, "rb") as pi:
                     (self.meta, self.last_results) = pickle.load(pi)
             except (FileNotFoundError, EOFError):
                 self.force_rewrite = True
-                print(f"\r# load from {self.PICKLE_FILENAME} ... failed", file=stderr)
+                logger.critical(f"\r# load from {self.PICKLE_FILENAME} ... failed")
             else:
-                print(f"\r# load from {self.PICKLE_FILENAME} ... finished", file=stderr)
+                logger.critical(
+                    f"\r# load from {self.PICKLE_FILENAME} ... finished, "
+                    f"md5sum {md5sum(file=self.PICKLE_FILENAME)}"
+                )
         return self
 
     def __exit__(self, exc_type=None, exc_val=None, exc_tb=None):
         if self.force_rewrite and self.last_results:
-            print(f"# dump to {self.PICKLE_FILENAME} ... ", end="", file=stderr)
+            logger.info(f"# dump to {self.PICKLE_FILENAME} ... ")
             with open(self.PICKLE_FILENAME, "wb") as po:
                 pickle.dump((self.meta, self.last_results), po)
-            print(f"\r# dump to {self.PICKLE_FILENAME} ... finished", file=stderr)
+            logger.critical(
+                f"\r# dump to {self.PICKLE_FILENAME} ... finished, "
+                f"md5sum {md5sum(file=self.PICKLE_FILENAME)}"
+            )
         self.force_rewrite = self.__force_rewrite
         return False
 
@@ -97,6 +114,6 @@ class TmpPkl:
     #    return cls.__cache
 
     def __show_cache(self):
-        return {k: os.path.isfile(v) for k, v in self.__class__.__cache.items()}
+        return {k: v.is_file() for k, v in self.__class__.__cache.items()}
 
     cache = property(fget=__show_cache)
