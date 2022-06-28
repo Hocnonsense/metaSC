@@ -1,12 +1,14 @@
 ###
 #* @Date: 2022-02-27 16:52:29
-#* @LastEditors: Hwrn
-#* @LastEditTime: 2022-04-25 11:02:49
-#* @FilePath: /metaSC/R/RLib/R/div.otu.r
+#' @LastEditors: Hwrn
+#' @LastEditTime: 2022-06-28 17:17:44
+#' @FilePath: /metaSC/R/RLib/R/div.otu.r
 #* @Description:
 ###
 
 library(data.table)
+library(vegan)
+library(ggrepel)
 
 
 #' @title get most abundant otu
@@ -212,8 +214,8 @@ plot.beta.div <- function(div.otu,
                              " p(Pr(>F))=", group.adonis2$`Pr(>F)`[1])
 
   # >>->> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> >>->> Dimensionality reduction
+    pcoa.16s = ape::pcoa(vegdist(div.otu.t, method = dist, binary = binary))
   if (method == "pcoa") {
-    pcoa.16s = pcoa(vegdist(div.otu.t, method = dist, binary = binary))
     div.otu.point = data.frame(pcoa.16s$vectors[, 1:2])
     xylab = paste0(
       "PCo", 1:2,
@@ -263,7 +265,8 @@ plot.beta.div <- function(div.otu,
       panel.background = element_rect(color = 'black', fill = 'transparent'),
       axis.line = element_line(colour = "black"),
       plot.title = element_text(hjust = 0.5),
-      legend.title = element_blank()
+      legend.title = element_blank(),
+      legend.key = element_blank()  # element_rect(fill = "gray")
     )
 
   # >>->> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> >>->> add plugins
