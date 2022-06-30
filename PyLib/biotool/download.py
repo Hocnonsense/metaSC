@@ -2,7 +2,7 @@
 """
  * @Date: 2021-02-03 11:09:20
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-29 11:16:17
+ * @LastEditTime: 2022-06-30 10:34:19
  * @FilePath: /metaSC/PyLib/biotool/download.py
  * @Description:
         download genome from net
@@ -83,7 +83,7 @@ def download(url, download_file=None, overwrite=False):
 
     if (not os.path.isfile(download_file)) or overwrite:
         try:
-            logger.info('Downloading "{}" to "{}"'.format(url, download_file))
+            logger.debug('Downloading "{}" to "{}"'.format(url, download_file))
 
             urlretrieve(url, download_file, reporthook=ReportHook().report)
             return download_file
@@ -163,28 +163,67 @@ def retrive_img_url(img_id, cookies="cookies"):
             return img_base_url + i.attrib["url"]
 
 
+def _download_fna(sequence_id: str, output: Path, cookies):
+    """
+    @param sequence_id: name of reference genome, possibly starts with [GCA, GCF, GWH, IMG]
+    @param output: Path to store output
+                   - if it ends with ".fna", then output.name will be used as filename
+                   - otherwise, file will be stored at output / f"{sequence_id}.fna"
+    @param cookies: for downloading IMG genomes
+    @return: path to downloaded genomes
+    """
+    if output.name.endswith(".fna"):
+        fna_file = output
+        output = output.parent
+    else:
+        fna_file = output / f"{sequence_id}.fna"
+
+    output.mkdir(parents=True, exist_ok=True)
+    logger.info(f"download to {fna_file}")
+    if sequence_id.startswith("GCA") or sequence_id.startswith("GCF"):
+        download(
+            retrieve_refseq_url(sequence_id),
+            f"{fna_file}.gz",
+            overwrite=True,
+        )
+        runsh_safe(f"gunzip {fna_file}.gz")
+    elif sequence_id.startswith("GWH"):
+        download(retrive_gwh_url(sequence_id), f"{fna_file}.gz", overwrite=True)
+        runsh_safe(f"gunzip {fna_file}.gz")
+    elif sequence_id.startswith("IMG"):
+        img_url = retrive_img_url(sequence_id, cookies)
+        os.system(f"curl '{img_url}' -b {cookies} > {fna_file}")
+    return fna_file
+
+
 def download_fna(
     sequence_id: str,
     output: Union[str, Path] = "./",
     cookies="cookies",
     overwrite=False,
+    retry=0,
 ):
     basicConfig()
-    output = Path(output)
-    output.mkdir(parents=True, exist_ok=True)
-    fna_file = output / f"{sequence_id}.fna"
-    logger.info(f"download to {fna_file}")
+    fna_file = Path(output) / f"{sequence_id}.fna"
 
-    if overwrite or not os.path.isfile(fna_file):
-        if sequence_id.startswith("GCA") or sequence_id.startswith("GCF"):
-            download(retrieve_refseq_url(sequence_id), f"{fna_file}.gz")
-            runsh_safe(f"gunzip {fna_file}.gz")
-        elif sequence_id.startswith("GWH"):
-            download(retrive_gwh_url(sequence_id), f"{fna_file}.gz")
-            runsh_safe(f"gunzip {fna_file}.gz")
-        elif sequence_id.startswith("IMG"):
-            img_url = retrive_img_url(sequence_id, cookies)
-            os.system(f"curl '{img_url}' -b {cookies} > {fna_file}")
+    if overwrite or not fna_file.is_file():
+        for i in range(retry, -1, -1):
+            try:
+                fna_file = _download_fna(sequence_id, fna_file, cookies)
+            except ConnectionRefusedError as e:
+                logger.warning(f"{sequence_id} failed at {e.strerror}, retry ({i})")
+                if fna_file.is_file():
+                    runsh_safe(f"/bin/rm {fna_file}")
+                if i == 0:
+                    logger.warning(f"{sequence_id} failed after {retry} tries")
+                    raise e
+                time.sleep(5)
+                continue
+            else:
+                logger.info(f"{fna_file} downloaded successfully.")
+                break
+        else:
+            raise Exception(f"failed to download {fna_file}.")
     else:
         logger.warning(f"{fna_file} already exists, skip.")
 
