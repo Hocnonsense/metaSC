@@ -1,8 +1,8 @@
 ###
 #* @Date: 2022-02-27 13:20:26
-#* @LastEditors: Hwrn
-#* @LastEditTime: 2022-02-28 14:45:56
-#* @FilePath: /metaSC/R/RLib/R/taxon.r
+#' @LastEditors: Hwrn
+#' @LastEditTime: 2022-07-03 13:45:07
+#' @FilePath: /metaSC/R/RLib/R/taxon.r
 #* @Description:
 ###
 
@@ -53,11 +53,10 @@ taxon.split <- function(taxon.full, start, end = NULL) {
 
   taxon.new = sapply(as.character(taxon.full), function(x) {
     if (is.na(x)) return(x)
-    if (strsplit(x, "^.__") == x) {
-      tax_order = unlist(strsplit(as.character(x), ";"))
-    } else {
-      tax_order = unlist(strsplit(unlist(strsplit(x, "^.__"))[2], ";.__"))
-    }
+    tax_order =
+      unlist(strsplit(as.character(x), ";")) %>%
+      gsub("^.__(.+)$", "\\1", .) %>%  # "d__Archaea", "D__Archaea"
+      gsub("^\\(.__(.+)\\)$", "(\\1)", .)  # "(d__Archaea)", "(D__Archaea)"
     return(paste(c(tax_order, rep("", end))[start:end], collapse = ";"))
   })
 
