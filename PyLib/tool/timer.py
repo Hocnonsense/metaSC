@@ -2,7 +2,7 @@
 """
  * @Date: 2020-02-05 17:15:25
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-29 00:18:44
+ * @LastEditTime: 2022-07-10 11:48:18
  * @FilePath: /metaSC/PyLib/tool/timer.py
  * @Description: Record time.
     update from anvio.terminal
@@ -11,6 +11,7 @@
 from datetime import datetime, timedelta
 from collections import OrderedDict
 import time
+from typing import Optional
 from PyLib.PyLibTool.file_info import verbose_import
 from PyLib.tool.ttycolors import color_text
 import pandas as pd
@@ -83,7 +84,7 @@ class Timer:
     def gen_report(self, title="Time Report"):
         checkpoint_last = self.initial_checkpoint_key
 
-        logger.warning("", header=title, lc="yellow", nl_before=1, nl_after=0)
+        logger.warning(color_text(title, color="yellow"))
 
         for checkpoint_key, checkpoint in self.checkpoints.items():
             if checkpoint_key == self.initial_checkpoint_key:
@@ -161,7 +162,12 @@ class Timer:
             self.timedelta_to_checkpoint(self.timestamp(), checkpoint_key=0), fmt=fmt
         )
 
-    def format_time(self, timedelta, fmt="{hours}:{minutes}:{seconds}", zero_padding=2):
+    def format_time(
+        self,
+        timedelta,
+        fmt: Optional[str] = "{hours}:{minutes}:{seconds}",
+        zero_padding=2,
+    ):
         """Formats time
 
         Examples of `fmt`. Suppose the timedelta is seconds = 1, minutes = 1, hours = 1.
@@ -207,6 +213,8 @@ class Timer:
                         break
                     else:
                         m *= unit_denominations[unit]
+                else:
+                    raise Exception(f"time formatter failure: m: {m}, seconds: {seconds}")
 
         # parse units present in fmt
         format_order = []

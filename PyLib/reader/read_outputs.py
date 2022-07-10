@@ -2,7 +2,7 @@
 """
  * @Date: 2020-10-06 21:57:58
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-12 17:47:30
+ * @LastEditTime: 2022-07-10 12:56:59
  * @FilePath: /metaSC/PyLib/reader/read_outputs.py
  * @Description:
         checkM, gtdbtk, iRep, contig_depths, fasta
@@ -146,6 +146,8 @@ def jgi_depths(
     (sample_list, ctg_depth) = ([], {})
     head = next(text)
     sample_index = check_head(head)
+    if sample_index is None:
+        raise Exception("file is not a depth file")
     sample_list = [i[1] for i in sample_index]
     # sample_index = DEPTH_META + sample_index
     # print(sample_list)

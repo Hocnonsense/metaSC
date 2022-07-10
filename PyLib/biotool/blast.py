@@ -2,7 +2,7 @@
 """
  * @Date: 2021-07-31 15:28:13
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-03-05 17:17:38
+ * @LastEditTime: 2022-07-10 11:59:28
  * @FilePath: /metaSC/PyLib/biotool/blast.py
  * @Description:
 """
@@ -186,21 +186,21 @@ def blast_unmatch_iter(
     Hsp_qseq, Hsp_hseq, Hsp_midline = values[-3:]
     if Hsp_hit_to < Hsp_hit_from:
         Hsp_hit_from, Hsp_hit_to = Hsp_hit_to, Hsp_hit_from
-        Hsp_qseq = Seq.Seq(Hsp_qseq).reverse_complement()
-        Hsp_hseq = Seq.Seq(Hsp_hseq).reverse_complement()
+        Hsp_qseq_rc: str = str(Seq.Seq(Hsp_qseq).reverse_complement())
+        Hsp_hseq_rc: str = str(Seq.Seq(Hsp_hseq).reverse_complement())
         Hsp_midline = "".join(reversed(Hsp_midline))
     Hsp_hseq_len = len(Hsp_hseq.replace("-", ""))
 
     unmatch = Hsp_midline.find(" ", 0)
     while unmatch != -1:
-        if Hsp_qseq[unmatch] == "-":
+        if Hsp_qseq_rc[unmatch] == "-":
             mismatch_type = "delete"
-        elif Hsp_hseq[unmatch] == "-":
+        elif Hsp_hseq_rc[unmatch] == "-":
             mismatch_type = "insert"
         else:
             mismatch_type = "mismatch"
 
-        ref_unmatch = unmatch - Hsp_hseq.count("-", 0, unmatch)
+        ref_unmatch = unmatch - Hsp_hseq_rc.count("-", 0, unmatch)
         ref_lextend = max(lwind(ref_unmatch, Hsp_hit_from), 0)
         ref_rextend = min(rwind(ref_unmatch, Hsp_hit_from), Hsp_hseq_len)
 
@@ -208,16 +208,17 @@ def blast_unmatch_iter(
         rextend = extend_unmatch(ref_rextend)
 
         assert (
-            len(Hsp_hseq[lextend:rextend].replace("-", "")) == ref_rextend - ref_lextend
+            len(Hsp_hseq_rc[lextend:rextend].replace("-", ""))
+            == ref_rextend - ref_lextend
         )
 
         yield (
-            [mismatch_type, Hsp_hseq[unmatch], Hsp_qseq[unmatch]],
+            [mismatch_type, Hsp_hseq_rc[unmatch], Hsp_qseq_rc[unmatch]],
             [
                 Hsp_hit_from + index
                 for index in (ref_lextend, ref_unmatch, ref_rextend - 1)
             ],
-            [seq[lextend:rextend] for seq in (Hsp_qseq, Hsp_midline, Hsp_hseq)],
+            [seq[lextend:rextend] for seq in (Hsp_qseq_rc, Hsp_midline, Hsp_hseq_rc)],
         )
 
         unmatch = Hsp_midline.find(" ", unmatch + 1)

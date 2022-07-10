@@ -2,7 +2,7 @@
 """
  * @Date: 2020-11-09 22:32:22
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-05-19 22:08:02
+ * @LastEditTime: 2022-07-10 12:18:14
  * @FilePath: /metaSC/PyLib/PyLibTool/tmpPkl.py
  * @Description:
     with which will build a tmp pickle file for its function.
@@ -12,14 +12,14 @@
 """
 __version__ = "0.0.4"
 
-from sys import argv
-from pathlib import Path
 import pickle
-from functools import wraps
 from datetime import datetime
-from typing import Callable, Dict
+from functools import wraps
+from pathlib import Path
+from sys import argv
+from typing import Any, Callable, Dict, Optional, Union
 
-from PyLib.PyLibTool.file_info import verbose_import, md5sum
+from PyLib.PyLibTool.file_info import md5sum, verbose_import
 
 logger = verbose_import(__name__, __doc__)
 
@@ -30,7 +30,11 @@ class TmpPkl:
     __cache: Dict[Callable, Path] = {}  #
 
     def __init__(
-        self, PICKLE_FILENAME: str, desc="", force_rewrite=False, situ=Path(".")
+        self,
+        PICKLE_FILENAME: Union[str, Path],
+        desc: Optional[str] = None,
+        force_rewrite=False,
+        situ=Path("."),
     ) -> None:
         if situ:
             if not isinstance(situ, Path):
@@ -47,11 +51,11 @@ class TmpPkl:
         self.PICKLE_FILENAME = pickle_filename.expanduser().absolute()
         self.force_rewrite = force_rewrite
         self.__force_rewrite = force_rewrite
-        self.last_results = None
+        self.last_results: Any = None
         self.meta = {
             "date": datetime.now(),
             "pwd": Path(argv[0] or ".").absolute(),
-            "desc": desc,
+            "desc": desc or "",
         }
 
     def __call__(self, func: Callable):

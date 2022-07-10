@@ -2,7 +2,7 @@
 """
  * @Date: 2021-04-26 12:03:40
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-28 18:43:25
+ * @LastEditTime: 2022-07-10 12:55:59
  * @FilePath: /metaSC/PyLib/reader/pubmed.py
  * @Description:
 """
@@ -40,6 +40,7 @@ def add_pubmed_item(item: dict, k0: str, v: str):
 
 def pmiditer(text: Union[TextIO, str] = ""):
     text = wrapStrFile(text)
+    v = ""
     while True:
         item = {}
         for line in text:

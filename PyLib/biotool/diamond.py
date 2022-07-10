@@ -2,7 +2,7 @@
 """
  * @Date: 2021-09-23 17:29:53
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-05-07 14:10:46
+ * @LastEditTime: 2022-07-10 12:21:35
  * @FilePath: /metaSC/PyLib/biotool/diamond.py
  * @Description: Run diamond with python
 """
@@ -89,7 +89,7 @@ def diamond_1to1(
                 print(e.returncode, e.cmd, e.output, e.stderr, sep="\n\n")
                 e1 = e
         else:
-            raise e1
+            raise Exception(e1)
         with (out.open("w") as fout, out1.open() as f1, out2.open() as f2):
             for fi in [f1, f2]:
                 # fi.rollover()

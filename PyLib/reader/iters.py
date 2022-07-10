@@ -2,13 +2,13 @@
 """
  * @Date: 2021-05-19 12:52:51
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-03-06 13:56:04
+ * @LastEditTime: 2022-07-10 12:55:24
  * @FilePath: /metaSC/PyLib/reader/iters.py
  * @Description:
 """
 
 from ast import literal_eval as eval
-from typing import Iterable, List, Set, TextIO, Tuple, Union
+from typing import Iterable, List, Optional, Set, TextIO, Tuple, Union
 
 from PyLib.biotool.kraken import kraken_level_filter
 from PyLib.PyLibTool.file_info import verbose_import
@@ -20,7 +20,7 @@ def read_table(
     text: Union[List[str], str, TextIO],
     sep="\t",
     annot="#",
-    title: List[str] = None,
+    title: Optional[List[str]] = None,
     openit=False,
 ):
     if openit:
@@ -182,7 +182,7 @@ def gtdbtk_1_5_1_iter(text: TextIO):
 gtdbtk_iter = gtdbtk_1_5_1_iter
 
 
-def featureCounts_iter(text: TextIO, ititle: List[str] = None):
+def featureCounts_iter(text: TextIO, ititle: Optional[List] = None):
     """ read <in_file> of featureCounts by:
             featureCounts \\
                 -a ${gff} \\

@@ -2,7 +2,7 @@
 """
  * @Date: 2021-06-14 18:41:24
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-03-18 10:35:33
+ * @LastEditTime: 2022-07-10 12:44:17
  * @FilePath: /metaSC/PyLib/biotool/kegg/query.py
  * @Description:
 """
@@ -22,7 +22,7 @@ def load_KEGG_module_raw(
             source_ = cached(_load_module_txt, source, cache_path)
         else:
             source_ = _load_module_txt(source)
-    with source_ as file:
+    with source_ as file:  # type: ignore
         raw_module: Dict[str, List[str]] = {}
         listv = []
         for line in file:
@@ -38,22 +38,20 @@ def load_KEGG_module_raw(
     return raw_module
 
 
-def read_brite_json(brite_doc: Dict[str, Union[str, List[Dict]]]):
+def read_brite_json(brite_doc):
     name, children = brite_doc["name"], brite_doc.get("children", "")
     if not children:
         return name.split(maxsplit=1)  # type: ignore
-    return name, dict((read_brite_json(children_doc) for children_doc in children))  # type: ignore
+    return name, dict((read_brite_json(children_doc) for children_doc in children))
 
 
-def load_brite(
-    source: Union[str, TextIO], cache_path: str = ""
-) -> Tuple[str, Dict[str, Dict[str, Dict[str, Dict[str, str]]]]]:
+def load_brite(source: Union[str, TextIO], cache_path: str = ""):
     if isinstance(source, str):
         if cache_path:
             source_ = cached(_load_brite_json, source, cache_path)
         else:
             source_ = _load_brite_json(source)
-    with source_ as json_in:
+    with source_ as json_in:  # type: ignore
         brite_doc: Dict[str, Union[str, List[Dict]]] = json.loads(json_in.read())
         return read_brite_json(brite_doc)
 
@@ -119,27 +117,29 @@ def load_ko00002(KEGG_DIR="./KEGG_DB"):
     module_levels_ = pd.DataFrame(
         module_levels, columns=["A", "B", "C", "entry", "name"]
     )
-    module_levels_.index = module_levels_["entry"]
+    module_levels_.index = module_levels_["entry"]  # type: ignore
     return module_levels_, dict(modules)
 
 
 def demo2():
     module_levels, modules = load_ko00002()
     ko_abd = {
-        "K19746": 0,
-        "K19744": 1,
-        "K12658": 2,
-        "K21060": 3,
-        "K22549": 4,
-        "K21061": 5,
-        "K22550": 6,
-        "K21062": 7,
-        "K13877": 8,
+        "K19746": 0.0,
+        "K19744": 1.0,
+        "K12658": 2.0,
+        "K21060": 3.0,
+        "K22549": 4.0,
+        "K21061": 5.0,
+        "K22550": 6.0,
+        "K21062": 7.0,
+        "K13877": 8.0,
     }
     print(
         modules["M00947"].abundance(ko_abd),
         modules["M00947"].completeness(ko_abd),
-        modules["M00947"].completeness({ko: abd for ko, abd in ko_abd if abd > 0}),
+        modules["M00947"].completeness(
+            {ko: abd for ko, abd in ko_abd.items() if abd > 0}
+        ),
     )
     print(
         modules["M00948"].abundance(ko_abd),

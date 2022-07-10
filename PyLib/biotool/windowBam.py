@@ -3,7 +3,7 @@
  * @Date: 2022-01-21 15:59:44
  * @Editors: derek.bickhart-adm, Hwrn
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-01-21 16:27:33
+ * @LastEditTime: 2022-07-10 12:50:49
  * @FilePath: /metaSC/PyLib/biotool/windowBam.py
  * @Description:
 """
@@ -15,7 +15,7 @@ from collections import defaultdict
 
 
 def windowBam(bam, output, windowlength):
-    with pysam.AlignmentFile(bam, 'rb') as bamfile:
+    with pysam.AlignmentFile(bam, "rb") as bamfile:  # type: ignore
         # create windows
         references = bamfile.references
         lengths = bamfile.lengths
@@ -37,13 +37,13 @@ def windowBam(bam, output, windowlength):
                 winlist[c][i].recordCount(mapq0, count)
 
     # Now print it all out
-    with open(output, 'w') as out:
+    with open(output, "w") as out:
         for c, w in winlist.items():
             for win in w:
                 print(win.getBed(), file=out)
 
-class window:
 
+class window:
     def __init__(self, contig, start, end):
         self.contig = contig
         self.start = start
@@ -62,17 +62,41 @@ class window:
         return self.mapq0 != 0
 
     def getBed(self):
-        return "\t".join([self.contig, self.start, self.end, self.hasMapq0, self.getRatio, self.totReadCount, self.mapq0])
+        return "\t".join(
+            [
+                self.contig,
+                self.start,
+                self.end,
+                self.hasMapq0,
+                self.getRatio,
+                self.totReadCount,
+                self.mapq0,
+            ]
+        )
 
 
 @click.command()
-@click.option("-b", "--bam", required=True, type=str,
-              type=click.Path(exists=True, dir_okay=False),
-              help="Input bam file. Must be coord sorted and indexed.")
-@click.option('-o', '--output', required=True, type=str,
-              help="Output file name. Output format is bed format.")
-@click.option('-w', '--windowlength', default = 5000, type=int,
-              help="Window length for contig windows")
+@click.option(
+    "-b",
+    "--bam",
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+    help="Input bam file. Must be coord sorted and indexed.",
+)
+@click.option(
+    "-o",
+    "--output",
+    required=True,
+    type=str,
+    help="Output file name. Output format is bed format.",
+)
+@click.option(
+    "-w",
+    "--windowlength",
+    default=5000,
+    type=int,
+    help="Window length for contig windows",
+)
 def arg_parse(bam, output, windowlength):
     """Window analysis to calculate ratio of mapq0 reads in bam files"""
     return bam, output, windowlength

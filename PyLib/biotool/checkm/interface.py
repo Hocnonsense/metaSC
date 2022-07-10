@@ -2,8 +2,8 @@
 """
  * @Date: 2020-10-02 22:32:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2020-10-29 12:41:53
- * @FilePath: /HScripts/Python/mylib/biotool/checkm/_checkm.py
+ * @LastEditTime: 2022-07-10 12:00:43
+ * @FilePath: /metaSC/PyLib/biotool/checkm/interface.py
  * @Description:
         Just like checkm.
 """
@@ -11,19 +11,19 @@
 from ast import literal_eval
 
 
-class DefaultValues():
+class DefaultValues:
     """Default values for filenames and common constants."""
 
     # set of markers recognized to be unreliable. These are often
     # ubiquitous, single-copy genes, but ones which are challenging
     # to correctly annotate with the PFAM and TIGRFAM models.
-    MARKERS_TO_EXCLUDE = {'TIGR00398', 'TIGR00399'}
+    MARKERS_TO_EXCLUDE = {"TIGR00398", "TIGR00399"}
 
     E_VAL = 1e-10
     LENGTH = 0.7
     PSEUDOGENE_LENGTH = 0.3
 
-    SEQ_CONCAT_CHAR = '&&'
+    SEQ_CONCAT_CHAR = "&&"
 
     MARKER_FILE = r"lineage.ms"
     HMM_MODEL_INFO_FILE = r"checkm_hmm_info.pkl.gz"
@@ -31,7 +31,7 @@ class DefaultValues():
     HMM_TABLE_FILE = r"hmmer.analyze.txt"
 
 
-class BinMarkerSets():
+class BinMarkerSets:
     """A collection of one or more marker sets associated with a bin."""
 
     def __init__(self, binId):
@@ -41,7 +41,7 @@ class BinMarkerSets():
 
     def read(self, line):
         """Construct bin marker set data from line."""
-        lineSplit = line.split('\t')
+        lineSplit = line.split("\t")
         numMarkerSets = int(lineSplit[1])
         for i in range(0, numMarkerSets):
             uid = lineSplit[i * 4 + 2]
@@ -51,12 +51,18 @@ class BinMarkerSets():
             self.markerSets.append(MarkerSet(uid, markerSet))
 
 
-class MarkerSet():
+class MarkerSet:
     """A collection of marker genes organized into co-located sets."""
 
     def __init__(self, UID, markerSet):
         self.UID = UID  # unique ID of marker set
         self.markerSet = markerSet  # marker genes organized into co-located sets
+
+    def getMarkerGenes(self):
+        raise NotImplementedError
+
+    def numMarkers(self):
+        raise NotImplementedError
 
     def genomeCheck(self, hits, bIndividualMarkers):
         """Calculate genome completeness and contamination."""
@@ -68,7 +74,7 @@ class MarkerSet():
             for marker in self.getMarkerGenes():
                 if marker in hits:
                     present += 1
-                    multiCopyCount += (len(hits[marker]) - 1)
+                    multiCopyCount += len(hits[marker]) - 1
 
             percComp = 100 * float(present) / self.numMarkers()
             percCont = 100 * float(multiCopyCount) / self.numMarkers()
@@ -87,7 +93,7 @@ class MarkerSet():
                         present += 1
                     elif count > 1:
                         present += 1
-                        multiCopy += (count - 1)
+                        multiCopy += count - 1
 
                 comp += float(present) / len(ms)
                 cont += float(multiCopy) / len(ms)
@@ -98,7 +104,7 @@ class MarkerSet():
         return percComp, percCont
 
 
-class HmmerHitDOM():
+class HmmerHitDOM:
     """Encapsulate a HMMER hit given in domtblout format."""
 
     def __init__(self, values):
@@ -109,7 +115,7 @@ class HmmerHitDOM():
             self.query_name = values[3]
 
             self.query_accession = values[4]
-            if self.query_accession == '-':
+            if self.query_accession == "-":
                 self.query_accession = self.query_name
 
             self.query_length = int(values[5])
@@ -132,15 +138,19 @@ class HmmerHitDOM():
             self.target_description = values[22]
 
 
-class ResultsManager():
+class ResultsManager:
     """Store all the results for a single bin"""
 
-    def __init__(self, binId, models,
-                 bIgnoreThresholds=False,
-                 evalueThreshold=DefaultValues.E_VAL,
-                 lengthThreshold=DefaultValues.LENGTH,
-                 bSkipPseudoGeneCorrection=False,
-                 binStats=None):
+    def __init__(
+        self,
+        binId,
+        models,
+        bIgnoreThresholds=False,
+        evalueThreshold=DefaultValues.E_VAL,
+        lengthThreshold=DefaultValues.LENGTH,
+        bSkipPseudoGeneCorrection=False,
+        binStats=None,
+    ):
         self.binId = binId
         self.markerHits = {}
         self.bIgnoreThresholds = bIgnoreThresholds
@@ -166,7 +176,7 @@ class ResultsManager():
             if length_perc < DefaultValues.PSEUDOGENE_LENGTH:
                 return False
 
-        if model.nc is not None and not self.bIgnoreThresholds and 'TIGR' in model.acc:
+        if model.nc is not None and not self.bIgnoreThresholds and "TIGR" in model.acc:
             if model.nc[0] <= hit.full_score and model.nc[1] <= hit.dom_score:
                 return True
         elif model.ga is not None and not self.bIgnoreThresholds:
@@ -205,8 +215,7 @@ class ResultsManager():
                 else:
                     if previousHitToORF.dom_score < hit.dom_score:
                         self.markerHits[hit.query_accession].append(hit)
-                        self.markerHits[hit.query_accession].remove(
-                            previousHitToORF)
+                        self.markerHits[hit.query_accession].remove(previousHitToORF)
 
             else:
                 self.markerHits[hit.query_accession] = [hit]
@@ -221,18 +230,18 @@ class ResultsManager():
             while bCombined:
                 for i in range(0, len(hits)):
                     orfI = hits[i].target_name
-                    scaffoldIdI = orfI[0:orfI.rfind('_')]
+                    scaffoldIdI = orfI[0 : orfI.rfind("_")]
 
                     bCombined = False
                     for j in range(i + 1, len(hits)):
                         orfJ = hits[j].target_name
-                        scaffoldIdJ = orfJ[0:orfJ.rfind('_')]
+                        scaffoldIdJ = orfJ[0 : orfJ.rfind("_")]
 
                         # check if hits are on adjacent ORFs
                         if scaffoldIdI == scaffoldIdJ:
                             try:
-                                orfNumI = int(orfI[orfI.rfind('_') + 1:])
-                                orfNumJ = int(orfJ[orfJ.rfind('_') + 1:])
+                                orfNumI = int(orfI[orfI.rfind("_") + 1 :])
+                                orfNumJ = int(orfJ[orfJ.rfind("_") + 1 :])
                             except Exception:
                                 # it appears called genes are not labeled
                                 # according to the prodigal format, so
@@ -265,21 +274,20 @@ class ResultsManager():
 
                         # produce concatenated label indicating the two genes being combined
                         orfA, orfB = sorted([orfI, orfJ])
-                        newHit.target_name = DefaultValues.SEQ_CONCAT_CHAR.join([
-                                                                                orfA, orfB])
+                        newHit.target_name = DefaultValues.SEQ_CONCAT_CHAR.join(
+                            [orfA, orfB]
+                        )
 
-                        newHit.target_length = hits[i].target_length + \
-                            hits[j].target_length
-                        newHit.hmm_from = min(
-                            hits[i].hmm_from, hits[j].hmm_from)
+                        newHit.target_length = (
+                            hits[i].target_length + hits[j].target_length
+                        )
+                        newHit.hmm_from = min(hits[i].hmm_from, hits[j].hmm_from)
                         newHit.hmm_to = min(hits[i].hmm_to, hits[j].hmm_to)
 
-                        newHit.ali_from = min(
-                            hits[i].ali_from, hits[j].ali_from)
+                        newHit.ali_from = min(hits[i].ali_from, hits[j].ali_from)
                         newHit.ali_to = min(hits[i].ali_to, hits[j].ali_to)
 
-                        newHit.env_from = min(
-                            hits[i].env_from, hits[j].env_from)
+                        newHit.env_from = min(hits[i].env_from, hits[j].env_from)
                         newHit.env_to = min(hits[i].env_to, hits[j].env_to)
 
                         hits.remove(hits[j])

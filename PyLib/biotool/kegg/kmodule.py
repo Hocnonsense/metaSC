@@ -2,13 +2,13 @@
 """
  * @Date: 2020-07-01 00:29:24
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-09 10:26:07
+ * @LastEditTime: 2022-07-10 12:45:44
  * @FilePath: /metaSC/PyLib/biotool/kegg/kmodule.py
  * @Description:
 """
 import pickle
 from io import StringIO
-from typing import Dict, List, Set, Union
+from typing import Dict, List, Optional, Sequence, Set, Union
 
 
 class KModule:
@@ -120,7 +120,7 @@ class KModule:
             e.additional_info = additional_info
         return e
 
-    def all_paths(self, ko_match: Union[List, Dict, Set] = None) -> List[str]:
+    def all_paths(self, ko_match: Optional[Sequence] = None) -> List[str]:
         """
         module.all_paths():
             return all potential metabolism paths with KO
@@ -157,7 +157,7 @@ class KModule:
             )
             return paths
 
-    def abundance(self, ko_match: Dict[str, float]):
+    def abundance(self, ko_match: Dict[str, Union[float, int]]):
         return sum(ko_match.get(ko, 0) for ko in self.list_ko())
 
     def completeness(self, ko_match: Union[List, Dict, Set]) -> float:
@@ -214,7 +214,7 @@ def _load_module(module_name):
         pin = open(module_name + ".pickle", "rb")
         module = pickle.load(pin)
     except (OSError, FileNotFoundError, EOFError) as exc:
-        if exc.errno != 36:  # file too long :)
+        if getattr(exc, "errno", None) != 36:  # file too long :)
             raise
         module = init_module(module_name)
         # with open(module_name + ".pickle", "wb") as pout:

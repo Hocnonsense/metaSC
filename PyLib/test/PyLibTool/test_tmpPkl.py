@@ -2,12 +2,13 @@
 """
  * @Date: 2022-03-06 16:51:44
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-29 11:40:00
+ * @LastEditTime: 2022-07-10 11:50:51
  * @FilePath: /metaSC/PyLib/test/PyLibTool/test_tmpPkl.py
  * @Description:
 """
 
 import os
+from pathlib import Path
 
 from PyLib.PyLibTool.tmpPkl import TmpPkl
 from PyLib.test import test_temp_path
@@ -28,7 +29,7 @@ def test_funct():
 
 def test_with():
     with TmpPkl(
-        "test.pkl", desc="with i + j", force_rewrite=True, situ=__file__
+        "test.pkl", desc="with i + j", force_rewrite=True, situ=Path(__file__)
     ) as tmp1:
         tmp1.desc = "with yybsy"
         if tmp1.force_rewrite:

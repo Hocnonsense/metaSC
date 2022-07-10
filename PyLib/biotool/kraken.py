@@ -2,7 +2,7 @@
 """
  * @Date: 2022-02-11 15:44:32
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-24 20:17:45
+ * @LastEditTime: 2022-07-10 12:49:25
  * @FilePath: /metaSC/PyLib/biotool/kraken.py
  * @Description:
 """
@@ -59,7 +59,7 @@ def kraken_iter(
     for line in in_file:
         report_vals = process_kraken_report_line(line)
         # If header line, skip
-        if len(report_vals) < 5:
+        if report_vals is None or len(report_vals) < 5:
             continue
         # Get relevant information from the line
         name, level_num, level_type, all_reads, exact_reads, percents = report_vals
@@ -144,7 +144,7 @@ def kraken_summary(outdir: Path, *files):
         for level in levels:
             with open(file) as fi:
                 taxon_reads_prok = pd.DataFrame(
-                    kraken_level_filter(fi, level, prokaryotes_only=True),
+                    kraken_level_filter(fi, level, prokaryotes_only=True),  # type: ignore
                     columns=["taxon", "reads"],
                 )
             taxon_reads_prok["taxon"] = taxon_reads_prok["taxon"].apply(
