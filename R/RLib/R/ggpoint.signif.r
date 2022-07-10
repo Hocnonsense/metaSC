@@ -1,8 +1,8 @@
 ###
 #* @Date: 2022-04-25 00:51:52
-#* @LastEditors: Hwrn
-#* @LastEditTime: 2022-04-25 01:02:11
-#* @FilePath: /metaSC/R/RLib/R/ggpoint.signif.r
+#' @LastEditors: Hwrn
+#' @LastEditTime: 2022-07-05 22:41:45
+#' @FilePath: /metaSC/R/RLib/R/ggpoint.signif.r
 #* @Description:
 ###
 # FUNCTION FOR SIGNIFICANT TEST >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #
@@ -46,12 +46,14 @@ group.signif.mark <- function(
                    .glht_mcp_factor = as.factor(data[,group]))),
          linfct = mcp(.glht_mcp_factor = glht.mcp.test)),
     alpah = signif.alpha)
-  signif.mark = data.frame(char = test.b$mcletters$Letters,
-                           locat = unlist(lapply(split(data[,value],
-                                                       data[,group]),
-                                                 max)))
+  stat =
+    data %>%
+    {split(.[, value], .[, group])} %>%
+    lapply(. %>% {c("min" = min(.), "mean" = mean(.), "max" = max(.))}) %>%
+    bind_rows(.id = "group")
+  signif.mark = data.frame(char = test.b$mcletters$Letters, stat)
   signif.mark["locat.mark"] =
-    signif.mark$locat %>%
+    signif.mark$max %>%
     {. + . * max.locat.scale}
   signif.mark[group] = rownames(signif.mark)
   signif.mark
