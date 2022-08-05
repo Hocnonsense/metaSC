@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-02-27 16:52:29
 #' @LastEditors: Hwrn
-#' @LastEditTime: 2022-07-22 11:45:05
+#' @LastEditTime: 2022-08-05 15:36:21
 #' @FilePath: /metaSC/R/RLib/R/div.otu.r
 #* @Description:
 ###
@@ -62,7 +62,7 @@ otu.div.top <- function(div.otu,
 #' @param do_cumsum set to FALSE to avoid time-consuming-caluclation
 #' @return long format of this table with these columns:
 #'
-#'         1.  sample: colnames (see location)
+#'         1.  sample: colnames (see Location)
 #'
 #'         2.  name: rownames
 #'
@@ -70,9 +70,9 @@ otu.div.top <- function(div.otu,
 #'
 #'         3.  annot.percent: percent * 100 of otu in each sample
 #'
-#'         4.  location: recognized automatically by the first string
+#'         4.  Location: recognized automatically by the first string
 #'                       seperated by "_" of sample (and sample will be cut)
-#'                       e.g. the column LOC_SAMPLE1 will result in location LOC and sample SAMPLE1
+#'                       e.g. the column LOC_SAMPLE1 will result in Location LOC and sample SAMPLE1
 #'
 #'         5.  index
 #'
@@ -126,7 +126,7 @@ bar.pct.annot <- function(div.otu,
     function(x) {paste(unlist(strsplit(x, "\\_"))[-1], collapse = "_")})
   div.sample = factor(div.sample_, levels = unique(div.sample_))
 
-  div.grouped$location = div.location[div.grouped$sample]
+  div.grouped$Location = div.location[div.grouped$sample]
   div.grouped$sample = div.sample[div.grouped$sample]
 
   div.grouped$name = sapply(div.grouped$name,
@@ -141,7 +141,7 @@ bar.pct.annot <- function(div.otu,
                              function(x)
                                which(x == sort(taxon.sort))[1])
 
-  ce = arrange(div.grouped, location, sample, index, annot.percent)
+  ce = arrange(div.grouped, Location, sample, index, annot.percent)
   if (do_cumsum) {
       ce = ddply(ce,
              "sample",
@@ -170,11 +170,11 @@ bar.pct.annot <- function(div.otu,
 #'              choices: see vegdist. default: jaccard
 #' @param binary: if jaccard: set to TRUE, otherwise FALSE
 #'                see vegdist
-#' @param area: method to note different location
+#' @param area: method to note different Location
 #'
-#'              location: recognized automatically by the first string
+#'              Location: recognized automatically by the first string
 #'                        seperated by "_" of sample (and sample will be cut)
-#'                        e.g. the column LOC_SAMPLE1 will colored by location LOC
+#'                        e.g. the column LOC_SAMPLE1 will colored by Location LOC
 #'                             and noted as sample SAMPLE1
 #' @param draw_labels: draw the labels by repel
 #'
@@ -202,11 +202,11 @@ plot.beta.div <- function(div.otu,
                              ifelse(binary, "binary ", ""), dist, " distance")
 
   # >>->> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> >>->> adonis2
-  group = data.frame(location = sapply(
+  group = data.frame(Location = sapply(
     rownames(div.otu.t),
     function(x) {unlist(strsplit(x, "\\_"))[1]})
   )
-  group.adonis2 = adonis2(formula("div.otu.t~location"), group,
+  group.adonis2 = adonis2(formula("div.otu.t ~ Location"), group,
                           method = dist, binary = binary)
   # <<-<<                                                                 <<-<<
   title.adonis.sgnf = paste0("ADONIS",
@@ -234,7 +234,7 @@ plot.beta.div <- function(div.otu,
   }
   # <<-<<                                                                 <<-<<
   colnames(div.otu.point) = c("Axis.1", "Axis.2")
-  div.otu.point$location = sapply(
+  div.otu.point$Location = sapply(
     rownames(div.otu.point),
     function(x) {unlist(strsplit(x, "\\_"))[1]})
   div.otu.point$label = sapply(
@@ -249,12 +249,12 @@ plot.beta.div <- function(div.otu,
 
   p = ggplot(data = div.otu.point) +
     geom_point(aes_string(x = "Axis.1", y = "Axis.2",
-                          color = "location"),
+                          color = "Location"),
                size = 2, alpha = 0.65) +
     scale_color_manual(
-      values = color[1:length(unique(div.otu.point$location))]) +
+      values = color[1:length(unique(div.otu.point$Location))]) +
     scale_fill_manual(
-      values = color[1:length(unique(div.otu.point$location))]) +
+      values = color[1:length(unique(div.otu.point$Location))]) +
     labs(title = paste(title.test.method, title.adonis.sgnf, pname,
                        sep = "\n"),
          x = xylab[1], y = xylab[2]) +
@@ -280,7 +280,7 @@ plot.beta.div <- function(div.otu,
   } else if (area == "ellipse") {
     p = p +
       stat_ellipse(aes_string(x = "Axis.1", y = "Axis.2",
-                              fill = "location"),
+                              fill = "Location"),
                    type = "norm", geom = "polygon",
                    alpha = 0.15, level = 0.95,  # show.legend = FALSE,
                    linetype = 'dashed', size = 3)
@@ -288,10 +288,10 @@ plot.beta.div <- function(div.otu,
     p = p +
       geom_polygon(
         data = Reduce(rbind,
-                      lapply(split(div.otu.point, div.otu.point$location),
+                      lapply(split(div.otu.point, div.otu.point$Location),
                              function(x) x[chull(x[c("Axis.1", "Axis.2")]),])),
         aes_string(x = "Axis.1", y = "Axis.2",
-                   fill = "location", color = "location"),
+                   fill = "Location", color = "Location"),
         alpha = 0.15, linetype = 3)
   }
   # <<-<<                                                                 <<-<<
