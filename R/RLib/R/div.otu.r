@@ -1,14 +1,14 @@
 ###
 #* @Date: 2022-02-27 16:52:29
 #' @LastEditors: Hwrn
-#' @LastEditTime: 2022-06-28 17:17:44
+#' @LastEditTime: 2022-07-22 11:45:05
 #' @FilePath: /metaSC/R/RLib/R/div.otu.r
 #* @Description:
 ###
 
-library(data.table)
-library(vegan)
-library(ggrepel)
+suppressMessages(library(data.table))
+suppressMessages(library(vegan))
+suppressMessages(library(ggrepel))
 
 
 #' @title get most abundant otu
@@ -214,8 +214,8 @@ plot.beta.div <- function(div.otu,
                              " p(Pr(>F))=", group.adonis2$`Pr(>F)`[1])
 
   # >>->> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> >>->> Dimensionality reduction
-    pcoa.16s = ape::pcoa(vegdist(div.otu.t, method = dist, binary = binary))
   if (method == "pcoa") {
+    pcoa.16s = ape::pcoa(vegdist(div.otu.t, method = dist, binary = binary))
     div.otu.point = data.frame(pcoa.16s$vectors[, 1:2])
     xylab = paste0(
       "PCo", 1:2,

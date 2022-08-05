@@ -1,15 +1,15 @@
 ###
 #* @Date: 2022-04-25 00:51:52
 #' @LastEditors: Hwrn
-#' @LastEditTime: 2022-07-05 22:41:45
+#' @LastEditTime: 2022-07-16 14:37:55
 #' @FilePath: /metaSC/R/RLib/R/ggpoint.signif.r
 #* @Description:
 ###
 # FUNCTION FOR SIGNIFICANT TEST >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #
-library(ggExtra)
-library(multcomp)
-library(tidyr)
-library(patchwork)
+suppressMessages(library(ggExtra))
+suppressMessages(library(multcomp))
+suppressMessages(library(tidyr))
+suppressMessages(library(patchwork))
 
 
 #' @title test difference between `group` on `value`
