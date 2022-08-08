@@ -3,8 +3,8 @@
  * @Date: 2020-10-24 10:24:10
  * @Editor: LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-02-16 17:08:01
- * @FilePath: /metaSC/PyLib/seqPipe/x03.1_gene_cut.py
+ * @LastEditTime: 2022-08-08 20:59:53
+ * @FilePath: /metaSC/PyLib/seqPipe/x03_gene_cut.py
  * @Description:
         update from LYX's script
     x03.1_gene_cut.py <in_file_prefix> <out_file_prefix> <threshold> [-h] [--help]
@@ -42,7 +42,7 @@ from PyLib.PyLibTool.file_info import verbose_import
 verbose_import(__name__, __doc__)
 
 
-class prefix_files:
+class PrefixFiles:
     def __init__(self, prefix) -> None:
         self.prefix = os.path.abspath(os.path.expanduser(prefix))
 
@@ -110,8 +110,8 @@ def parse_args():
         exit(0)
 
     sc = argv[0]
-    in_file_prefixs = [prefix_files(in_file_prefix) for in_file_prefix in argv[1:-2]]
-    out_file_prefix = prefix_files(argv[-2])
+    in_file_prefixs = [PrefixFiles(in_file_prefix) for in_file_prefix in argv[1:-2]]
+    out_file_prefix = PrefixFiles(argv[-2])
     num = int(argv[-1])
     args = in_file_prefixs, out_file_prefix, num
     print(sc, *args, sep="\n" + " " * 4, file=stderr)
