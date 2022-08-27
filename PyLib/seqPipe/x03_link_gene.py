@@ -3,7 +3,7 @@
  * @Date: 2021-06-30 20:05:10
  * @Editors: Hwrn, LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-03-01 13:48:41
+ * @LastEditTime: 2022-08-27 20:43:14
  * @FilePath: /metaSC/PyLib/seqPipe/x03_link_gene.py
  * @Description:
     1.  it can generate/read subset gene or contig file, either fasta or table format.
@@ -22,7 +22,7 @@ from sys import stdout
 from typing import Dict, List, Set, Tuple, Union, TextIO
 
 from Bio.SeqIO.FastaIO import SimpleFastaParser
-from PyLib.seqPipe.getannot import infer_annot_filename, get_gene_KOs
+from PyLib.seqPipe.collect_gene_ko import infer_annot_filename, get_gene_KOs
 from PyLib.reader.iters import emapper_iter, featureCounts_iter, read_table
 
 logger = logging.getLogger(__name__)
