@@ -3,7 +3,7 @@
  * @Date: 2021-06-30 20:05:10
  * @Editors: Hwrn, LYX
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-08-27 20:43:14
+ * @LastEditTime: 2022-08-27 21:14:57
  * @FilePath: /metaSC/PyLib/seqPipe/x03_link_gene.py
  * @Description:
     1.  it can generate/read subset gene or contig file, either fasta or table format.
@@ -12,17 +12,20 @@
         - Warning: RPb / mapped reads cannot reflact sample difference as well as tpm of gene only?
         - Modified: RPb_{gene} / sum(RPb_{markers}) can be used to compare between samples.
     4.  it can output a table of 'gene, KO, RPb, contig' (contig is for binning later)
+
+    5. Now, 'subset' disabled in collect_gene_ko
 """
 
 import argparse
 import logging
 import os
 from datetime import datetime
+from pathlib import Path
 from sys import stdout
 from typing import Dict, List, Set, Tuple, Union, TextIO
 
 from Bio.SeqIO.FastaIO import SimpleFastaParser
-from PyLib.seqPipe.collect_gene_ko import infer_annot_filename, get_gene_KOs
+from PyLib.seqPipe.collect_gene_ko import gene2KO
 from PyLib.reader.iters import emapper_iter, featureCounts_iter, read_table
 
 logger = logging.getLogger(__name__)
@@ -70,14 +73,14 @@ def get_gene_RPb(countfile, subsets) -> Tuple[List[str], Dict[str, List[float]]]
 
 def main(
     subsets: Tuple[Union[Set, List, Dict], bool],
-    ann_files: List[str],
+    gene2ko: gene2KO,
     countfile: str,
     show_contig: bool,
     output: TextIO,
 ):
     # logger.info(subsets)
     # 考虑到分支预测, 通过判断降低内存占用是更经济的
-    gene_KOs = get_gene_KOs(ann_files, subsets) if any(ann_files) else {}
+    gene_KOs = gene2ko.get_gene_KOs() if gene2ko.ann_files else {}
     samples, gene_RPb = get_gene_RPb(countfile, subsets) if countfile else ([], {})
 
     title = ["#gene"]
@@ -142,7 +145,7 @@ def get_subset(raw_subset: List[str], threshold: int):
 
 
 def get_args() -> Tuple[
-    Tuple[Set, bool], List[str], str, bool, TextIO  # subset  # KO  # RPb
+    Tuple[Set, bool], gene2KO, str, bool, TextIO  # subset  # KO  # RPb
 ]:
     parser = argparse.ArgumentParser(description=__doc__)
     set_args(parser)
@@ -171,13 +174,13 @@ def get_args() -> Tuple[
 
     if args.ko:
         try:
-            ann_files = infer_annot_filename(args.ko)
+            gene2ko = gene2KO(Path(args.ko))
         except FileNotFoundError as e:
             parser.print_help()
             logger.fatal("illigal pattern, please check!")
             raise e
         else:
-            ann_files = ["", "", ""]
+            gene2ko = gene2KO(None)
 
     countfile = args.RPb
     if countfile:
@@ -199,7 +202,7 @@ def get_args() -> Tuple[
     else:
         output = open(output, "w")
 
-    return (subsets, ann_files, countfile, show_contig, output)
+    return (subsets, gene2ko, countfile, show_contig, output)
 
 
 def set_args(parser: argparse.ArgumentParser):
