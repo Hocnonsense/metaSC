@@ -3,7 +3,7 @@
  * @Date: 2017-06-02
  * @Editors: Jessica Bryant
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-09-03 21:54:41
+ * @LastEditTime: 2022-09-04 12:26:41
  * @FilePath: /metaSC/PyLib/biotool/codon_table.py
  * @Description:
     This module holds dictionaries that contain codon and amino acid tables, and functions that
@@ -53,75 +53,38 @@ class AminoAcidInfo:
         self.MW = MW
         self.codons = codons
 
-    @staticmethod
-    def get_codon_aas():
-        return {
-            "D": AminoAcidInfo("D", "SF2", 1, 0, 0, 2, 133.1032, {"GAT", "GAC"}),
-            "E": AminoAcidInfo("E", "SF2", 1, 0, 0, 3, 147.1299, {"GAA", "GAG"}),
-            "S": AminoAcidInfo(
-                "S",
-                "SF6",
-                1,
-                0,
-                0,
-                1,
-                105.0930,
-                {"TCT", "TCC", "TCA", "TCG", "AGT", "AGC"},
-            ),
-            "T": AminoAcidInfo(
-                "T", "SF4", 1, 0, 0, 2, 119.1197, {"ACT", "ACC", "ACA", "ACG"}
-            ),
-            "Y": AminoAcidInfo("Y", "SF2", 1, 0, 0, 7, 181.1894, {"TAT", "TAC"}),
-            "A": AminoAcidInfo(
-                "A", "SF4", 1, 0, 0, 1, 89.0935, {"GCT", "GCC", "GCA", "GCG"}
-            ),
-            "V": AminoAcidInfo(
-                "V", "SF4", 0, 0, 0, 3, 117.1469, {"GTT", "GTC", "GTA", "GTG"}
-            ),
-            "L": AminoAcidInfo(
-                "L",
-                "SF6",
-                1,
-                0,
-                0,
-                4,
-                131.1736,
-                {"TTA", "TTG", "CTT", "CTC", "CTA", "CTG"},
-            ),
-            "I": AminoAcidInfo("I", "SF3", 1, 0, 0, 4, 131.1736, {"ATT", "ATC", "ATA"}),
-            "P": AminoAcidInfo(
-                "P", "SF4", 1, 0, 0, 3, 115.1310, {"CCT", "CCC", "CCA", "CCG"}
-            ),
-            "F": AminoAcidInfo("F", "SF2", 1, 0, 0, 7, 165.1900, {"TTT", "TTC"}),
-            "G": AminoAcidInfo(
-                "G", "SF4", 1, 0, 0, 0, 75.0669, {"GGT", "GGC", "GGA", "GGG"}
-            ),
-            "C": AminoAcidInfo("C", "SF2", 1, 0, 1, 1, 121.1590, {"TGT", "TGC"}),
-            "M": AminoAcidInfo("M", "SF1", None, 0, 1, 3, 149.2124, {"ATG"}),
-            "K": AminoAcidInfo("K", "SF2", 1, 1, 0, 4, 146.1882, {"AAA", "AAG"}),
-            "W": AminoAcidInfo("W", "SF1", None, 1, 0, 9, 204.2262, {"TGG"}),
-            "N": AminoAcidInfo("N", "SF2", 1, 1, 0, 2, 132.1184, {"AAT", "AAC"}),
-            "Q": AminoAcidInfo("Q", "SF2", 1, 1, 0, 3, 146.1451, {"CAA", "CAG"}),
-            "H": AminoAcidInfo("H", "SF2", 1, 2, 0, 4, 155.1552, {"CAT", "CAC"}),
-            "R": AminoAcidInfo(
-                "R",
-                "SF6",
-                0.5,
-                3,
-                0,
-                4,
-                174.2017,
-                {"CGT", "CGC", "CGA", "CGG", "AGA", "AGG"},
-            ),
-        }
 
-    @staticmethod
-    def get_codon_dict():
-        codon_aas = AminoAcidInfo.get_codon_aas()
-        return {codon: aa for aa in codon_aas.values() for codon in aa.codons}
+codon_aas_11 = {
+    "D": AminoAcidInfo("D", "SF2", 1, 0, 0, 2, 133.1032, {"GAT", "GAC"}),
+    "E": AminoAcidInfo("E", "SF2", 1, 0, 0, 3, 147.1299, {"GAA", "GAG"}),
+    "S": AminoAcidInfo(
+        "S", "SF6", 1, 0, 0, 1, 105.0930, {"TCT", "TCC", "TCA", "TCG", "AGT", "AGC"}
+    ),
+    "T": AminoAcidInfo("T", "SF4", 1, 0, 0, 2, 119.1197, {"ACT", "ACC", "ACA", "ACG"}),
+    "Y": AminoAcidInfo("Y", "SF2", 1, 0, 0, 7, 181.1894, {"TAT", "TAC"}),
+    "A": AminoAcidInfo("A", "SF4", 1, 0, 0, 1, 89.0935, {"GCT", "GCC", "GCA", "GCG"}),
+    "V": AminoAcidInfo("V", "SF4", 0, 0, 0, 3, 117.1469, {"GTT", "GTC", "GTA", "GTG"}),
+    "L": AminoAcidInfo(
+        "L", "SF6", 1, 0, 0, 4, 131.1736, {"TTA", "TTG", "CTT", "CTC", "CTA", "CTG"}
+    ),
+    "I": AminoAcidInfo("I", "SF3", 1, 0, 0, 4, 131.1736, {"ATT", "ATC", "ATA"}),
+    "P": AminoAcidInfo("P", "SF4", 1, 0, 0, 3, 115.1310, {"CCT", "CCC", "CCA", "CCG"}),
+    "F": AminoAcidInfo("F", "SF2", 1, 0, 0, 7, 165.1900, {"TTT", "TTC"}),
+    "G": AminoAcidInfo("G", "SF4", 1, 0, 0, 0, 75.0669, {"GGT", "GGC", "GGA", "GGG"}),
+    "C": AminoAcidInfo("C", "SF2", 1, 0, 1, 1, 121.1590, {"TGT", "TGC"}),
+    "M": AminoAcidInfo("M", "SF1", None, 0, 1, 3, 149.2124, {"ATG"}),
+    "K": AminoAcidInfo("K", "SF2", 1, 1, 0, 4, 146.1882, {"AAA", "AAG"}),
+    "W": AminoAcidInfo("W", "SF1", None, 1, 0, 9, 204.2262, {"TGG"}),
+    "N": AminoAcidInfo("N", "SF2", 1, 1, 0, 2, 132.1184, {"AAT", "AAC"}),
+    "Q": AminoAcidInfo("Q", "SF2", 1, 1, 0, 3, 146.1451, {"CAA", "CAG"}),
+    "H": AminoAcidInfo("H", "SF2", 1, 2, 0, 4, 155.1552, {"CAT", "CAC"}),
+    "R": AminoAcidInfo(
+        "R", "SF6", 0.5, 3, 0, 4, 174.2017, {"CGT", "CGC", "CGA", "CGG", "AGA", "AGG"}
+    ),
+}
 
 
-codon_dict = AminoAcidInfo.get_codon_dict()
+codon_dict = {codon: aa for aa in codon_aas_11.values() for codon in aa.codons}
 
 
 def calculate_SCU(gene, errorfile_handle):
@@ -131,153 +94,14 @@ def calculate_SCU(gene, errorfile_handle):
 
     code_11 is a dictionary containing general information about each codon.
     """
-
-    code_11 = {
-        "SF_types": {
-            "SF1": ["M", "W"],
-            "SF2": ["F", "Y", "H", "Q", "N", "K", "D", "E", "C"],
-            "SF3": ["I"],
-            "SF4": ["A", "P", "T", "V", "G"],
-            "SF6": ["L", "S", "R"],
-        },  # complete sub-dictionary indexed by 'SF types'
-        "aas": {
-            "M": {"codons": ["ATG"], "SF": "SF1"},
-            "W": {"codons": ["TGG"], "SF": "SF1"},
-            "F": {"codons": ["TTT", "TTC"], "SF": "SF2"},
-            "Y": {"codons": ["TAT", "TAC"], "SF": "SF2"},
-            "H": {"codons": ["CAT", "CAC"], "SF": "SF2"},
-            "Q": {"codons": ["CAA", "CAG"], "SF": "SF2"},
-            "N": {"codons": ["AAT", "AAC"], "SF": "SF2"},
-            "K": {"codons": ["AAA", "AAG"], "SF": "SF2"},
-            "D": {"codons": ["GAT", "GAC"], "SF": "SF2"},
-            "E": {"codons": ["GAA", "GAG"], "SF": "SF2"},
-            "C": {"codons": ["TGT", "TGC"], "SF": "SF2"},
-            "I": {"codons": ["ATT", "ATC", "ATA"], "SF": "SF3"},
-            "A": {"codons": ["GCT", "GCC", "GCA", "GCG"], "SF": "SF4"},
-            "P": {"codons": ["CCT", "CCC", "CCA", "CCG"], "SF": "SF4"},
-            "T": {"codons": ["ACT", "ACC", "ACA", "ACG"], "SF": "SF4"},
-            "V": {"codons": ["GTT", "GTC", "GTA", "GTG"], "SF": "SF4"},
-            "G": {"codons": ["GGT", "GGC", "GGA", "GGG"], "SF": "SF4"},
-            "L": {"codons": ["TTA", "TTG", "CTT", "CTC", "CTA", "CTG"], "SF": "SF6"},
-            "S": {"codons": ["TCT", "TCC", "TCA", "TCG", "AGT", "AGC"], "SF": "SF6"},
-            "R": {"codons": ["CGT", "CGC", "CGA", "CGG", "AGA", "AGG"], "SF": "SF6"},
-        },  # close aa information dictionary
-    }  # close entire codon information dictionary
-
     # This dictionary tallies codon and aa counts for the gene
     codon_usage_dictionary = {
-        "codons": {
-            # Met, M
-            "ATG": {"count": 0, "frequency": 0},
-            # Trp, W
-            "TGG": {"count": 0, "frequency": 0},
-            # Phe, F
-            "TTT": {"count": 0, "frequency": 0},
-            "TTC": {"count": 0, "frequency": 0},
-            # Tyr, Y
-            "TAT": {"count": 0, "frequency": 0},
-            "TAC": {"count": 0, "frequency": 0},
-            # His, H
-            "CAT": {"count": 0, "frequency": 0},
-            "CAC": {"count": 0, "frequency": 0},
-            # Gln,
-            "CAA": {"count": 0, "frequency": 0},
-            "CAG": {"count": 0, "frequency": 0},
-            # Asn, N
-            "AAT": {"count": 0, "frequency": 0},
-            "AAC": {"count": 0, "frequency": 0},
-            # Lys, K
-            "AAA": {"count": 0, "frequency": 0},
-            "AAG": {"count": 0, "frequency": 0},
-            # Asp, D
-            "GAT": {"count": 0, "frequency": 0},
-            "GAC": {"count": 0, "frequency": 0},
-            # Glu, E
-            "GAA": {"count": 0, "frequency": 0},
-            "GAG": {"count": 0, "frequency": 0},
-            # Cys, C
-            "TGT": {"count": 0, "frequency": 0},
-            "TGC": {"count": 0, "frequency": 0},
-            # Ile, I
-            "ATT": {"count": 0, "frequency": 0},
-            "ATC": {"count": 0, "frequency": 0},
-            "ATA": {"count": 0, "frequency": 0},
-            # Ala, A
-            "GCT": {"count": 0, "frequency": 0},
-            "GCC": {"count": 0, "frequency": 0},
-            "GCA": {"count": 0, "frequency": 0},
-            "GCG": {"count": 0, "frequency": 0},
-            # Pro, P
-            "CCT": {"count": 0, "frequency": 0},
-            "CCC": {"count": 0, "frequency": 0},
-            "CCA": {"count": 0, "frequency": 0},
-            "CCG": {"count": 0, "frequency": 0},
-            # Thr, T
-            "ACT": {"count": 0, "frequency": 0},
-            "ACC": {"count": 0, "frequency": 0},
-            "ACA": {"count": 0, "frequency": 0},
-            "ACG": {"count": 0, "frequency": 0},
-            # Val, V
-            "GTT": {"count": 0, "frequency": 0},
-            "GTC": {"count": 0, "frequency": 0},
-            "GTA": {"count": 0, "frequency": 0},
-            "GTG": {"count": 0, "frequency": 0},
-            # Gly, G
-            "GGT": {"count": 0, "frequency": 0},
-            "GGC": {"count": 0, "frequency": 0},
-            "GGA": {"count": 0, "frequency": 0},
-            "GGG": {"count": 0, "frequency": 0},
-            # Leu, L
-            "TTA": {"count": 0, "frequency": 0},
-            "TTG": {"count": 0, "frequency": 0},
-            "CTT": {"count": 0, "frequency": 0},
-            "CTC": {"count": 0, "frequency": 0},
-            "CTA": {"count": 0, "frequency": 0},
-            "CTG": {"count": 0, "frequency": 0},
-            # Ser, S
-            "TCT": {"count": 0, "frequency": 0},
-            "TCC": {"count": 0, "frequency": 0},
-            "TCA": {"count": 0, "frequency": 0},
-            "TCG": {"count": 0, "frequency": 0},
-            "AGT": {"count": 0, "frequency": 0},
-            "AGC": {"count": 0, "frequency": 0},
-            # Arg, R
-            "CGT": {"count": 0, "frequency": 0},
-            "CGC": {"count": 0, "frequency": 0},
-            "CGA": {"count": 0, "frequency": 0},
-            "CGG": {"count": 0, "frequency": 0},
-            "AGA": {"count": 0, "frequency": 0},
-            "AGG": {"count": 0, "frequency": 0},
-        },
+        "codons": {codon: {"count": 0, "frequency": 0} for codon in codon_dict},
         "amino_acids": {
-            "M": {"count": 0, "frequency": 0, "Ne": 0},
-            "W": {"count": 0, "frequency": 0, "Ne": 0},
-            "F": {"count": 0, "frequency": 0, "Ne": 0},
-            "Y": {"count": 0, "frequency": 0, "Ne": 0},
-            "H": {"count": 0, "frequency": 0, "Ne": 0},
-            "Q": {"count": 0, "frequency": 0, "Ne": 0},
-            "N": {"count": 0, "frequency": 0, "Ne": 0},
-            "K": {"count": 0, "frequency": 0, "Ne": 0},
-            "D": {"count": 0, "frequency": 0, "Ne": 0},
-            "E": {"count": 0, "frequency": 0, "Ne": 0},
-            "C": {"count": 0, "frequency": 0, "Ne": 0},
-            "I": {"count": 0, "frequency": 0, "Ne": 0},
-            "A": {"count": 0, "frequency": 0, "Ne": 0},
-            "P": {"count": 0, "frequency": 0, "Ne": 0},
-            "T": {"count": 0, "frequency": 0, "Ne": 0},
-            "V": {"count": 0, "frequency": 0, "Ne": 0},
-            "G": {"count": 0, "frequency": 0, "Ne": 0},
-            "L": {"count": 0, "frequency": 0, "Ne": 0},
-            "S": {"count": 0, "frequency": 0, "Ne": 0},
-            "R": {"count": 0, "frequency": 0, "Ne": 0},
+            aa: {"count": 0, "frequency": 0, "Ne": 0} for aa in codon_aas_11
         },
         "SF_type": {
-            "absent": [],
-            "SF1": [],
-            "SF2": [],
-            "SF3": [],
-            "SF4": [],
-            "SF6": [],
+            SF: [] for SF in ("absent", "SF1", "SF2", "SF3", "SF4", "SF6")
         },  # complete sub-dictionary indexed by 'SF types'
         "gene_codon_length": 0,
         "number_of_positions_with_GC_variability": 0,
@@ -332,7 +156,7 @@ def calculate_SCU(gene, errorfile_handle):
             codon_usage_dictionary["sum_GC_rank"] += codon_dict[current_codon].GC_rank
 
     # calculate codon frequencies and update codon_usage_dictionary
-    for k in codon_usage_dictionary["codons"].keys():
+    for k in codon_usage_dictionary["codons"]:
         amino_acid_total_usage = float(
             codon_usage_dictionary["amino_acids"][codon_dict[k].aa].count
         )
@@ -349,7 +173,7 @@ def calculate_SCU(gene, errorfile_handle):
             # codon_usage_dictionary['amino_acids'][codon_dict[k]['aa']]['Ne'] == 'absent'
 
     # Calculate Ne for each aa and record in codon_usage_dictionary['amino_acids']['aa']['Ne']
-    for aa in code_11["aas"].keys():
+    for aa in codon_aas_11:
         if codon_usage_dictionary["amino_acids"][aa]["count"] < 2:
             codon_usage_dictionary["amino_acids"][aa]["Ne"] = "absent"
             codon_usage_dictionary["SF_type"]["absent"].append(aa)
@@ -357,7 +181,7 @@ def calculate_SCU(gene, errorfile_handle):
         elif codon_usage_dictionary["amino_acids"][aa]["count"] > 1:
             squared_fequencies = []
 
-            for each_codon in code_11["aas"][aa]["codons"]:
+            for each_codon in codon_aas_11[aa].codons:
                 p = float(codon_usage_dictionary["codons"][each_codon]["frequency"])
                 squared_fequencies.append(p * p)
 
@@ -373,7 +197,7 @@ def calculate_SCU(gene, errorfile_handle):
             if round(F, 10) != 0:
                 Ne = 1 / F
                 codon_usage_dictionary["amino_acids"][aa]["Ne"] = Ne
-                codon_usage_dictionary["SF_type"][code_11["aas"][aa]["SF"]].append(aa)
+                codon_usage_dictionary["SF_type"][codon_aas_11[aa].SF].append(aa)
 
         # print aa, n, F, Ne, squared_fequencies, codon_usage_dictionary['SF_type']
 
@@ -402,7 +226,7 @@ def calculate_SCU(gene, errorfile_handle):
             1 / codon_usage_dictionary["amino_acids"][x]["Ne"] for x in aas_for_sf_type
         ]
         av_F_for_sf_type = sum(F_list) / sf_float
-        ###
+
         if sf_type == "SF2":
             Nc += 9 / av_F_for_sf_type
         if sf_type == "SF4":
@@ -412,7 +236,6 @@ def calculate_SCU(gene, errorfile_handle):
 
         codon_usage_dictionary["".join(sf_type + "_Ne")] = av_F_for_sf_type
 
-    ###
     # SF3 is a special case because only I is SF3
     if len(codon_usage_dictionary["SF_type"]["SF3"]) == 1:
         Nc += codon_usage_dictionary["amino_acids"]["I"]["Ne"]
@@ -509,31 +332,6 @@ def ARSC_and_MW_from_amino_acids(protein_sequence):
     N and S counts come from page 30 of 'Understanding Bioinformatics' by Zvelbil and Baum
     molecular weights from http://www.webqc.org/aminoacids.php
     """
-
-    # create dictionary for amino acids, MW = MW of entire aa, 'N', 'S' counts only include side chains
-    aa_dictionary = {
-        "K": {"N": 1, "S": 0, "MW": 146.1882, "C": 4},
-        "R": {"N": 3, "S": 0, "MW": 174.2017, "C": 4},
-        "H": {"N": 2, "S": 0, "MW": 155.1552, "C": 4},
-        "D": {"N": 0, "S": 0, "MW": 133.1032, "C": 2},
-        "E": {"N": 0, "S": 0, "MW": 147.1299, "C": 3},
-        "N": {"N": 1, "S": 0, "MW": 132.1184, "C": 2},
-        "Q": {"N": 1, "S": 0, "MW": 146.1451, "C": 3},
-        "S": {"N": 0, "S": 0, "MW": 105.0930, "C": 1},
-        "T": {"N": 0, "S": 0, "MW": 119.1197, "C": 2},
-        "Y": {"N": 0, "S": 0, "MW": 181.1894, "C": 7},
-        "A": {"N": 0, "S": 0, "MW": 89.0935, "C": 1},
-        "V": {"N": 0, "S": 0, "MW": 117.1469, "C": 3},
-        "L": {"N": 0, "S": 0, "MW": 131.1736, "C": 4},
-        "I": {"N": 0, "S": 0, "MW": 131.1736, "C": 4},
-        "P": {"N": 0, "S": 0, "MW": 115.1310, "C": 3},
-        "F": {"N": 0, "S": 0, "MW": 165.1900, "C": 7},
-        "M": {"N": 0, "S": 1, "MW": 149.2124, "C": 3},
-        "W": {"N": 1, "S": 0, "MW": 204.2262, "C": 9},
-        "G": {"N": 0, "S": 0, "MW": 75.0669, "C": 0},
-        "C": {"N": 0, "S": 1, "MW": 121.1590, "C": 1},
-    }
-
     # remove whitespaces and '*' (termination) that prodigal adds to end of aa sequences
     protein_sequence = protein_sequence.strip().strip("*")
 
@@ -543,14 +341,14 @@ def ARSC_and_MW_from_amino_acids(protein_sequence):
     )
 
     # caculate ARSC and Molecular Weight
-    N_ARSC = sum(map(lambda x: aa_dictionary[x]["N"], protein_sequence_no_Xs)) / float(
+    N_ARSC = sum(map(lambda x: codon_aas_11[x].N, protein_sequence_no_Xs)) / float(
         len(protein_sequence_no_Xs)
     )
-    C_ARSC = sum(map(lambda x: aa_dictionary[x]["C"], protein_sequence_no_Xs)) / float(
+    C_ARSC = sum(map(lambda x: codon_aas_11[x].C, protein_sequence_no_Xs)) / float(
         len(protein_sequence_no_Xs)
     )
     av_molecular_weight = sum(
-        map(lambda x: aa_dictionary[x]["MW"], protein_sequence_no_Xs)
+        map(lambda x: codon_aas_11[x].MW, protein_sequence_no_Xs)
     ) / float(len(protein_sequence_no_Xs))
 
     return [
@@ -598,8 +396,8 @@ def weighted_by_abundance(
     gene_95_results_handle,
     abundance_table,
     metadata_handle,
-    gene_cluster_map_handle="NA",
-    output_flag="NA",
+    gene_cluster_map_handle=None,
+    output_flag=None,
 ):
     """
     abundance weighted averages by samples
@@ -609,38 +407,8 @@ def weighted_by_abundance(
     abundance_table = pd.read_csv(abundance_table, sep="\t", index_col=0)
     metadata = pd.read_csv(metadata_handle, sep=",", index_col=0)
 
-    # changing a few sample names.
-    new_meta_index = [
-        "HOT229_0025m" if x == "HOT229_1_0025m" else x for x in metadata.index.values
-    ]
-    new_meta_index = [
-        "HOT237_0025m" if x == "HOT237_1_0025m" else x for x in new_meta_index
-    ]
-    new_meta_index = [
-        "HOT234_0200m" if x == "HOT234_1_0200m" else x for x in new_meta_index
-    ]
-    new_meta_index = [
-        "HOT229_0500m" if x == "HOT229_1_0500m" else x for x in new_meta_index
-    ]
-    new_meta_index = [
-        "HOT232_0500m" if x == "HOT232_1_0500m" else x for x in new_meta_index
-    ]
-    new_meta_index = [
-        "HOT237_0500m" if x == "HOT237_1_0500m" else x for x in new_meta_index
-    ]
-    new_meta_index = [
-        "HOT236_0500m" if x == "HOT236_1_0500m" else x for x in new_meta_index
-    ]
-    new_meta_index = [
-        "HOT234_0200m" if x == "HOT234_1_0200m" else x for x in new_meta_index
-    ]
-    new_meta_index = [
-        "HOT237_0770m" if x == "HOT237_1_0770m" else x for x in new_meta_index
-    ]
-
-    metadata.index = new_meta_index
     # translate cluster handles
-    if gene_cluster_map_handle != "NA":
+    if gene_cluster_map_handle is not None:
         mOTU_seq_to_clusters = pd.read_csv(
             gene_cluster_map_handle, index_col=0, sep="\t", names=["clusters"]
         )
@@ -661,7 +429,7 @@ def weighted_by_abundance(
         data = line.strip().split("\t")
         line_values = dict(zip(first_line, data))
 
-        if gene_cluster_map_handle != "NA":
+        if gene_cluster_map_handle is not None:
             cluster_sequence = mOTU_seq_to_clusters.loc[
                 line_values["gene.id"], "clusters"
             ]
@@ -688,7 +456,7 @@ def weighted_by_abundance(
         [(sample, {x: "NA" for x in values_to_average}) for sample in sample_names]
     )
 
-    for sample in tally_dictionary.keys():
+    for sample in tally_dictionary:
         for value in values_to_average:
             if tally_dictionary[sample][value]["count"] > 0:
                 final_dictionary[sample][value] = (
@@ -708,7 +476,7 @@ def weighted_by_abundance(
     GC_meta_table = pd.concat([metadata, final_table.T], axis=1)
 
     output_handle = gene_95_results_handle + "_weighted_abundance"
-    if output_flag != "NA":
+    if output_flag is not None:
         output_handle = output_handle + output_flag
     GC_meta_table.to_csv(output_handle, sep="\t")
 
