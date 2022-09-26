@@ -2,16 +2,18 @@
 """
  * @Date: 2021-09-23 17:29:53
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-07-10 12:21:35
- * @FilePath: /metaSC/PyLib/biotool/diamond.py
+ * @LastEditTime: 2022-09-23 23:27:26
+ * @FilePath: /2021_09-MT10kSW/workflow/utils/PyLib/biotool/diamond.py
  * @Description: Run diamond with python
 """
 
 import os
-from pathlib import Path
-from PyLib.PyLibTool.file_info import basicConfig, verbose_import
-import tempfile
 import subprocess
+import tempfile
+from pathlib import Path
+
+import pandas as pd
+from PyLib.PyLibTool.file_info import basicConfig, verbose_import
 
 logger = verbose_import(__name__, __doc__)
 
@@ -101,3 +103,50 @@ def diamond_1to1(
                     fout.write(inblock)
     logger.info(f"genemap wrote to {out}")
     return out
+
+
+def check_diamond_out(diamond_out, head_n=1, keep_columns: list = None):
+    """
+    >>> diamond_1to1(
+    ...     f"putate_{gene}_gene.faa",
+    ...     f"ref_{gene}.faa",
+    ...     diamond_tsv,
+    ... )
+    >>> assign_gene_info: pd.DataFrame = (
+    ...     check_diamond_out(diamond_tsv)
+    ...     .pipe(lambda df: df[df["sseqid"].apply(lambda x: x.startswith("ref_"))])
+    ...     .assign(gene=lambda df: df["sseqid"].apply(lambda x: x[4:].split("|")[0]))
+    ...     .merge(ref_gene_infos, left_on="sseqid", right_on="id")
+    ...     .drop("id", axis=1)
+    ... )
+    """
+    keep_names = "index qseqid sseqid pident".split() + (keep_columns or [])
+
+    if not isinstance(diamond_out, pd.DataFrame):
+        diamond_out = pd.read_csv(
+            diamond_out,
+            sep="\t",
+            names="qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore".split(),
+        )
+
+    diamond_out_index = (
+        diamond_out.sort_values("pident", ascending=False)
+        .groupby("qseqid")
+        .apply(lambda df: df.reset_index().drop("index", axis=1).reset_index())
+        .reset_index(drop=True)
+        .loc[:, keep_names]
+    )
+    diamond_out_merge_filter = (
+        diamond_out_index
+        .merge(
+            diamond_out_index,
+            left_on=["qseqid", "sseqid"],
+            right_on=["sseqid", "qseqid"],
+            suffixes=("_q", "_s"),
+        )
+        .drop(["qseqid_s", "sseqid_s"], axis=1)
+        .rename({"qseqid_q": "qseqid", "sseqid_q": "sseqid"}, axis=1)
+        .groupby("qseqid")
+        .apply(lambda df: df)
+    )
+    return diamond_out_merge_filter.groupby("qseqid").head(head_n)
