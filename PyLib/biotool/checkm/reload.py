@@ -2,7 +2,7 @@
 """
  * @Date: 2020-10-24 12:55:39
  * @LastEditors: Hwrn
- * @LastEditTime: 2021-08-16 15:10:07
+ * @LastEditTime: 2022-10-04 10:43:48
  * @FilePath: /metaSC/PyLib/biotool/checkm/reload.py
  * @Description:
     Reload from checkm output.
@@ -17,9 +17,13 @@ from collections import OrderedDict
 from re import split as re_split
 from sys import stderr
 
-from PyLib.biotool.checkm.interface import (
-    BinMarkerSets, DefaultValues, HmmerHitDOM, ResultsManager
-)
+try:
+    from checkm.markerSets import BinMarkerSets
+    from checkm.defaultValues import DefaultValues
+    from checkm.hmmer import HmmerHitDOM
+    from checkm.resultsParser import ResultsManager
+except ImportError:
+    from .interface import BinMarkerSets, DefaultValues, HmmerHitDOM, ResultsManager
 
 
 def popBinIdFromSets(pop_dict: dict, pop_list: list) -> None:
@@ -29,7 +33,7 @@ def popBinIdFromSets(pop_dict: dict, pop_list: list) -> None:
 
 
 def reload_binIdToBinMarkerSets(checkM_OUTPUT_DIR):
-    """ load binIdToBinMarkerSets. """
+    """load binIdToBinMarkerSets."""
     # read file like these:
     """
         # [Lineage Marker File]
@@ -41,7 +45,7 @@ def reload_binIdToBinMarkerSets(checkM_OUTPUT_DIR):
         f.readline()  # skip header
 
         for line in f:
-            lineSplit = line.split('\t')
+            lineSplit = line.split("\t")
             binId = lineSplit[0]
 
             binMarkerSets = BinMarkerSets(binId)
@@ -58,7 +62,9 @@ def reload_binIdToBinMarkerSets(checkM_OUTPUT_DIR):
 def reload_resultsManagers(checkM_OUTPUT_DIR, binIdToBinMarkerSets):
     # loadBinModels
     binIdToModels = {}
-    with gzip.open(os.path.join(checkM_OUTPUT_DIR, 'storage', DefaultValues.HMM_MODEL_INFO_FILE)) as f:
+    with gzip.open(
+        os.path.join(checkM_OUTPUT_DIR, "storage", DefaultValues.HMM_MODEL_INFO_FILE)
+    ) as f:
         binIdToModels = pickle.load(f)
         # print("binIdToModels.keys():", binIdToModels.keys())
         # sth in binIdToBinMarkerSets but not in binIdToModels
@@ -70,9 +76,11 @@ def reload_resultsManagers(checkM_OUTPUT_DIR, binIdToBinMarkerSets):
 
     # parseBinStats
     binStats = {}
-    with open(os.path.join(checkM_OUTPUT_DIR, 'storage', DefaultValues.BIN_STATS_FILE)) as f:
+    with open(
+        os.path.join(checkM_OUTPUT_DIR, "storage", DefaultValues.BIN_STATS_FILE)
+    ) as f:
         for line in f:
-            lineSplit = line.split('\t')
+            lineSplit = line.split("\t")
             binStats[lineSplit[0]] = literal_eval(lineSplit[1])
         popBinIds = []
         for binId in binIdToBinMarkerSets:
@@ -91,10 +99,12 @@ def reload_resultsManagers(checkM_OUTPUT_DIR, binIdToBinMarkerSets):
     popBinIds = []
     for binId in binIdToBinMarkerSets:
         resultsManager = ResultsManager(
-            binId, binIdToModels[binId], binStats=binStats[binId])
+            binId, binIdToModels[binId], binStats=binStats[binId]
+        )
 
         hmmTableFile = os.path.join(
-            checkM_OUTPUT_DIR, 'bins', binId, DefaultValues.HMM_TABLE_FILE)
+            checkM_OUTPUT_DIR, "bins", binId, DefaultValues.HMM_TABLE_FILE
+        )
         # parseHmmerResults
         # print("hmmTableFile:", hmmTableFile)
         try:
@@ -106,13 +116,13 @@ def reload_resultsManagers(checkM_OUTPUT_DIR, binIdToBinMarkerSets):
                 while True:
                     line = f.readline().rstrip()
                     try:
-                        if line[0] != '#' and len(line) != 0:
-                            dMatch = re_split(r'\s+', line.rstrip())
+                        if line[0] != "#" and len(line) != 0:
+                            dMatch = re_split(r"\s+", line.rstrip())
                             if len(dMatch) < 23:
-                                raise Exception(
-                                    "Error processing line:\n%s" % (line))
-                            refined_match = dMatch[0:22] + \
-                                [" ".join([str(i) for i in dMatch[22:]])]
+                                raise Exception("Error processing line:\n%s" % (line))
+                            refined_match = dMatch[0:22] + [
+                                " ".join([str(i) for i in dMatch[22:]])
+                            ]
                             hit = HmmerHitDOM(refined_match)
                             line_count += 1
                             break
@@ -121,8 +131,13 @@ def reload_resultsManagers(checkM_OUTPUT_DIR, binIdToBinMarkerSets):
                         break
                 if hit is None:
                     break
-                print("read {0} hits: {1}, {2} in bin: {3}".format(
-                    line_count, hit.target_name, hit.query_name, binId), end="\r", file=stderr)
+                print(
+                    "read {0} hits: {1}, {2} in bin: {3}".format(
+                        line_count, hit.target_name, hit.query_name, binId
+                    ),
+                    end="\r",
+                    file=stderr,
+                )
                 resultsManager.addHit(hit)
         except FileNotFoundError:
             popBinIds.append(binId)
@@ -150,11 +165,12 @@ def reload_checkMOutput(checkM_OUTPUT_STDOUT):
     ckmap = OrderedDict()
     with open(checkM_OUTPUT_STDOUT) as fin:
         for line in fin:
-            #print(line)
+            # print(line)
             if line.strip().split()[0] == "Bin":
                 break
         else:
-            print("""
+            print(
+                """
                 we read the file like:
                     '''
                     [2020-09-19 16:44:36] INFO: CheckM v1.1.2
@@ -169,7 +185,9 @@ def reload_checkMOutput(checkM_OUTPUT_STDOUT):
                 and we just reach the line of '->' table head
 
                 So, what's your problem?
-                """, file=stderr)
+                """,
+                file=stderr,
+            )
             raise Exception("Havn't found expected list")
         fin.readline()  # read the secend line between table body and head
         for line in fin:
@@ -179,14 +197,18 @@ def reload_checkMOutput(checkM_OUTPUT_STDOUT):
             values = line.strip().split()
             # Bin Id: [Marker lineage (UID), Completeness, Contamination]
             ckmap[values[0]] = [
-                values[1], values[2][1:-1],
+                values[1],
+                values[2][1:-1],
                 *[int(values[i]) for i in range(3, 11)],
                 *[float(values[i]) for i in range(12, 15)],
             ]
         else:
-            print("""
+            print(
+                """
                 the table will end with a line of "-"
 
                 So, what's your problem?
-                """, file=stderr)
+                """,
+                file=stderr,
+            )
     return ckmap

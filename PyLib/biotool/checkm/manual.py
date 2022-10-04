@@ -2,7 +2,7 @@
 """
  * @Date: 2020-10-02 22:32:18
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-07-10 12:05:06
+ * @LastEditTime: 2022-10-04 10:45:46
  * @FilePath: /metaSC/PyLib/biotool/checkm/manual.py
  * @Description:
         Try to cluster each scaffold by the Mark Gene on it
@@ -26,7 +26,7 @@ import os
 from collections import OrderedDict
 from sys import stderr
 
-from PyLib.biotool.checkm.reload import (
+from .reload import (
     reload_binIdToBinMarkerSets,
     reload_resultsManagers,
 )
