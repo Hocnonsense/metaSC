@@ -2,7 +2,7 @@
 """
  * @Date: 2020-11-09 22:32:22
  * @LastEditors: Hwrn
- * @LastEditTime: 2022-07-10 12:18:14
+ * @LastEditTime: 2022-10-04 20:30:21
  * @FilePath: /metaSC/PyLib/PyLibTool/tmpPkl.py
  * @Description:
     with which will build a tmp pickle file for its function.
@@ -12,6 +12,7 @@
 """
 __version__ = "0.0.4"
 
+import os
 import pickle
 from datetime import datetime
 from functools import wraps
@@ -67,7 +68,7 @@ class TmpPkl:
         """
 
         @wraps(func)
-        def wrappedFunction(*args, **kwargs):
+        def wrapped_function(*args, **kwargs):
             with self as tmppkl:
                 if tmppkl.force_rewrite:
                     tmppkl.last_results = func(*args, **kwargs)
@@ -75,9 +76,9 @@ class TmpPkl:
 
         self.meta["desc"] = func.__doc__
 
-        self.__class__.__cache[wrappedFunction] = self.PICKLE_FILENAME
+        self.__class__.__cache[wrapped_function] = self.PICKLE_FILENAME
 
-        return wrappedFunction
+        return wrapped_function
 
     def __enter__(self):
         if not self.force_rewrite:
@@ -116,6 +117,16 @@ class TmpPkl:
     # @classmethod
     # def __get_cache(cls):
     #    return cls.__cache
+
+    @classmethod
+    def clean(cls, tmppkl_or_function: Union["TmpPkl", Callable]):
+        if isinstance(tmppkl_or_function, TmpPkl):
+            pickle_filename = tmppkl_or_function.PICKLE_FILENAME
+        else:
+            pickle_filename = cls.__cache.get(tmppkl_or_function, None)
+        if pickle_filename and pickle_filename.exists():
+            logger.info(f"# try to remove {pickle_filename} ... ")
+            os.system(f"rm -r {pickle_filename}")
 
     def __show_cache(self):
         return {k: v.is_file() for k, v in self.__class__.__cache.items()}
