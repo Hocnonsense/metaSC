@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
  * @Date: 2022-04-15 13:56:44
- * @LastEditors: Hwrn
- * @LastEditTime: 2022-08-27 21:16:56
+ * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
+ * @LastEditTime: 2022-12-04 09:21:02
  * @FilePath: /metaSC/PyLib/seqPipe/collect_gene_ko.py
  * @Description:
 
@@ -115,7 +115,7 @@ class gene2KO:
                 for values in read_table(text):
                     Ref_Hits = values[2]
                     kos = re.findall(self.KO_PATTERN, Ref_Hits)
-                    if len(kos) > 1:
+                    if len(kos) >= 1:
                         gene = values[0]
                         for ko in kos:
                             yield gene, ko[1]
