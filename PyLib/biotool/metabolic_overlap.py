@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
  * @Date: 2022-11-12 20:31:16
- * @LastEditors: Hwrn
- * @LastEditTime: 2022-11-13 10:35:53
+ * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
+ * @LastEditTime: 2022-12-04 09:18:07
  * @FilePath: /metaSC/PyLib/biotool/metabolic_overlap.py
  * @Description:
     extract from https://github.com/ericHester/metabolicOverlap/tree/master/scripts2
@@ -15,29 +15,22 @@
 """
 
 import re
-from collections import defaultdict
 from pathlib import Path
-from typing import Generator, NamedTuple, Literal
-
-ModelSEEDDatabase = Path("/home/hwrn/Data/Database2/ModelSEEDDatabase")
-
-
-def load_SEED_reactions(ModelSEEDDatabase=ModelSEEDDatabase):
-    idx_id = 0
-    filename = ModelSEEDDatabase / "Biochemistry" / "reactions.tsv"
-    with open(filename) as file:
-        reactiondb = {
-            row[idx_id]: row[idx_id + 1 :]
-            for row in (line.rstrip("\n").split("\t") for line in file)
-        }
-    return reactiondb
+from typing import Generator, NamedTuple, Literal, Union, overload
+import pandas as pd
 
 
-def fna_to_rxn():
-    """
-    give a genome, return gene and function annotation (pathway)
-    """
-    raise NotImplementedError
+ModelSEEDDatabase = None
+
+
+def set_seed_db(ModelSEEDDatabase_: Path = None):
+    global ModelSEEDDatabase
+    if ModelSEEDDatabase_:
+        ModelSEEDDatabase = ModelSEEDDatabase_
+
+
+def load_default_seed_db(ModelSEEDDatabase_: Path = None):
+    return ModelSEEDDatabase_ or ModelSEEDDatabase
 
 
 class Reaction(NamedTuple):
@@ -46,77 +39,152 @@ class Reaction(NamedTuple):
     outs: list[str]
     direction: Literal["=", ">", "<"]
 
+    @staticmethod
+    def cleancompound(raw: str):
+        """
+        >>> cleancompound("cpd37299[0]")
+        'cpd37299'
+        """
+        COMPOUND_RE = re.compile(".*(cpd[0-9]+\[[^\]]*\])")
+        if (match := re.match(COMPOUND_RE, raw)) is not None:
+            return match.group(1)
 
-def cleancompound(raw: str):
-    """
-    >>> cleancompound("cpd37299[0]")
-    'cpd37299'
-    """
-    COMPOUND_RE = re.compile(".*(cpd[0-9]+\[[^\]]*\])")
-    if (match := re.match(COMPOUND_RE, raw)) is not None:
-        return match.group(1)
-    return ""  # raw = " "
+    @classmethod
+    def cleanequation(cls, id: str, raw: str, direction: Literal["=", ">", "<"]):
+        ins, outs = [
+            [y for _y in x.split("+") if (y := cls.cleancompound(_y))]
+            for x in re.split("<=>|=>|<=", raw)
+        ]
+        if direction == "<":  # Make sure it's always input > output
+            direction = ">"
+            ins, outs = outs, ins
+        return cls(id, sorted(ins), sorted(outs), direction)
 
 
-def cleanequation(raw: str, direction: Literal["=", ">", "<"]) -> Reaction:
-    ins, outs = [
-        [cleancompound(y) for y in x.split("+")] for x in re.split("<=>|=>|<=", raw)
-    ]
-    if direction == "<":  # Make sure it's always input > output
-        direction = ">"
-        ins, outs = outs, ins
-    return Reaction("", sorted(ins), sorted(outs), direction)
+def load_clean_SEED_reactions(ModelSEEDDatabase):
+    idx_id, idx_eq, idx_dir = 0, 6, 8
+    filename = (
+        load_default_seed_db(ModelSEEDDatabase) / "Biochemistry" / "reactions.tsv"
+    )
+    with open(filename) as file:
+        next(file)
+        return {
+            row[idx_id]: Reaction.cleanequation(row[idx_id], row[idx_eq], row[idx_dir])
+            for row in (line.rstrip("\n").split("\t") for line in file)
+        }
 
 
-def rxn_expandinfo(reaction_file: Path) -> Generator[Reaction, None, None]:
-    """
-    id, reaction
-    "rxn48575", [["cpd37299[0]"], ">", ["cpd00794[0]", "cpd02725[0]"]]
-    "rxn48575\tcpd37299[0]\t>\tcpd00794[0]+cpd02725[0]"
-    """
-    idx_eq, idx_dir = (5, 7)
+def load_KO_modelseed_translations(ModelSEEDDatabase):
+    KO_modelseed_translations_file = (
+        load_default_seed_db(ModelSEEDDatabase)
+        / "Biochemistry"
+        / "Aliases"
+        / "Provenance"
+        / "Archived_Files"
+        / "KO_modelseed_translations.csv"
+    )
+    ko_modelseed_translations: dict[str, list[str]] = {}
+    with open(KO_modelseed_translations_file) as fi:
+        for line in fi:
+            values = line.strip().split()
+            ko_modelseed_translations[values[0]] = values[1:]
+    return ko_modelseed_translations
 
-    reactiondb = load_SEED_reactions()
 
-    with open(reaction_file) as file:
-        reactions = (line.rstrip("\n") for line in file)
-        return (
-            cleanequation(reactiondb[id][idx_eq], reactiondb[id][idx_dir])._replace(
-                id=id
+@overload
+def genome_ko2rxn(
+    kos: Generator[str, None, None],
+    *,
+    ko_modelseed_translations: dict[str, list[str]],
+    clean_reactions: dict[str, Reaction],
+) -> pd.Series:
+    ...
+
+
+@overload
+def genome_ko2rxn(
+    kos: Generator[str, None, None],
+    *,
+    ModelSEEDDatabase: Path,
+) -> pd.Series:
+    ...
+
+
+def genome_ko2rxn(
+    kos: Generator[str, None, None],
+    ko_modelseed_translations: dict[str, list[str]] = None,
+    clean_reactions: dict[str, Reaction] = None,
+    ModelSEEDDatabase: Path = None,
+):
+    ko_modelseed_translations = (
+        ko_modelseed_translations
+        or load_KO_modelseed_translations(load_default_seed_db(ModelSEEDDatabase))
+    )
+    clean_reactions = clean_reactions or load_clean_SEED_reactions(
+        load_default_seed_db(ModelSEEDDatabase)
+    )
+
+    return (
+        pd.Series(kos)
+        .apply(lambda i: ko_modelseed_translations.get(i, []))
+        .explode()
+        .sort_values()
+        .dropna()
+        .drop_duplicates()
+        .apply(lambda i: clean_reactions[i])
+    )
+
+
+def genome_rxn2cpd(genome_rxn: Union[pd.Series, dict[str, list[Reaction]]]):
+    return (
+        pd.Series(genome_rxn)
+        .explode()
+        .rename("CPD")
+        .pipe(
+            lambda s: pd.concat(
+                [
+                    pd.DataFrame(
+                        s.apply(
+                            lambda rxn: {*rxn.ins, *rxn.outs}
+                            if rxn.direction == "="
+                            else set(rxn.ins)
+                        ).explode()
+                    ).assign(Substrate="Ins"),
+                    pd.DataFrame(
+                        s.apply(
+                            lambda rxn: {*rxn.ins, *rxn.outs}
+                            if rxn.direction == "="
+                            else set(rxn.outs)
+                        ).explode()
+                    ).assign(Substrate="Outs"),
+                ]
             )
-            for id in reactions
+            .reset_index()
+            .rename({"index": "Genome"}, axis=1)
+            .drop_duplicates()
         )
+    )
 
 
-def rxn_to_connections(
-    genome_rxns: dict[str, Generator[Reaction, None, None]]
-) -> Generator[tuple[str, str, str], None, None]:
-    organisms: dict[str, dict[str, set]] = {}
-    for genome, genome_rxn_i in genome_rxns.items():
-        organisms[genome] = {"ins": set(), "outs": set()}
-        for rxn in genome_rxn_i:
-            organisms[genome]["ins"].update(rxn.ins)
-            organisms[genome]["outs"].update(rxn.outs)
-            if rxn.direction == "=":
-                organisms[genome]["ins"].update(rxn.outs)
-                organisms[genome]["outs"].update(rxn.ins)
+def genome_rxn2mo(grxn):
+    gcpd = genome_rxn2cpd(grxn)
 
-    for name, current in organisms.items():
-        for cpd in current["outs"]:
-            for othername, other in organisms.items():
-                # if other == current: continue
-                if cpd in other["ins"]:
-                    yield (name, cpd, othername)
+    mo = pd.DataFrame(
+        0,
+        index=gcpd.groupby("Substrate")
+        .get_group("Outs")["Genome"]
+        .drop_duplicates()
+        .rename("OutGenome"),
+        columns=gcpd.groupby("Substrate")
+        .get_group("Ins")["Genome"]
+        .drop_duplicates()
+        .rename("InGenome"),
+    )
+    for cpd, gcpd_i in gcpd.groupby("CPD"):
+        if len(gcpd_i["Substrate"].drop_duplicates()) == 2:
+            mo.loc[
+                gcpd_i.groupby("Substrate").get_group("Outs")["Genome"],
+                gcpd_i.groupby("Substrate").get_group("Ins")["Genome"],
+            ] += 1
 
-
-def lists_to_matrix(rxn_connections: Generator[tuple[str, str, str], None, None]):
-    matrix: defaultdict = defaultdict(lambda: defaultdict(float))
-    for name, cpd, othername in rxn_connections:
-        matrix[name][othername] += 1
-
-    # I made this. I have no clue how it works
-    params = set([param for (_, params) in matrix.items() for param in params.keys()])
-    return [(["name"] + list(params))] + [
-        ([name] + [str(fndict[param]) for param in params])
-        for (name, fndict) in matrix.items()
-    ]
+    return mo
