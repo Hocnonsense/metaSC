@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-04-25 00:51:52
-#' @LastEditors: Hwrn
-#' @LastEditTime: 2022-07-16 14:37:55
+#' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
+#' @LastEditTime: 2022-12-17 16:46:16
 #' @FilePath: /metaSC/R/RLib/R/ggpoint.signif.r
 #* @Description:
 ###
@@ -112,11 +112,11 @@ ggpoint.signif <- function(
   if (is.null(static.mark)) {
   } else if (static.mark == "*") {
     px = px +
-      geom_signif(comparisons = comparisons, map_signif_level = T,
-                  step_increase = 0.1)
+      ggsignif::geom_signif(comparisons = comparisons, map_signif_level = T,
+                            step_increase = 0.1)
     py = py +
-      geom_signif(comparisons = comparisons, map_signif_level = T,
-                  step_increase = 0.1)
+      ggsignif::geom_signif(comparisons = comparisons, map_signif_level = T,
+                            step_increase = 0.1)
   } else if (is.double(static.mark) && 0 < static.mark && static.mark < 1) {
     px = px +
       geom_text(data = group.signif.mark(pdata, xname, fillname,
