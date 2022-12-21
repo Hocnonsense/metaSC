@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-04-25 00:51:52
 #' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
-#' @LastEditTime: 2022-12-17 16:46:16
+#' @LastEditTime: 2022-12-21 14:13:31
 #' @FilePath: /metaSC/R/RLib/R/ggpoint.signif.r
 #* @Description:
 ###
@@ -61,7 +61,9 @@ group.signif.mark <- function(
 
 #' @title add signif figure on a given figure
 #'
-#' @param p a ggplot output
+#' @param p a ggplot geom_point plot
+#'          g must define `mapping` in `ggplot` but not `geom_point`.
+#'
 #' @param igroup group and color information
 #'               such as `list("env" = sample_meta_col)`
 #' @param x.geom,y.geom geom plot type
@@ -80,7 +82,9 @@ ggpoint.signif <- function(
   x.geom = geom_boxplot, y.geom = geom_boxplot,
   static.mark = "*",
   p.width = 3, p.height = 3,
-  p_theme = NULL
+  p_theme = NULL,
+  scale_x = scale_x_continuous,
+  scale_y = scale_y_continuous
 ) {
   # extract data from plot OBJECT >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #
   pbuild = ggplot_build(p)
@@ -148,12 +152,10 @@ ggpoint.signif <- function(
   }
 
   # use patchwork to organize picture >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> #
-  {p +
-    scale_x_continuous(limits = xlimits) +
-    scale_y_continuous(limits = ylimits)} %>%
+  {p + scale_x(limits = xlimits) + scale_y(limits = ylimits)} %>%
     {if (is.null(p_theme)) . else p_theme(.)} +
-    subadjust(px) + scale_x_continuous(limits = xlimits) +
-    subadjust(py) + scale_y_continuous(limits = ylimits) +
+    subadjust(px) + scale_x(limits = xlimits) +
+    subadjust(py) + scale_y(limits = ylimits) +
     plot_layout(
       design = c(patchwork::area(t = 2, l = 1, b = 1 + p.height, r = p.width),
                  patchwork::area(t = 1, l = 1, b = 1, r = p.width),
@@ -161,5 +163,4 @@ ggpoint.signif <- function(
                                  b = 1 + p.height, r = 1 + p.width)),
       guides = 'collect')
   # use patchwork to organize picture <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< #
-
 }
