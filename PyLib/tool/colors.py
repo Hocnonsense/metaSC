@@ -2,7 +2,7 @@
 """
  * @Date: 2023-01-01 13:57:08
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-01-01 16:32:06
+ * @LastEditTime: 2023-01-03 21:27:48
  * @FilePath: /2022_09-M_mem/home/hwrn/software/metaSC/PyLib/tool/colors.py
  * @Description:
 """
@@ -72,7 +72,7 @@ def ncolors(num, random=True):
         r, g, b = [int(x * 255.0) for x in (_r, _g, _b)]
         rgb_colors.append([r, g, b])
 
-    return rgb_colors
+    return rgb_colors[:num]
 
 
 def rgb2str(r: int, g: int, b: int):
