@@ -1,8 +1,8 @@
 ###
 #* @Date: 2022-02-27 13:20:26
-#' @LastEditors: Hwrn
-#' @LastEditTime: 2022-07-03 13:45:07
-#' @FilePath: /metaSC/R/RLib/R/taxon.r
+#' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
+#' @LastEditTime: 2023-01-12 19:57:13
+#' @FilePath: /2022_09-M_mem/workflow/utils/libs/metaSC/R/RLib/R/taxon.r
 #* @Description:
 ###
 
@@ -86,4 +86,23 @@ taxon.split.last <- function(taxon.full, fill.na = "others") {
   name.new.factor = factor(name.new, levels = unique(c(sort.last.levels, fill.na)))
   name.new.factor[is.na(name.new.factor)] = fill.na
   return(name.new.factor)
+}
+
+
+#' @title find common prefix of a vector of string
+#'
+#' @param names a vector of string
+#' @return single string of common prefix of string
+common_prefix <- function(names) {
+
+  # end of common part
+  end = 0
+  if (length(unique(names)) <= 1) return(names[1])
+
+  while (length(unique(substr(names, start = 1, stop = end + 1))) == 1) {
+    end = end + 1
+  }
+
+  # Returns common part of the name
+  substr(names[1], 1, end)
 }

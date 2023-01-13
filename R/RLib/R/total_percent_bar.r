@@ -1,8 +1,8 @@
 ###
 #' @Date: 2022-06-28 15:37:09
-#' @LastEditors: Hwrn
-#' @LastEditTime: 2022-09-25 15:34:01
-#' @FilePath: /2021_09-MT10kSW/workflow/utils/RLib/R/total_percent_bar.r
+#' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
+#' @LastEditTime: 2023-01-13 15:00:10
+#' @FilePath: /2022_09-M_mem/workflow/utils/libs/metaSC/R/RLib/R/total_percent_bar.r
 #' @Description:
 ###
 
@@ -98,27 +98,38 @@ get_relative_ce <- function(div.raw, value.name, sample.name = "Sample", total_c
 #' @param sample.name name of sample to define row names
 #' @return plot of relative abundance in each environment
 get_percent_plot <- function(
-  div.raw, value.name, fill.name, sample.name = "Sample", labs.x = "", labs.y = "",
+  div.raw, value.name, fill.name, sample.name = "Sample",
+  labs.x = "", labs.y = "",
   TOP_N_TAXON_PER_LAYER = NULL, MIN_REPORT_TAXON_PERCENT = 0,
-  font_size_1 = 15, font_size_2 = 13, font_size_3 = 10, axis.ticks.length = 0.1
+  font_size_1 = 15, font_size_2 = 13, font_size_3 = 10,
+  axis.ticks.length = 0.1
 ) {
   total_ce = get_total_ce(div.raw, value.name, sample.name)
 
   ce =
     div.raw %>%
     as.data.frame %>%
-    mutate(Abundance = get_relative_ce(., value.name, sample.name, total_ce)) %>%
+    mutate(
+      Abundance = get_relative_ce(., value.name, sample.name, total_ce)
+    ) %>%
     {.$name = .[, fill.name]; .} %>%
     {
       if(!is.null(TOP_N_TAXON_PER_LAYER)) {
         top.taxon =
-          reshape2::acast(., formula(paste0("name ~ ", sample.name)),
-                          value.var = "Abundance", fill = 0) %>%
-          otu.div.top(TOP_N_TAXON_PER_LAYER) %>% sort
+          reshape2::acast(
+            ., formula(paste0("name ~ ", sample.name)),
+            value.var = "Abundance", fill = 0, fun.aggregate = sum
+          ) %>%
+          otu.div.top(TOP_N_TAXON_PER_LAYER, min.value = 0) %>% sort
       } else if(MIN_REPORT_TAXON_PERCENT > 0) {
         top.taxon =
-          group_by(., name) %>% filter(max(Abundance) > MIN_REPORT_TAXON_PERCENT) %>%
-          .$name %>% sort %>% unique %>% as.character
+          split(.[c("Abundance", "name")], .["Sample"]) %>%
+          lapply(
+            . %>% group_by(name) %>% summarise(Abundance = sum(Abundance))
+          ) %>%
+          bind_rows(.id = "Sample") %>%
+          {.$name[.$Abundance >= 1]} %>%
+          {unique(.) %>% as.character}
       } else {
         top.taxon = NULL
       }
