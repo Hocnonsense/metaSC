@@ -1,7 +1,7 @@
 ###
 #' @Date: 2022-06-28 15:37:09
 #' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
-#' @LastEditTime: 2023-01-13 15:00:10
+#' @LastEditTime: 2023-01-17 17:27:41
 #' @FilePath: /2022_09-M_mem/workflow/utils/libs/metaSC/R/RLib/R/total_percent_bar.r
 #' @Description:
 ###
@@ -78,11 +78,11 @@ get_total_plot <- function(
 
 get_relative_ce <- function(div.raw, value.name, sample.name = "Sample", total_ce = NULL) {
   if (is.null(total_ce)) {
-    total_ce = get_total_ce(div.raw, value.name)
+    total_ce = get_total_ce(div.raw, value.name, sample.name = sample.name)
   }
   div.raw %>%
     as.data.frame %>%
-    {.[, value.name] / total_ce[.[, sample.name], "Total"] * 100}
+    {.[, value.name] / total_ce[as.character(.[, sample.name]), "Total"] * 100}
 }
 
 #' @title draw a picture of relative abundance
@@ -102,7 +102,8 @@ get_percent_plot <- function(
   labs.x = "", labs.y = "",
   TOP_N_TAXON_PER_LAYER = NULL, MIN_REPORT_TAXON_PERCENT = 0,
   font_size_1 = 15, font_size_2 = 13, font_size_3 = 10,
-  axis.ticks.length = 0.1
+  axis.ticks.length = 0.1,
+  geom_bar.color = "#454545"
 ) {
   total_ce = get_total_ce(div.raw, value.name, sample.name)
 
@@ -123,11 +124,11 @@ get_percent_plot <- function(
           otu.div.top(TOP_N_TAXON_PER_LAYER, min.value = 0) %>% sort
       } else if(MIN_REPORT_TAXON_PERCENT > 0) {
         top.taxon =
-          split(.[c("Abundance", "name")], .["Sample"]) %>%
+          split(.[c("Abundance", "name")], .[sample.name]) %>%
           lapply(
             . %>% group_by(name) %>% summarise(Abundance = sum(Abundance))
           ) %>%
-          bind_rows(.id = "Sample") %>%
+          bind_rows(.id = sample.name) %>%
           {.$name[.$Abundance >= 1]} %>%
           {unique(.) %>% as.character}
       } else {
@@ -149,7 +150,7 @@ get_percent_plot <- function(
                                 fill = "name")) +
     geom_bar(position = position_stack(reverse = T),
              stat = "identity",
-             color = "#454545", size = 0.3) +
+             color = geom_bar.color, size = 0.3) +
     paletteer::scale_fill_paletteer_d("ggsci::default_igv") +
     scale_x_discrete(limits = rownames(total_ce)) +
     #guides(fill = "none") +
