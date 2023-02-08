@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
  * @Date: 2021-03-28 12:36:23
- * @LastEditors: Hwrn
- * @LastEditTime: 2022-03-01 15:23:51
- * @FilePath: /metaSC/PyLib/biotool/kegg/__init__.py
+ * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
+ * @LastEditTime: 2023-02-08 11:32:16
+ * @FilePath: /2022_09-M_mem/workflow/utils/libs/metaSC/PyLib/biotool/kegg/__init__.py
  * @Description:
 """
 from .query import (
@@ -11,7 +11,6 @@ from .query import (
     read_brite_json,
     load_brite,
     cached,
-    load_ko00002,
 )
 from .kmodule import KModule, init_module
 from .amino_acid_metabolism import AAm
@@ -22,3 +21,4 @@ from .LinkDB import (
     map_KO_dict,
     map_KO_substr,
 )
+from .load import load_ko00002, load_entry, get_gmodule
