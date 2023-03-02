@@ -1,14 +1,19 @@
 ###
 #* @Date: 2022-02-27 13:20:26
 #' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
-#' @LastEditTime: 2023-01-12 19:57:13
+#' @LastEditTime: 2023-02-28 22:27:46
 #' @FilePath: /2022_09-M_mem/workflow/utils/libs/metaSC/R/RLib/R/taxon.r
 #* @Description:
 ###
 
+library(dplyr)
+library(stringr)
 
-taxon.levels = factor(c("domain", "phylum", "class", "order", "family", "genus", "species"),
-                      levels = c("domain", "phylum", "class", "order", "family", "genus", "species"))
+
+taxon.levels <- factor(
+  c("domain", "phylum", "class", "order", "family", "genus", "species"),
+  levels = c("domain", "phylum", "class", "order", "family", "genus", "species")
+)
 
 #' @title change the string of taxon level to number
 #'
@@ -25,8 +30,10 @@ taxon.levels = factor(c("domain", "phylum", "class", "order", "family", "genus",
 #' # [1] 1
 taxon.as.num <- function(taxon) {
   if (class(taxon) == "character") {
-    taxon = which(tolower(strsplit(taxon, "")[[1]][1]) == c("d", "p", "c", "o",
-                                                            "f", "g", "s"))
+    taxon <- which(tolower(strsplit(taxon, "")[[1]][1]) == c(
+      "d", "p", "c", "o",
+      "f", "g", "s"
+    ))
   }
   return(taxon)
 }
@@ -35,8 +42,10 @@ taxon.as.num <- function(taxon) {
 #' @param taxon.full the full string of taxon, splited by ";"
 #' @param start,end the index to cut taxon,
 #'                  if is string, will change to int by taxon.as.num
-#'                  if end is not given, will return the specified level as end = start
-#' @return splited taxon prefix (or string), already changed to factor order by taxon.full
+#'                  if end is not given, will return the specified level
+#'                    as end = start
+#' @return splited taxon prefix (or string), already changed to factor
+#'          order by taxon.full
 #' @export
 #'
 #' @examples
@@ -45,46 +54,59 @@ taxon.as.num <- function(taxon) {
 #' #                                                                       Bacteroidia
 #' # Levels: Bacteroidia
 taxon.split <- function(taxon.full, start, end = NULL) {
-  if (is.null(end))
-    end = start
+  if (is.null(end)) {
+    end <- start
+  }
 
-  start = taxon.as.num(start)
-  end = taxon.as.num(end)
+  start <- taxon.as.num(start)
+  end <- taxon.as.num(end)
 
-  taxon.new = sapply(as.character(taxon.full), function(x) {
-    if (is.na(x)) return(x)
-    tax_order =
-      unlist(strsplit(as.character(x), ";")) %>%
-      gsub("^.__(.+)$", "\\1", .) %>%  # "d__Archaea", "D__Archaea"
-      gsub("^\\(.__(.+)\\)$", "(\\1)", .)  # "(d__Archaea)", "(D__Archaea)"
-    return(paste(c(tax_order, rep("", end))[start:end], collapse = ";"))
-  })
+  taxon.new.factor <- sapply(
+    as.character(taxon.full),
+    function(x) {
+      if (is.na(x)) {
+        return(x)
+      }
+      tax_order <-
+        unlist(strsplit(as.character(x), ";")) %>%
+        gsub("^.__(.+)$", "\\1", .) %>% # "d__Archaea", "D__Archaea"
+        gsub("^\\(.__(.+)\\)$", "(\\1)", .) # "(d__Archaea)", "(D__Archaea)"
+      return(paste(c(tax_order, rep("", end))[start:end], collapse = ";"))
+    }
+  ) %>%
+    factor(levels = unique(.[order(taxon.full)]))
 
-  taxon.new.factor = factor(taxon.new,
-                            levels = unique(taxon.new[order(taxon.full)]))
   return(taxon.new.factor)
 }
 
 
 .taxon.split.last <- function(x) {
-  a = unlist(strsplit(x, ";"))
-  b = a[!grepl("^(.__|)$", a)]
+  a <- unlist(strsplit(as.character(x), ";"))
+  b <- a[!grepl("^(.__|)$", a)]
   ifelse(length(a) == length(b),
-         gsub("^.__", "", a[length(a)]), b[length(b)])
+    gsub("^.__", "", a[length(a)]), b[length(b)]
+  )
 }
 #' @title split taxon to the last string
 #'
 #' @param taxon.full the full string of taxon, splited by ";"
 #' @param fill.na string to cover anything unannotated thins
-#' @return last annotation taxon name, already changed to factor order by taxon.full
+#' @return last annotation taxon name, already changed to factor
+#'          order by taxon.full
 #' @export
 taxon.split.last <- function(taxon.full, fill.na = "others") {
-  sort.last.levels = sapply(unique(sort(taxon.full)),
-                            .taxon.split.last)
-  name.new = sapply(taxon.full, .taxon.split.last)
+  sort.last.levels <- sapply(
+    unique(sort(taxon.full)),
+    .taxon.split.last
+  )
+  name.new.factor <-
+    sapply(taxon.full, .taxon.split.last) %>%
+    factor(levels = unique(c(sort.last.levels, fill.na))) %>%
+    {
+      .[is.na(.)] <- fill.na
+      .
+    }
 
-  name.new.factor = factor(name.new, levels = unique(c(sort.last.levels, fill.na)))
-  name.new.factor[is.na(name.new.factor)] = fill.na
   return(name.new.factor)
 }
 
@@ -94,13 +116,14 @@ taxon.split.last <- function(taxon.full, fill.na = "others") {
 #' @param names a vector of string
 #' @return single string of common prefix of string
 common_prefix <- function(names) {
-
   # end of common part
-  end = 0
-  if (length(unique(names)) <= 1) return(names[1])
+  end <- 0
+  if (length(unique(names)) <= 1) {
+    return(names[1])
+  }
 
   while (length(unique(substr(names, start = 1, stop = end + 1))) == 1) {
-    end = end + 1
+    end <- end + 1
   }
 
   # Returns common part of the name
