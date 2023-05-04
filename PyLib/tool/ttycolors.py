@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 """
  * @Date: 2022-04-28 23:23:30
- * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-28 23:26:04
+ * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
+ * @LastEditTime: 2023-05-04 10:51:23
  * @FilePath: /metaSC/PyLib/tool/ttycolors.py
  * @Description:
     TTY colors
 """
-
-import sys
 
 
 __author__ = "Developers of anvi'o (see AUTHORS.txt)"
@@ -18,17 +16,32 @@ __maintainer__ = "A. Murat Eren"
 __email__ = "a.murat.eren@gmail.com"
 __status__ = "Development"
 
+import sys
+from enum import Enum
+
+
+class ShellColors(Enum):
+    gray = "30"
+    red = "31"
+    green = "32"
+    yellow = "33"
+    blue = "34"
+    magenta = "35"
+    cyan = "36"
+    white = "37"
+    crimson = "38"
+
+
+class ShellWeights(Enum):
+    normal = "0"
+    bold = "1"
+
 
 tty_colors = {
-    "gray": {"normal": "\033[1;30m%s\033[1m", "bold": "\033[0;30m%s\033[0m"},
-    "red": {"normal": "\033[1;31m%s\033[1m", "bold": "\033[0;31m%s\033[0m"},
-    "green": {"normal": "\033[1;32m%s\033[1m", "bold": "\033[0;32m%s\033[0m"},
-    "yellow": {"normal": "\033[1;33m%s\033[1m", "bold": "\033[0;33m%s\033[0m"},
-    "blue": {"normal": "\033[1;34m%s\033[1m", "bold": "\033[0;34m%s\033[0m"},
-    "magenta": {"normal": "\033[1;35m%s\033[1m", "bold": "\033[0;35m%s\033[0m"},
-    "cyan": {"normal": "\033[1;36m%s\033[1m", "bold": "\033[0;36m%s\033[0m"},
-    "white": {"normal": "\033[1;37m%s\033[1m", "bold": "\033[0;37m%s\033[0m"},
-    "crimson": {"normal": "\033[1;38m%s\033[1m", "bold": "\033[0;38m%s\033[0m"},
+    i.name: {
+        j.name: f"\033[{j.value};{i.value}m%s\033[{j.value}m" for j in ShellWeights
+    }
+    for i in ShellColors
 }
 
 

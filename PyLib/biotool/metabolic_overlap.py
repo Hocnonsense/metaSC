@@ -2,7 +2,7 @@
 """
  * @Date: 2022-11-12 20:31:16
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2022-12-04 09:18:07
+ * @LastEditTime: 2023-05-04 10:38:09
  * @FilePath: /metaSC/PyLib/biotool/metabolic_overlap.py
  * @Description:
     extract from https://github.com/ericHester/metabolicOverlap/tree/master/scripts2
@@ -37,7 +37,10 @@ class Reaction(NamedTuple):
     id: str
     ins: list[str]
     outs: list[str]
-    direction: Literal["=", ">", "<"]
+    direction: Literal["=", ">", "<", "?"]
+
+    def __hash__(self) -> int:
+        return self.id.__hash__()
 
     @staticmethod
     def cleancompound(raw: str):
@@ -45,12 +48,12 @@ class Reaction(NamedTuple):
         >>> cleancompound("cpd37299[0]")
         'cpd37299'
         """
-        COMPOUND_RE = re.compile(".*(cpd[0-9]+\[[^\]]*\])")
+        COMPOUND_RE = re.compile(r".*(cpd[0-9]+\[[^\]]*\])")
         if (match := re.match(COMPOUND_RE, raw)) is not None:
             return match.group(1)
 
     @classmethod
-    def cleanequation(cls, id: str, raw: str, direction: Literal["=", ">", "<"]):
+    def cleanequation(cls, id: str, raw: str, direction: Literal["=", ">", "<", "?"]):
         ins, outs = [
             [y for _y in x.split("+") if (y := cls.cleancompound(_y))]
             for x in re.split("<=>|=>|<=", raw)
