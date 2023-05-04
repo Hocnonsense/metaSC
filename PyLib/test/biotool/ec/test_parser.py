@@ -2,7 +2,7 @@
 """
  * @Date: 2023-05-04 11:21:46
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-04 15:26:08
+ * @LastEditTime: 2023-05-04 21:42:57
  * @FilePath: /metaSC/PyLib/test/biotool/ec/test_parser.py
  * @Description:
 """
@@ -48,6 +48,27 @@ def test_ec_entry():
                 ec_e = parser.EnzymeClassEntry.read_texts(texts)
                 print()
                 print(ec_e)
+
+
+def test_ec_entry_str():
+    ec_dat = test_file_path / "enzyme.dat"
+    with ec_dat.open() as fi:
+        for i, texts in zip(range(5), parser.raw_read_dat(fi)):
+            pass
+    ec_e = parser.EnzymeClassEntry.read_texts(texts)
+    assert (
+        str(ec_e)
+        == "1.1.1.4 ((R,R)-butanediol dehydrogenase.) ['(R,R)-butane-2,3-diol + NAD(+) = (R)-acetoin + H(+) + NADH.']"
+    )
+
+
+def test_ec_entry_str_renamed():
+    ec_dat = test_file_path / "enzyme.dat"
+    with ec_dat.open() as fi:
+        for i, texts in zip(range(6), parser.raw_read_dat(fi)):
+            pass
+    ec_e = parser.EnzymeClassEntry.read_texts(texts)
+    assert str(ec_e) == "1.1.1.5 (Transferred entry) ['1.1.1.303', '1.1.1.304']"
 
 
 def test_parse_id():

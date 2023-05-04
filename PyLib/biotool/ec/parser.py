@@ -2,7 +2,7 @@
 """
  * @Date: 2023-05-04 11:20:08
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-04 15:20:17
+ * @LastEditTime: 2023-05-04 21:57:34
  * @FilePath: /metaSC/PyLib/biotool/ec/parser.py
  * @Description: read ec text
 """
@@ -162,6 +162,13 @@ class EnzymeClassEntry:
                 self.DE[len(self.state.value) : -1]
             )
 
+    def __str__(self) -> str:
+        if self.state == EnzymeClassState.deleted:
+            return f"{self.ID} ({self.DE})"
+        if self.state == EnzymeClassState.renumbered:
+            return f"{self.ID} (Transferred entry) {self.transfered}"
+        return f"{self.ID} ({self.DE}) {self.CA}"
+
     @classmethod
     def read_texts(cls, texts: list[str]) -> "EnzymeClassEntry":
         assert check_entry_complete(texts)
@@ -175,3 +182,26 @@ class EnzymeClassEntry:
             PR=parse_db_reference(text_dict["PR"]),
             DR=parse_db_reference(text_dict["DR"]),
         )
+
+
+class EnzymeClassDatabase:
+    def __init__(self, dat: str) -> None:
+        self.dat = dat
+        self.ecs = {i.ID: i for i in self.read_dat()}
+
+    def read_dat(self):
+        with open(self.dat) as fi:
+            for texts in raw_read_dat(fi):
+                if check_entry_complete(texts):
+                    yield EnzymeClassEntry.read_texts(texts)
+
+    def __contains__(self, key: str):
+        return key in self.ecs
+
+    def __getitem__(self, key: str):
+        ec = self.ecs[key]
+        if ec.state == EnzymeClassState.deleted:
+            return []
+        if ec.state == EnzymeClassState.renumbered:
+            return [self.ecs[key] for key in ec.transfered]
+        return [ec]
