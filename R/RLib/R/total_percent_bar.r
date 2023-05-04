@@ -1,7 +1,7 @@
 ###
 #' @Date: 2022-06-28 15:37:09
 #' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
-#' @LastEditTime: 2023-02-02 17:53:46
+#' @LastEditTime: 2023-04-09 17:24:58
 #' @FilePath: /2022_09-M_mem/workflow/utils/libs/metaSC/R/RLib/R/total_percent_bar.r
 #' @Description:
 ###
@@ -155,9 +155,9 @@ get_percent_plot <- function(
           {
             .$name[.$Abundance >= MIN_REPORT_TAXON_PERCENT]
           } %>%
-          {
-            unique(.) %>% as.character()
-          }
+          unique() %>%
+          as.character() %>%
+          sort()
       } else {
         top_taxon <- NULL
       }
@@ -184,7 +184,7 @@ get_percent_plot <- function(
       )
     ) +
     geom_bar(
-      position = position_stack(reverse = T),
+      position = position_stack(reverse = TRUE),
       stat = "identity",
       color = geom_bar.color, size = 0.3
     ) +
