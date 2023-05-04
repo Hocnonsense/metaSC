@@ -2,7 +2,7 @@
 """
  * @Date: 2022-04-28 23:23:30
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-04 10:51:23
+ * @LastEditTime: 2023-05-04 10:55:21
  * @FilePath: /metaSC/PyLib/tool/ttycolors.py
  * @Description:
     TTY colors
@@ -38,9 +38,7 @@ class ShellWeights(Enum):
 
 
 tty_colors = {
-    i.name: {
-        j.name: f"\033[{j.value};{i.value}m%s\033[{j.value}m" for j in ShellWeights
-    }
+    i.name: {j.name: f"\033[{j.value};{i.value}m%s\033[0m" for j in ShellWeights}
     for i in ShellColors
 }
 
