@@ -2,8 +2,8 @@
 """
  * @Date: 2023-05-04 11:20:08
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-04 21:57:34
- * @FilePath: /metaSC/PyLib/biotool/ec/parser.py
+ * @LastEditTime: 2023-05-05 09:59:13
+ * @FilePath: /metaSC/PyLib/biotool/ec.py
  * @Description: read ec text
 """
 from enum import Enum
@@ -198,10 +198,10 @@ class EnzymeClassDatabase:
     def __contains__(self, key: str):
         return key in self.ecs
 
-    def __getitem__(self, key: str):
+    def __getitem__(self, key: str) -> list[EnzymeClassEntry]:
         ec = self.ecs[key]
         if ec.state == EnzymeClassState.deleted:
             return []
         if ec.state == EnzymeClassState.renumbered:
-            return [self.ecs[key] for key in ec.transfered]
+            return [self.ecs.get(key, key) for key in ec.transfered]
         return [ec]

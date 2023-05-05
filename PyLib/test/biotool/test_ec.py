@@ -2,7 +2,7 @@
 """
  * @Date: 2023-05-04 11:21:46
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-04 21:59:10
+ * @LastEditTime: 2023-05-05 10:00:49
  * @FilePath: /metaSC/PyLib/test/biotool/test_ec.py
  * @Description:
 """
@@ -178,3 +178,10 @@ def test_extract_transferred_entries():
         "1.1.1.227",
         "1.1.1.228",
     ]
+
+
+def test_ecdb():
+    ec_dat = test_file_path / "enzyme.dat"
+    ecdb = ec.EnzymeClassDatabase(ec_dat)
+    assert ecdb["1.1.1.1"][0] == ecdb.ecs["1.1.1.1"]
+    assert ecdb["1.1.1.5"] == ["1.1.1.303", "1.1.1.304"]
