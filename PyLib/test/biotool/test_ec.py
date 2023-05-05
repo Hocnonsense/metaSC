@@ -2,7 +2,7 @@
 """
  * @Date: 2023-05-04 11:21:46
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-05 10:00:49
+ * @LastEditTime: 2023-05-05 10:44:39
  * @FilePath: /metaSC/PyLib/test/biotool/test_ec.py
  * @Description:
 """
@@ -56,7 +56,7 @@ def test_ec_entry_str():
     ec_e = ec.EnzymeClassEntry.read_texts(texts)
     assert (
         str(ec_e)
-        == "1.1.1.4 ((R,R)-butanediol dehydrogenase.) ['(R,R)-butane-2,3-diol + NAD(+) = (R)-acetoin + H(+) + NADH.']"
+        == "1.1.1.4 ((R,R)-butanediol dehydrogenase) ['(R,R)-butane-2,3-diol + NAD(+) = (R)-acetoin + H(+) + NADH']"
     )
 
 
@@ -82,9 +82,7 @@ def test_bind_text():
 
 
 def test_parse_de():
-    assert (
-        ec.parse_sentence(["Alcohol dehydrogenase.\n"])[0] == "Alcohol dehydrogenase."
-    )
+    assert ec.parse_sentence(["Alcohol dehydrogenase.\n"])[0] == "Alcohol dehydrogenase"
     assert (
         ec.parse_sentence(
             [
@@ -92,7 +90,7 @@ def test_parse_de():
                 "alanyl-D-alanyl ligase.\n",
             ]
         )[0]
-        == "UDP-N-acetylmuramoylalanyl-D-glutamyl-2,6-diaminopimelate--D-alanyl-D-alanyl ligase."
+        == "UDP-N-acetylmuramoylalanyl-D-glutamyl-2,6-diaminopimelate--D-alanyl-D-alanyl ligase"
     )
     assert (
         ec.parse_sentence(
@@ -101,7 +99,7 @@ def test_parse_de():
                 "and 3.4.21.67.\n",
             ]
         )[0]
-        == "Transferred entry: 3.4.21.62, 3.4.21.63, 3.4.21.64, 3.4.21.65, 3.4.21.66 and 3.4.21.67."
+        == "Transferred entry: 3.4.21.62, 3.4.21.63, 3.4.21.64, 3.4.21.65, 3.4.21.66 and 3.4.21.67"
     )
 
 
@@ -114,32 +112,48 @@ def test_parse_an():
             "Terminal transferase.\n",
         ]
     ) == [
-        "Terminal addition enzyme.",
-        "Terminal deoxynucleotidyltransferase.",
-        "Terminal deoxyribonucleotidyltransferase.",
-        "Terminal transferase.",
+        "Terminal addition enzyme",
+        "Terminal deoxynucleotidyltransferase",
+        "Terminal deoxyribonucleotidyltransferase",
+        "Terminal transferase",
     ]
 
 
 def test_parse_ca():
+    assert ec.parse_sentence(["L-malate + NAD(+) = oxaloacetate + NADH.\n",]) == [
+        "L-malate + NAD(+) = oxaloacetate + NADH",
+    ]
     assert ec.parse_sentence(
         [
-            "L-malate + NAD(+) = oxaloacetate + NADH.\n",
             "2 ATP + NH(3) + CO(2) + H(2)O = 2 ADP + phosphate + carbamoyl\n",
             "phosphate.\n",
+        ]
+    ) == [
+        "2 ATP + NH(3) + CO(2) + H(2)O = 2 ADP + phosphate + carbamoyl phosphate",
+    ]
+    assert ec.parse_sentence(
+        [
             "Cyclizes part of a 1,4-alpha-D-glucan chain by formation of a\n",
             "1,4-alpha-D-glucosidic bond.\n",
+        ]
+    ) == [
+        "Cyclizes part of a 1,4-alpha-D-glucan chain by formation of a 1,4-alpha-D-glucosidic bond",
+    ]
+    assert ec.parse_sentence(
+        [
             "Cleavage of Leu-|-Xaa bond in angiotensinogen to generate\n",
             "angiotensin I.\n",
+        ]
+    ) == [
+        "Cleavage of Leu-|-Xaa bond in angiotensinogen to generate angiotensin I",
+    ]
+    assert ec.parse_sentence(
+        [
             "H2O + 2 NAD(+) + UDP-alpha-D-glucose = 3 H(+) + 2 NADH + UDP-alpha-D-\n",
             "glucuronate.\n",
         ]
     ) == [
-        "L-malate + NAD(+) = oxaloacetate + NADH.",
-        "2 ATP + NH(3) + CO(2) + H(2)O = 2 ADP + phosphate + carbamoyl phosphate.",
-        "Cyclizes part of a 1,4-alpha-D-glucan chain by formation of a 1,4-alpha-D-glucosidic bond.",
-        "Cleavage of Leu-|-Xaa bond in angiotensinogen to generate angiotensin I.",
-        "H2O + 2 NAD(+) + UDP-alpha-D-glucose = 3 H(+) + 2 NADH + UDP-alpha-D-glucuronate.",
+        "H2O + 2 NAD(+) + UDP-alpha-D-glucose = 3 H(+) + 2 NADH + UDP-alpha-D-glucuronate",
     ]
 
 

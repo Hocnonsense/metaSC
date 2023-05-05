@@ -2,7 +2,7 @@
 """
  * @Date: 2023-05-04 11:20:08
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-05 09:59:13
+ * @LastEditTime: 2023-05-05 10:43:43
  * @FilePath: /metaSC/PyLib/biotool/ec.py
  * @Description: read ec text
 """
@@ -90,7 +90,7 @@ def parse_sentence(clean_texts: list[str]):
             sentence = ""
     if sentence != "":
         sentences.append(sentence)
-    return sentences
+    return [i[:-1] for i in sentences]
 
 
 def parse_comments(clean_texts: list[str]):
@@ -159,7 +159,7 @@ class EnzymeClassEntry:
         self.transfered = None
         if self.state == EnzymeClassState.renumbered:
             self.transfered = extract_transferred_entries(
-                self.DE[len(self.state.value) : -1]
+                self.DE[len(self.state.value) :]
             )
 
     def __str__(self) -> str:
