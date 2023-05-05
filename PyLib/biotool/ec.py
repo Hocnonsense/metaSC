@@ -2,7 +2,7 @@
 """
  * @Date: 2023-05-04 11:20:08
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-05 10:43:43
+ * @LastEditTime: 2023-05-05 10:52:27
  * @FilePath: /metaSC/PyLib/biotool/ec.py
  * @Description: read ec text
 """
@@ -93,6 +93,13 @@ def parse_sentence(clean_texts: list[str]):
     return [i[:-1] for i in sentences]
 
 
+def parse_ca(clean_texts: list[str]):
+    sentences = parse_sentence(clean_texts)
+    if len(sentences) == 1:
+        return sentences
+    return [i.split(") ", 1)[1] for i in sentences]
+
+
 def parse_comments(clean_texts: list[str]):
     comments: list[str] = []
     comment = ""
@@ -177,7 +184,7 @@ class EnzymeClassEntry:
             ID=entry_id,
             DE=parse_sentence(text_dict["DE"])[0],
             AN=parse_sentence(text_dict["AN"]),
-            CA=parse_sentence(text_dict["CA"]),
+            CA=parse_ca(text_dict["CA"]),
             CC=parse_comments(text_dict["CC"]),
             PR=parse_db_reference(text_dict["PR"]),
             DR=parse_db_reference(text_dict["DR"]),

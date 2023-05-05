@@ -2,7 +2,7 @@
 """
  * @Date: 2023-05-04 11:21:46
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-05 10:44:39
+ * @LastEditTime: 2023-05-05 10:52:02
  * @FilePath: /metaSC/PyLib/test/biotool/test_ec.py
  * @Description:
 """
@@ -120,10 +120,10 @@ def test_parse_an():
 
 
 def test_parse_ca():
-    assert ec.parse_sentence(["L-malate + NAD(+) = oxaloacetate + NADH.\n",]) == [
+    assert ec.parse_ca(["L-malate + NAD(+) = oxaloacetate + NADH.\n",]) == [
         "L-malate + NAD(+) = oxaloacetate + NADH",
     ]
-    assert ec.parse_sentence(
+    assert ec.parse_ca(
         [
             "2 ATP + NH(3) + CO(2) + H(2)O = 2 ADP + phosphate + carbamoyl\n",
             "phosphate.\n",
@@ -131,29 +131,14 @@ def test_parse_ca():
     ) == [
         "2 ATP + NH(3) + CO(2) + H(2)O = 2 ADP + phosphate + carbamoyl phosphate",
     ]
-    assert ec.parse_sentence(
+    assert ec.parse_ca(
         [
-            "Cyclizes part of a 1,4-alpha-D-glucan chain by formation of a\n",
-            "1,4-alpha-D-glucosidic bond.\n",
+            "(1) a primary alcohol + NAD(+) = an aldehyde + H(+) + NADH.\n",
+            "(2) a secondary alcohol + NAD(+) = a ketone + H(+) + NADH.\n",
         ]
     ) == [
-        "Cyclizes part of a 1,4-alpha-D-glucan chain by formation of a 1,4-alpha-D-glucosidic bond",
-    ]
-    assert ec.parse_sentence(
-        [
-            "Cleavage of Leu-|-Xaa bond in angiotensinogen to generate\n",
-            "angiotensin I.\n",
-        ]
-    ) == [
-        "Cleavage of Leu-|-Xaa bond in angiotensinogen to generate angiotensin I",
-    ]
-    assert ec.parse_sentence(
-        [
-            "H2O + 2 NAD(+) + UDP-alpha-D-glucose = 3 H(+) + 2 NADH + UDP-alpha-D-\n",
-            "glucuronate.\n",
-        ]
-    ) == [
-        "H2O + 2 NAD(+) + UDP-alpha-D-glucose = 3 H(+) + 2 NADH + UDP-alpha-D-glucuronate",
+        "a primary alcohol + NAD(+) = an aldehyde + H(+) + NADH",
+        "a secondary alcohol + NAD(+) = a ketone + H(+) + NADH",
     ]
 
 
