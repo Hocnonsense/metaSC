@@ -2,7 +2,7 @@
 """
  * @Date: 2023-05-04 11:20:08
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-05 10:52:27
+ * @LastEditTime: 2023-05-05 12:21:29
  * @FilePath: /metaSC/PyLib/biotool/ec.py
  * @Description: read ec text
 """
@@ -42,12 +42,13 @@ def check_title(texts: list[str]):
 
 def check_entry_complete(texts: list[str]):
     ch = [i[:5] for i in texts]
-    if ch[0] != "ID   ":
-        return False
-    if "DE   " not in ch:
+    if ch[:2] != ["ID   ", "DE   "]:
         return False
     if "CA   " not in ch:
-        if len(ch) == 2 and texts[1].startswith("DE   Transferred entry: "):
+        if (
+            len(set(ch)) == 2
+            and EnzymeClassState.check_state(texts[1][5:]) != EnzymeClassState.valid
+        ):
             return True
         return False
     for i in ch:
@@ -94,10 +95,31 @@ def parse_sentence(clean_texts: list[str]):
 
 
 def parse_ca(clean_texts: list[str]):
-    sentences = parse_sentence(clean_texts)
-    if len(sentences) == 1:
-        return sentences
-    return [i.split(") ", 1)[1] for i in sentences]
+    if len(clean_texts) == 0:
+        return []
+    sentences: list[str] = []
+    _i = 1
+    li = f"({_i}) "
+    sentence = ""
+    if clean_texts[0].startswith(li):
+        sentence = clean_texts[0][len(li) :].rstrip("\n")
+        _i += 1
+        li = f"({_i}) "
+        for i in clean_texts[1:]:
+            if i.startswith(li):
+                sentences.append(sentence)
+                _i += 1
+                li = f"({_i}) "
+                sentence = i[len(li) :].rstrip("\n")
+            else:
+                sentence = bind_text(sentence, i.rstrip("\n"))
+    else:
+        for i in clean_texts:
+            sentence = bind_text(sentence, i.rstrip("\n"))
+        print(sentence)
+    if sentence != "":
+        sentences.append(sentence)
+    return [i[:-1] for i in sentences]
 
 
 def parse_comments(clean_texts: list[str]):
@@ -128,7 +150,7 @@ def parse_db_reference(clean_texts: list[str]):
 
 class EnzymeClassState(Enum):
     valid = ""
-    deleted = "Deleted entry."
+    deleted = "Deleted entry"
     renumbered = "Transferred entry: "
 
     @classmethod
@@ -192,15 +214,32 @@ class EnzymeClassEntry:
 
 
 class EnzymeClassDatabase:
-    def __init__(self, dat: str) -> None:
+    def __init__(self, dat: str, strict=True) -> None:
         self.dat = dat
-        self.ecs = {i.ID: i for i in self.read_dat()}
+        self.title: list[str] = []
+        self.ecs = self.read_dat(strict=strict)
 
-    def read_dat(self):
+    def read_dat(self, strict=True):
+        ecs: dict[str, EnzymeClassEntry] = {}
         with open(self.dat) as fi:
-            for texts in raw_read_dat(fi):
+            text_iter = raw_read_dat(fi)
+            if strict:
+                title = next(text_iter)
+                assert check_title(title)
+                self.title = title
+            for texts in text_iter:
                 if check_entry_complete(texts):
-                    yield EnzymeClassEntry.read_texts(texts)
+                    e = EnzymeClassEntry.read_texts(texts)
+                    ecs[e.ID] = e
+                elif strict:
+                    print(texts)
+                    assert False
+        if strict:
+            for e in ecs.values():
+                if e.state == EnzymeClassState.renumbered:
+                    for i in e.transfered:
+                        assert i in ecs
+        return ecs
 
     def __contains__(self, key: str):
         return key in self.ecs

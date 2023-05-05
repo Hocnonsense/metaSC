@@ -2,7 +2,7 @@
 """
  * @Date: 2023-05-04 11:21:46
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-05 10:52:02
+ * @LastEditTime: 2023-05-05 12:21:55
  * @FilePath: /metaSC/PyLib/test/biotool/test_ec.py
  * @Description:
 """
@@ -140,6 +140,14 @@ def test_parse_ca():
         "a primary alcohol + NAD(+) = an aldehyde + H(+) + NADH",
         "a secondary alcohol + NAD(+) = a ketone + H(+) + NADH",
     ]
+    assert ec.parse_ca(
+        [
+            "(9Z)-hexadecenoyl-[ACP] + alpha-Kdo-(2->4)-alpha-Kdo-(2->6)-lipid IVA (E.\n",
+            "coli) = (9Z)-hexadecenoyl-(Kdo)2-lipid IVA (E. coli) + holo-[ACP].\n",
+        ]
+    ) == [
+        "(9Z)-hexadecenoyl-[ACP] + alpha-Kdo-(2->4)-alpha-Kdo-(2->6)-lipid IVA (E. coli) = (9Z)-hexadecenoyl-(Kdo)2-lipid IVA (E. coli) + holo-[ACP]",
+    ]
 
 
 def test_parse_cc():
@@ -181,6 +189,6 @@ def test_extract_transferred_entries():
 
 def test_ecdb():
     ec_dat = test_file_path / "enzyme.dat"
-    ecdb = ec.EnzymeClassDatabase(ec_dat)
+    ecdb = ec.EnzymeClassDatabase(ec_dat, strict=False)
     assert ecdb["1.1.1.1"][0] == ecdb.ecs["1.1.1.1"]
     assert ecdb["1.1.1.5"] == ["1.1.1.303", "1.1.1.304"]
