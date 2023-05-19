@@ -2,7 +2,7 @@
 """
  * @Date: 2021-02-03 11:09:20
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-19 15:08:11
+ * @LastEditTime: 2023-05-19 15:54:23
  * @FilePath: /metaSC/PyLib/biotool/download.py
  * @Description:
         download genome from net
@@ -225,7 +225,6 @@ class IMGSeqURL(RetriveUrl):
         cls.__cookies = Path(cookies)
 
     @classmethod
-    @property
     def cookies(cls):
         if not isinstance(cls.__cookies, Path):
             raise FileNotFoundError(
@@ -382,7 +381,7 @@ class NCBISerachURL(RefSeqURL):
         return super()._retrieve_url(refseq_id)
 
 
-def _download_fna(sequence_id: str, output: Path, cookies):
+def _download_fna(sequence_id: str, fna_file: Path, cookies):
     """
     @param sequence_id: name of reference genome, possibly starts with [GCA, GCF, GWH, IMG]
     @param output: Path to store output
@@ -391,13 +390,7 @@ def _download_fna(sequence_id: str, output: Path, cookies):
     @param cookies: for downloading IMG genomes
     @return: path to downloaded genomes
     """
-    if output.name.endswith(".fna"):
-        fna_file = output
-        output = output.parent
-    else:
-        fna_file = output / f"{sequence_id}.fna"
-
-    output.mkdir(parents=True, exist_ok=True)
+    fna_file.parent.mkdir(parents=True, exist_ok=True)
     logger.info(f"download to {fna_file}")
     for rurl in (
         RefSeqURL,
@@ -424,7 +417,13 @@ def download_fna(
     retry=0,
 ):
     basicConfig()
-    fna_file = Path(output) / f"{sequence_id}.fna"
+
+    output = Path(output)
+    if output.name.endswith(".fna"):
+        fna_file = output
+        output = output.parent
+    else:
+        fna_file = output / f"{sequence_id}.fna"
 
     if overwrite or not fna_file.is_file():
         for i in range(retry, -1, -1):
@@ -448,25 +447,3 @@ def download_fna(
         logger.warning(f"{fna_file} already exists, skip.")
 
     return fna_file
-
-
-def retrieve_refseq_url_ls(gcx_id: str, file_suffix: str = ""):
-    refseq_base_ftp_url = "ftp.ncbi.nlm.nih.gov"
-    refseq_genomes_url = "genomes/all"
-
-    gcx, number = gcx_id.split(".")[0].split("_")
-    gcx_url = "/".join([gcx] + [number[i : i + 3] for i in range(0, len(number), 3)])
-
-    ftp = ftplib.FTP(refseq_base_ftp_url)
-    _ = ftp.login()
-    _ = ftp.cwd(refseq_genomes_url + "/" + gcx_url)
-    folder = ftp.nlst()[0]
-    _ = ftp.cwd(folder)
-    files = ftp.nlst()
-    _ = ftp.quit()
-
-    gcx_download_fmt = "https://" + "/".join(
-        [refseq_base_ftp_url, refseq_genomes_url, gcx_url, folder, "{}"]
-    )
-    download_files = [ff for ff in files if file_suffix in ff]
-    return [gcx_download_fmt.format(ff) for ff in download_files]
