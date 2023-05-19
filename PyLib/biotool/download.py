@@ -2,7 +2,7 @@
 """
  * @Date: 2021-02-03 11:09:20
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-19 11:19:29
+ * @LastEditTime: 2023-05-19 15:08:11
  * @FilePath: /metaSC/PyLib/biotool/download.py
  * @Description:
         download genome from net
@@ -319,6 +319,49 @@ class WGSSeqURL(RefSeqURL):
         return any(i is not None for i in matches.values())
 
     @classmethod
+    def query_assembly(
+        cls, sequence_id
+    ) -> tuple["Entrez.Parser.DictionaryElement", list[str]]:
+        check_entrez_email()
+
+        wgs_id = sequence_id
+        with Entrez.esearch(db="assembly", term=wgs_id, retmax=cls.RETMAX) as handle:
+            search = Entrez.read(handle)
+
+        if len(search["IdList"]) > 1:
+            logger.warning(f"multipile assembly id found: {search['IdList']}")
+        elif len(search["IdList"]) < 1:
+            logger.error("no item found, please check item (all digits shall be '0')")
+        with Entrez.esummary(db="assembly", id=search["IdList"][0]) as handle:
+            summary_set = Entrez.read(handle)["DocumentSummarySet"]
+        assert isinstance(summary_set, Entrez.Parser.DictionaryElement)
+        return summary_set, search["IdList"]
+
+    @classmethod
+    def _retrieve_url(cls, sequence_id: str) -> str:
+        summary_set, id_list = cls.query_assembly(sequence_id)
+        if len(summary_set["DocumentSummary"]) == 1:
+            refseq_id: str = summary_set["DocumentSummary"][0]["AssemblyAccession"]
+            if len(id_list) > 1:
+                refseq_id = refseq_id.rsplit(".", 1)[0]
+        else:
+            raise KeyError("more than one record returned")
+        logger.info(f"estimated refseq_id: {refseq_id}")
+        return super()._retrieve_url(refseq_id)
+
+
+class NCBISerachURL(RefSeqURL):
+    """
+    unknown
+    """
+
+    RETMAX = 100
+
+    @classmethod
+    def verify_format(cls, sequence_id):
+        return True
+
+    @classmethod
     def _retrieve_url(cls, sequence_id: str) -> str:
         check_entrez_email()
 
@@ -335,6 +378,7 @@ class WGSSeqURL(RefSeqURL):
             refseq_id = summary[0]["Assembly_Accession"]
         else:
             raise KeyError("more than one record returned")
+        logger.info(f"estimated refseq_id: {refseq_id}")
         return super()._retrieve_url(refseq_id)
 
 
@@ -367,7 +411,8 @@ def _download_fna(sequence_id: str, output: Path, cookies):
             rurl.download(sequence_id, fna_file)
             break
     else:
-        raise NotImplementedError
+        logger.info(f"no format matched, just search in NCBI")
+        WGSSeqURL.download(sequence_id, fna_file)
     return fna_file
 
 
