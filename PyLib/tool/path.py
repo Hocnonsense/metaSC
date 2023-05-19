@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
  * @Date: 2020-02-05 11:03:35
- * @LastEditors: Hwrn
- * @LastEditTime: 2021-09-23 17:26:43
+ * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
+ * @LastEditTime: 2023-05-19 10:57:47
  * @FilePath: /metaSC/PyLib/tool/path.py
  * @Description: 文件和文件名操作子
  * @TODO:
@@ -20,18 +20,17 @@ from typing import Iterable, List, Tuple
 
 
 def appendcwd():
-    """ Append python executing path to package directory.
-    """
+    """Append python executing path to package directory."""
     sys.path.append(os.getcwd())
 
 
 @contextmanager
 def TemporaryDirectory(**kwargs):
-    """ Context manager so it's usable with "with" statement.
-        >>> with TemporaryDirectory(dir=None) as tempdirname:
-        ...     with open(os.path.join(tempdirname, 'temp'), 'w+') as tmp:
-        ...         pass
-        ...
+    """Context manager so it's usable with "with" statement.
+    >>> with TemporaryDirectory(dir=None) as tempdirname:
+    ...     with open(os.path.join(tempdirname, 'temp'), 'w+') as tmp:
+    ...         pass
+    ...
     """
     name = tempfile.mkdtemp(**kwargs)
     try:
@@ -46,14 +45,14 @@ File and file_name path utilities.
 """
 
 
-def makedirs(path: str, *paths: Iterable[str]) -> str:
-    """ @description 创建路径
-            Join one or more path components, make that directory path (using the
-            default mode 0o0777), and return the full path.
-        @return 完整路径
-            Raise OSError if it can't achieve the result (e.g. the containing directory
-            is readonly or the path contains a file); not if the directory already
-            exists.
+def makedirs(path: str, *paths: str) -> str:
+    """@description 创建路径
+        Join one or more path components, make that directory path (using the
+        default mode 0o0777), and return the full path.
+    @return 完整路径
+        Raise OSError if it can't achieve the result (e.g. the containing directory
+        is readonly or the path contains a file); not if the directory already
+        exists.
     """
     full_path = os.path.join(path, *paths)
 
@@ -62,24 +61,26 @@ def makedirs(path: str, *paths: Iterable[str]) -> str:
     return full_path
 
 
-def verify_file_exists(file_path: str, message: str = '') -> None:
-    """ @description assert 文件存在
-            Raise an FileNotFoundError if file_path isn't an existing file."""
+def verify_file_exists(file_path: str, message: str = "") -> None:
+    """@description assert 文件存在
+    Raise an FileNotFoundError if file_path isn't an existing file."""
     if not os.path.isfile(file_path):
         raise FileNotFoundError(
-            errno.ENOENT, 'Missing file "{}".  {}'.format(file_path, message))
+            errno.ENOENT, 'Missing file "{}".  {}'.format(file_path, message)
+        )
 
 
-def verify_dir_exists(dir_path: str, message: str = '') -> None:
-    """ @description assert 路径存在
-            Raise an NotADirectoryError if dir_path isn't an existing directory."""
+def verify_dir_exists(dir_path: str, message: str = "") -> None:
+    """@description assert 路径存在
+    Raise an NotADirectoryError if dir_path isn't an existing directory."""
     if not os.path.isdir(dir_path):
         raise NotADirectoryError(
-            errno.ENOENT, 'Missing dir "{}".  {}'.format(dir_path, message))
+            errno.ENOENT, 'Missing dir "{}".  {}'.format(dir_path, message)
+        )
 
 
-def list_dir(dir: str, filter: Tuple) -> List:
-    """ List file or direcory in `dir`. """
+def list_dir(dir: str, filter) -> List:
+    """List file or direcory in `dir`."""
     dir_list = []
     if isinstance(filter, str):
         filter = re.compile(filter)
@@ -90,7 +91,7 @@ def list_dir(dir: str, filter: Tuple) -> List:
 
 
 def fine_all_files(dir: str, filter) -> List:
-    """ List all files. """
+    """List all files."""
     # : re.Pattern is unavalible in python3.6
     files_list = []
     for parent, dirs, files in os.walk(dir):
@@ -103,7 +104,7 @@ def fine_all_files(dir: str, filter) -> List:
 
 
 def abs_user_path(dir: str) -> str:
-    """ Recognize `~/` and modify it. """
+    """Recognize `~/` and modify it."""
     return os.path.abspath(os.path.expanduser(dir))
 
 
@@ -119,7 +120,8 @@ class Path:
     source_name: 当前路径管理的名字
     source_path: 当前的路径
     """
-    __dict = {}
+
+    __dict: dict = {}
     __rootpath = os.path.dirname(__file__)
 
     def __init__(self, source_path, desc):
