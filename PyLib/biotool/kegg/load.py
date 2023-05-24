@@ -2,8 +2,8 @@
 """
  * @Date: 2023-02-08 11:23:52
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-02-08 11:28:09
- * @FilePath: /2022_09-M_mem/workflow/utils/libs/metaSC/PyLib/biotool/kegg/load.py
+ * @LastEditTime: 2023-05-24 15:17:37
+ * @FilePath: /metaSC/PyLib/biotool/kegg/load.py
  * @Description:
 """
 # """
@@ -11,7 +11,43 @@
 import pandas as pd
 
 from pathlib import Path
-from .LinkDB import module_from_brite
+from .LinkDB import module_from_brite, load_brite
+
+from PyLib.PyLibTool.file_info import verbose_import
+
+logger = verbose_import(__name__, __doc__)
+
+
+def load_ko00001(KEGG_DIR="./KEGG_DB"):
+    """Database may be download from KEGG, including the file of module and description (ko00002.json)"""
+    import pandas as pd
+
+    KEGG_DIR = Path(KEGG_DIR).expanduser()
+
+    KEGG_DIR.mkdir(parents=True, exist_ok=True)
+
+    _, brite = load_brite("br:ko00001", KEGG_DIR / "brite" / "ko00001.json")
+    ko_levels: list[tuple[str, str, str, str]] = []
+    levels_name: dict[tuple[str, str]] = {}
+    for modules1_name, modules1 in brite.items():
+        name1, des1 = modules1_name.split(" ", 1)
+        levels_name[name1] = des1
+        for modules2_name, modules2 in modules1.items():
+            name2, des2 = modules2_name.split(" ", 1)
+            levels_name[name2] = des2
+            for modules3_name, modules3 in modules2.items():
+                if not isinstance(modules3, dict):
+                    levels_name[modules3_name] = modules3
+                    continue
+                name3, des3 = modules3_name.split(" ", 1)
+                levels_name[name3] = des3
+                for KO, fns in modules3.items():
+                    ko_levels.append((name1, name2, name3, KO, fns))
+
+    ko_levels_ = pd.DataFrame(ko_levels, columns=["A", "B", "C", "KO", "name"])
+    ko_levels_.index = ko_levels_["KO"].values
+
+    return ko_levels_, levels_name
 
 
 def load_ko00002(KEGG_DIR="./KEGG_DB"):
@@ -30,7 +66,7 @@ def load_ko00002(KEGG_DIR="./KEGG_DB"):
     module_levels_ = pd.DataFrame(
         module_levels, columns=["A", "B", "C", "entry", "name"]
     )
-    module_levels_.index = module_levels_["entry"]  # type: ignore
+    module_levels_.index = module_levels_["entry"]
     return module_levels_, dict(modules)
 
 
