@@ -2,8 +2,8 @@
 """
  * @Date: 2021-03-28 12:36:23
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-02-08 11:32:16
- * @FilePath: /2022_09-M_mem/workflow/utils/libs/metaSC/PyLib/biotool/kegg/__init__.py
+ * @LastEditTime: 2023-05-25 17:08:31
+ * @FilePath: /metaSC/PyLib/biotool/kegg/__init__.py
  * @Description:
 """
 from .query import (
@@ -21,4 +21,4 @@ from .LinkDB import (
     map_KO_dict,
     map_KO_substr,
 )
-from .load import load_ko00002, load_entry, get_gmodule
+from .load import load_ko00001, load_ko00002, load_entry, get_gmodule

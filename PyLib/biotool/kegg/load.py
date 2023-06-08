@@ -2,7 +2,7 @@
 """
  * @Date: 2023-02-08 11:23:52
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-24 15:17:37
+ * @LastEditTime: 2023-06-01 08:23:54
  * @FilePath: /metaSC/PyLib/biotool/kegg/load.py
  * @Description:
 """
@@ -12,10 +12,6 @@ import pandas as pd
 
 from pathlib import Path
 from .LinkDB import module_from_brite, load_brite
-
-from PyLib.PyLibTool.file_info import verbose_import
-
-logger = verbose_import(__name__, __doc__)
 
 
 def load_ko00001(KEGG_DIR="./KEGG_DB"):
@@ -45,7 +41,6 @@ def load_ko00001(KEGG_DIR="./KEGG_DB"):
                     ko_levels.append((name1, name2, name3, KO, fns))
 
     ko_levels_ = pd.DataFrame(ko_levels, columns=["A", "B", "C", "KO", "name"])
-    ko_levels_.index = ko_levels_["KO"].values
 
     return ko_levels_, levels_name
 
