@@ -1,8 +1,8 @@
 <!--
  * @Date: 2020-10-02 20:40:15
- * @LastEditors: Hwrn
- * @LastEditTime: 2022-04-28 23:00:07
- * @FilePath: /metaSC/PyLib/README.md
+ * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
+ * @LastEditTime: 2023-06-30 20:42:59
+ * @FilePath: /meta-snakemake-minimal/workflow/utils/libs/metaSC/PyLib/README.md
  * @Description:
 -->
 Python
@@ -33,8 +33,8 @@ Python files
 ## [setup](setup.py)
 - clone: `git clone https://github.com/Hocnonsense/metaSC.git`
 1.  install with repository and pip:
-    - run `Hscripts]$``cd Python && python setup.py install`
-    - to remove, just `pip uninstall Hscripts`
+    - run `metaSC]$``python PyLib/setup.py develop`
+    - to remove, just `pip uninstall metaSC`
 2.  use PYTHONPATH
     - add this in bash environment:
         `export PYTHONPATH=~/<your-path-to>/metaSC`

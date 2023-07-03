@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-02-27 16:52:29
 #' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
-#' @LastEditTime: 2023-04-13 20:45:53
+#' @LastEditTime: 2023-07-01 23:55:21
 #' @FilePath: /2022_09-M_mem/workflow/utils/libs/metaSC/R/RLib/R/div.otu.r
 #* @Description:
 ###
@@ -206,7 +206,7 @@ bar.pct.annot <- function(div.otu,
 #'
 #' @return ggplot
 #' @export
-plot.beta.div <- function(div.otu, # nolint: object_name_linter.
+plot.beta.div <- function(div.otu, # nolint
                           pname = NA,
                           method = c("pcoa", "nmds"),
                           dist = "jaccard", binary = NA,
@@ -346,13 +346,16 @@ plot.beta.div <- function(div.otu, # nolint: object_name_linter.
   } else if (area == "polygon") {
     p <- p +
       geom_polygon(
-        data = Reduce(
-          rbind,
-          lapply(
-            split(div_otu_point, div_otu_point$Location),
-            function(x) x[chull(x[c("Axis.1", "Axis.2")]), ]
-          )
-        ),
+        data = . %>% # nolint
+          {
+            Reduce(
+              rbind,
+              lapply(
+                split(., .$Location), # nolint
+                function(x) x[chull(x[c("Axis.1", "Axis.2")]), ]
+              )
+            )
+          },
         aes_string(
           x = "Axis.1", y = "Axis.2",
           fill = "Location", color = "Location"
