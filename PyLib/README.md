@@ -1,8 +1,8 @@
 <!--
  * @Date: 2020-10-02 20:40:15
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-06-30 20:42:59
- * @FilePath: /meta-snakemake-minimal/workflow/utils/libs/metaSC/PyLib/README.md
+ * @LastEditTime: 2023-08-09 16:14:16
+ * @FilePath: /metaSC/PyLib/README.md
  * @Description:
 -->
 Python
@@ -21,7 +21,7 @@ Python files
     2.  Demo to show example of other package
         - tool
 
-- to test, run `pytest --cov --cov-report=html`
+- to test, run `pytest --cov --cov-report=html -m "not slowdownload"`
 
 ---
 ## [tmp](tmp/__init__.py)
