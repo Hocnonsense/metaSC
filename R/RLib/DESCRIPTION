@@ -1,0 +1,11 @@
+Package: RLib
+Type: Package
+Title: Useful R function from metaSC
+Version: 0.0.2
+Author: Hwrn.aou
+Maintainer: Hwrn.aou <Hwrn.aou@sjtu.edu.cn>
+Description:
+    This package contains some useful R functions.
+LazyData: yes
+License: GPL-3
+Encoding: UTF-8
