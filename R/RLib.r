@@ -1,7 +1,7 @@
 ###
 #' @Date: 2022-02-27 13:23:46
 #' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
-#' @LastEditTime: 2023-08-10 20:18:32
+#' @LastEditTime: 2023-08-10 20:22:02
 #' @FilePath: /metaSC/R/RLib.r
 #' @Description:
 #'    source me!
@@ -33,7 +33,7 @@ library(edgeR)
 
 suppressMessages(library(pathview))
 
-if (grepl("RLib.local$", getwd())) {
+if (grepl("RLib$", getwd())) {
   #### LOAD general functions                                               ####
   . <- plyr::.
   message.print <- function(...) { # nolint: object_name_linter.
