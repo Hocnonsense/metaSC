@@ -1,7 +1,7 @@
 <!--
  * @Date: 2020-10-02 20:40:15
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-08-09 16:14:16
+ * @LastEditTime: 2023-09-01 12:41:25
  * @FilePath: /metaSC/PyLib/README.md
  * @Description:
 -->
@@ -44,5 +44,14 @@ Python files
 - [Tool](tool/README.md)
 - [BioTool](biotool/README.md)
 
+
+## changelog
+- 0.0.4 (on process)
+    - update biotool.download
+    - add retries_download
+    - add RetriveUrl.download_genome
+    - add RefSeqURL.download_gff
+    - update RetriveUrl.download_fna to RetriveUrl.download_genome_to
+    - update download_fna to download_genome
 
 # [***$\not$<!-- @Hwrn -->*~~`\`~~**](../README.md)

@@ -2,7 +2,7 @@
 """
  * @Date: 2021-02-03 11:09:20
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-05-19 15:54:23
+ * @LastEditTime: 2023-09-01 12:32:10
  * @FilePath: /metaSC/PyLib/biotool/download.py
  * @Description:
         download genome from net
@@ -16,7 +16,7 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Union
+from typing import Callable, Union
 from urllib.request import urlopen, urlretrieve
 
 from Bio import Entrez
@@ -115,6 +115,36 @@ def check_entrez_email(email=None):
         Entrez.email = out
 
 
+def retries_download(
+    fna_file: Path,
+    call: Callable[[Path], Path],
+    sequence_id: str,
+    overwrite=False,
+    retry=0,
+):
+    if overwrite or not fna_file.is_file():
+        fna_file.parent.mkdir(parents=True, exist_ok=True)
+        for i in range(retry, -1, -1):
+            try:
+                _fna_file = call(fna_file)
+            except ConnectionRefusedError as e:
+                logger.warning(f"{sequence_id} failed at {e.strerror}, retry ({i})")
+                if fna_file.is_file():
+                    runsh_safe(f"/bin/rm {fna_file}")
+                if i == 0:
+                    logger.warning(f"{sequence_id} failed after {retry} tries")
+                    raise e
+                time.sleep(5)
+                continue
+            else:
+                logger.info(f"{_fna_file} downloaded successfully.")
+                break
+        else:
+            raise Exception(f"failed to download {fna_file}.")
+    else:
+        logger.warning(f"{fna_file} already exists, skip.")
+
+
 class RetriveUrl:
     @staticmethod
     def verify_format(sequence_id: str) -> bool:
@@ -130,8 +160,33 @@ class RetriveUrl:
             return cls._retrieve_url(sequence_id)
 
     @classmethod
-    def download(cls, sequence_id: str, filename: Path, overwrite=True):
+    def download_genome_to(cls, sequence_id: str, filename: Path, overwrite=True):
         return download(cls._retrieve_url(sequence_id), filename, overwrite)
+
+    @classmethod
+    def download_genome(
+        cls,
+        sequence_id: str,
+        output: Union[str, Path] = "./",
+        overwrite=False,
+        retry=0,
+    ):
+        output = Path(output)
+        if output.name.endswith(".fna"):
+            fna_file = output
+            output = output.parent
+        else:
+            fna_file = output / f"{sequence_id}.fna"
+
+        retries_download(
+            fna_file,
+            lambda _file: cls.download_genome_to(sequence_id, _file),
+            sequence_id,
+            overwrite,
+            retry,
+        )
+
+        return fna_file
 
 
 class RefSeqURL(RetriveUrl):
@@ -181,10 +236,57 @@ class RefSeqURL(RetriveUrl):
         raise KeyError("no item found")
 
     @classmethod
-    def download(cls, sequence_id: str, filename: Path, overwrite=True):
+    def download_genome_to(cls, sequence_id: str, filename: Path, overwrite=True):
         download(cls._retrieve_url(sequence_id), f"{filename}.gz", overwrite=overwrite)
         runsh_safe(f"gunzip {filename}.gz")
         return filename
+
+    @classmethod
+    def download_gff_to(cls, sequence_id: str, filename: Path, overwrite=True):
+        gcx_download_fmt, folder, files = cls._retrieve_files(sequence_id)
+
+        for ff in files:
+            if (folder + "_genomic.gff.gz") == ff:
+                url = gcx_download_fmt.format(ff)
+                break
+        else:
+            raise Exception("no gff found")
+
+        download(url, f"{filename}.gz", overwrite=overwrite)
+        runsh_safe(f"gunzip {filename}.gz")
+        return filename
+
+    @classmethod
+    def download_gff(
+        cls,
+        sequence_id: str,
+        output: Union[str, Path] = "./",
+        overwrite=False,
+        retry=0,
+    ):
+        """
+        @param sequence_id: name of reference genome, possibly starts with [GCA, GCF, GWH, IMG]
+        @param output: Path to store output
+                    - if it ends with ".gff", then output.name will be used as filename
+                    - otherwise, file will be stored at output / f"{sequence_id}.gff"
+        @return: path to downloaded genomes
+        """
+        output = Path(output)
+        if output.name.endswith(".gff"):
+            gff_file = output
+            output = output.parent
+        else:
+            gff_file = output / f"{sequence_id}.gff"
+
+        retries_download(
+            gff_file,
+            lambda _file: cls.download_gff_to(sequence_id, _file),
+            sequence_id,
+            overwrite,
+            retry,
+        )
+
+        return gff_file
 
 
 class GWHSeqURL(RetriveUrl):
@@ -204,7 +306,7 @@ class GWHSeqURL(RetriveUrl):
         return "ftp://" + "/".join([gwh_base_ftp_url, gwh_genome_url])
 
     @classmethod
-    def download(cls, sequence_id: str, filename: Path, overwrite=True):
+    def download_genome_to(cls, sequence_id: str, filename: Path, overwrite=True):
         download(cls._retrieve_url(sequence_id), f"{filename}.gz", overwrite=overwrite)
         runsh_safe(f"gunzip {filename}.gz")
         return filename
@@ -225,12 +327,17 @@ class IMGSeqURL(RetriveUrl):
         cls.__cookies = Path(cookies)
 
     @classmethod
+    def is_login(cls):
+        return isinstance(cls.__cookies, Path)
+
+    @classmethod
+    @property
     def cookies(cls):
-        if not isinstance(cls.__cookies, Path):
-            raise FileNotFoundError(
-                f"you should generate a cookie via {type(cls)}.img_login"
-            )
-        return str(cls.__cookies)
+        if cls.is_login():
+            return str(cls.__cookies)
+        raise FileNotFoundError(
+            f"you should generate a cookie via {type(cls)}.img_login"
+        )
 
     @staticmethod
     def verify_format(sequence_id):
@@ -247,7 +354,7 @@ class IMGSeqURL(RetriveUrl):
         img_base_url = "https://genome.jgi.doe.gov"
 
         img_search_url = "https://genome.jgi.doe.gov/portal/ext-api/downloads/get-directory?organism="
-        os.system(f"curl '{img_search_url}{img_id}' -b {cls.__cookies} > {img_id}.xml")
+        os.system(f"curl '{img_search_url}{img_id}' -b {cls.cookies} > {img_id}.xml")
         tree = ET.parse(img_id + ".xml")
         root = tree.getroot()
         IMG_Data = [i for i in root if i.attrib["name"] == "IMG Data"][0]
@@ -257,10 +364,10 @@ class IMGSeqURL(RetriveUrl):
         raise KeyError("no item found")
 
     @classmethod
-    def download(cls, sequence_id: str, filename: Path, overwrite=True):
+    def download_genome_to(cls, sequence_id: str, filename: Path, overwrite=True):
         if (not os.path.isfile(filename)) or overwrite:
             img_url = cls._retrieve_url(sequence_id)
-            os.system(f"curl '{img_url}' -b {cls.__cookies} > {filename}")
+            os.system(f"curl '{img_url}' -b {cls.cookies} > {filename}")
         return filename
 
 
@@ -292,7 +399,7 @@ class GenBankSeqURL(RetriveUrl):
         return genebank_base_url + genebank_id
 
     @classmethod
-    def download(cls, sequence_id: str, filename: Path, overwrite=True):
+    def download_genome_to(cls, sequence_id: str, filename: Path, overwrite=True):
         download(cls._retrieve_url(sequence_id), f"{filename}", overwrite=overwrite)
         return filename
 
@@ -381,69 +488,47 @@ class NCBISerachURL(RefSeqURL):
         return super()._retrieve_url(refseq_id)
 
 
-def _download_fna(sequence_id: str, fna_file: Path, cookies):
-    """
-    @param sequence_id: name of reference genome, possibly starts with [GCA, GCF, GWH, IMG]
-    @param output: Path to store output
-                   - if it ends with ".fna", then output.name will be used as filename
-                   - otherwise, file will be stored at output / f"{sequence_id}.fna"
-    @param cookies: for downloading IMG genomes
-    @return: path to downloaded genomes
-    """
-    fna_file.parent.mkdir(parents=True, exist_ok=True)
-    logger.info(f"download to {fna_file}")
-    for rurl in (
-        RefSeqURL,
-        GWHSeqURL,
-        IMGSeqURL,
-        WGSSeqURL,
-        GenBankSeqURL,
-    ):
-        if rurl.verify_format(sequence_id):
-            logger.info(f"detect format {rurl.__name__}")
-            rurl.download(sequence_id, fna_file)
-            break
-    else:
-        logger.info(f"no format matched, just search in NCBI")
-        WGSSeqURL.download(sequence_id, fna_file)
-    return fna_file
-
-
-def download_fna(
+def download_genome(
     sequence_id: str,
     output: Union[str, Path] = "./",
     cookies="cookies",
     overwrite=False,
     retry=0,
 ):
+    """
+    @param sequence_id: name of reference genome, possibly starts with [GCA, GCF, GWH, IMG]
+
+    @param output: Path to store output
+
+                   - if it ends with ".fna", then output.name will be used as filename
+
+                   - otherwise, file will be stored at `output / f"{sequence_id}.fna"`
+
+    @return: path to downloaded genomes
+    """
     basicConfig()
 
-    output = Path(output)
-    if output.name.endswith(".fna"):
-        fna_file = output
-        output = output.parent
+    logger.info(f"download {sequence_id}")
+    for rurl in (
+        RefSeqURL,
+        GWHSeqURL,
+        GenBankSeqURL,
+        WGSSeqURL,
+    ):
+        if rurl.verify_format(sequence_id):
+            logger.info(f"detect format {rurl.__name__}")
+            break
     else:
-        fna_file = output / f"{sequence_id}.fna"
-
-    if overwrite or not fna_file.is_file():
-        for i in range(retry, -1, -1):
-            try:
-                fna_file = _download_fna(sequence_id, fna_file, cookies)
-            except ConnectionRefusedError as e:
-                logger.warning(f"{sequence_id} failed at {e.strerror}, retry ({i})")
-                if fna_file.is_file():
-                    runsh_safe(f"/bin/rm {fna_file}")
-                if i == 0:
-                    logger.warning(f"{sequence_id} failed after {retry} tries")
-                    raise e
-                time.sleep(5)
-                continue
-            else:
-                logger.info(f"{fna_file} downloaded successfully.")
-                break
+        if IMGSeqURL.verify_format(sequence_id):
+            rurl = IMGSeqURL
+            logger.info(f"detect format {rurl.__name__}")
+            if not rurl.is_login():
+                rurl.img_login(cookies)
         else:
-            raise Exception(f"failed to download {fna_file}.")
-    else:
-        logger.warning(f"{fna_file} already exists, skip.")
+            logger.info(f"no format matched, just search in NCBI")
+    return rurl.download_genome(
+        sequence_id, output=output, overwrite=overwrite, retry=retry
+    )
 
-    return fna_file
+
+download_fna = download_genome
