@@ -330,7 +330,7 @@ class IMGSeqURL(RetriveUrl):
     def is_login(cls):
         return isinstance(cls.__cookies, Path)
 
-    @classmethod
+    # @classmethod
     @property
     def cookies(cls):
         if cls.is_login():
