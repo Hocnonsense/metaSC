@@ -1,8 +1,8 @@
 ###
 #* @Date: 2022-02-27 16:52:29
 #' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
-#' @LastEditTime: 2023-07-01 23:55:21
-#' @FilePath: /2022_09-M_mem/workflow/utils/libs/metaSC/R/RLib/R/div.otu.r
+#' @LastEditTime: 2023-09-07 15:44:21
+#' @FilePath: /2021_09-MT10kSW/home/hwrn/software/metaSC/R/RLib/R/div.otu.r
 #* @Description:
 ###
 
@@ -252,39 +252,49 @@ plot.beta.div <- function(div.otu, # nolint
 
   # >>->> Dimensionality reduction
   if (method == "pcoa") {
-    pcoa_16s <- ape::pcoa(vegdist(div_otu_t, method = dist, binary = binary))
-    div_otu_point <- data.frame(pcoa_16s$vectors[, 1:2])
+    pcoa_16s <-
+      div_otu_t %>% # nolint: object_usage_linter.
+      vegdist(method = dist, binary = binary) %>%
+      ape::pcoa()
+    div_otu_point_ <- data.frame(pcoa_16s$vectors[, 1:2])
     xylab <- paste0(
       "PCo", 1:2,
       " [", round(pcoa_16s$values$Relative_eig[1:2] * 100, 2), "%]"
     )
   } else {
-    nmds_dis <- metaMDS(vegdist(div_otu_t, method = dist, binary = binary),
-      trace = 0
-    )
+    nmds_dis <-
+      div_otu_t %>% # nolint: object_usage_linter.
+      vegdist(method = dist, binary = binary) %>%
+      metaMDS(trace = 0)
     if (nmds_dis$stress >= 0.2) {
       warning("应力函数值 >= 0.2, 不合理")
       pname <- paste0(
         pname, ", stress=", as.character(round(nmds_dis$stress, 6))
       )
     }
-    div_otu_point <- data.frame(nmds_dis$points)
+    div_otu_point_ <- data.frame(nmds_dis$points)
     xylab <- paste0("NMDS ", 1:2)
   }
   # <<-<<                                                                 <<-<<
-  colnames(div_otu_point) <- c("Axis.1", "Axis.2")
-  div_otu_point$Location <- sapply(
-    rownames(div_otu_point),
-    function(x) {
-      unlist(strsplit(x, "\\_"))[1]
-    }
-  )
-  div_otu_point$label <- sapply(
-    rownames(div_otu_point),
-    function(x) {
-      paste(unlist(strsplit(x, "\\_"))[-1], collapse = "_")
-    }
-  )
+  div_otu_point <-
+    div_otu_point_ %>% # nolint: object_usage_linter.
+    `names<-`(c("Axis.1", "Axis.2")) %>%
+    mutate( # nolint: object_usage_linter.
+      Location = sapply(
+        rownames(.), # nolint: object_usage_linter.
+        . %>%
+          strsplit("\\_") %>%
+          unlist() %>%
+          .[1]
+      ), label = sapply(
+        rownames(.),
+        . %>%
+          strsplit("\\_") %>%
+          unlist() %>%
+          .[-1] %>%
+          paste(collapse = "_")
+      )
+    )
 
   color <- c(
     "#3C5488B2", "#00A087B2", "#F39B7FB2", "#8491B4B2", "#91D1C2B2",
