@@ -1,4 +1,3 @@
-declare path=$1
 #!/bin/bash
 #SBATCH -J MY_JOB_NAME
 #SBATCH -p small
@@ -11,13 +10,14 @@ declare path=$1
 :<<!EOF!
  * @Date: 2023-08-26 20:45:01
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-08-26 20:46:08
- * @FilePath: /2023_08-M_mem-release/workflow/utils/libs/metaSC/Bash/delink.sh
+ * @LastEditTime: 2023-09-22 18:10:06
+ * @FilePath: /metaSC/Bash/delink.sh
  * @Description:
     change the linked path to a real path, and keep file in by link again
 !EOF!
 set -e
 
+declare path=$1
 declare real_path=`realpath $1`
 
 if [[ $path==$real_path ]]
