@@ -2,7 +2,7 @@
 """
  * @Date: 2023-09-26 11:55:48
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-10-02 16:15:44
+ * @LastEditTime: 2023-10-02 19:07:36
  * @FilePath: /metaSC/PyLib/test/tool/wildcards/test___init__.py
  * @Description:
 """
@@ -60,3 +60,15 @@ def test_fmter():
 @pytest.mark.xfail
 def test_fmter_fail_on_pattern():
     fmter(test_patterns[3], nstep=1)(annot="ncbi")
+
+
+def test_expder():
+    assert epder(test_patterns[0])() == ["README.md"]
+    assert epder(test_patterns[1], keep_missing=True)() == [
+        "pipe/{site}/02_assem_{site}.fa"
+    ]
+    site = ["TY", "YW"]
+    assert epder(test_patterns[2])(site=site, layer="0-2") == [
+        Path("pipe/TY/02_mapping_TY..0-2.fa"),
+        Path("pipe/YW/02_mapping_YW..0-2.fa"),
+    ]

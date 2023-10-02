@@ -2,7 +2,7 @@
 """
  * @Date: 2023-09-26 11:57:34
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-10-02 16:14:04
+ * @LastEditTime: 2023-10-02 19:07:09
  * @FilePath: /metaSC/PyLib/tool/wildcards/__init__.py
  * @Description:
 """
@@ -37,7 +37,7 @@ def epder(
 ):
     # check if remove missing is provided
     fps = [
-        formatter.StrPattern(_pattern, str).xexpand(
+        formatter.StrPattern(_pattern).xexpand(
             keep_missing=keep_missing,
             fill_missing=fill_missing,
             missing_value=fill_default,
