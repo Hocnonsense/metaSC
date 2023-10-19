@@ -1,2 +1,5 @@
 !README.md
 !.gitignore
+
+!*.typed
+!*.pyi

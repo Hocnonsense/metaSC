@@ -1,0 +1,9 @@
+from PyLib.PyLibTool.file_info import verbose_import as verbose_import
+from _typeshed import Incomplete
+from typing import Tuple
+
+logger: Incomplete
+
+def main(): ...
+def get_args(loglevel: str) -> Tuple: ...
+def run() -> None: ...

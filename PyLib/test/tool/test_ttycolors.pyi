@@ -1,0 +1,3 @@
+from PyLib.tool.ttycolors import color_text as color_text
+
+def test_color_text() -> None: ...

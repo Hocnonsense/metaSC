@@ -1,0 +1,3 @@
+from typing import TextIO
+
+def summaryiter(text: TextIO): ...

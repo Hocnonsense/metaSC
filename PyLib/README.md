@@ -1,7 +1,7 @@
 <!--
  * @Date: 2020-10-02 20:40:15
  * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-09-01 12:41:25
+ * @LastEditTime: 2023-10-19 19:42:45
  * @FilePath: /metaSC/PyLib/README.md
  * @Description:
 -->
@@ -39,6 +39,9 @@ Python files
     - add this in bash environment:
         `export PYTHONPATH=~/<your-path-to>/metaSC`
 
+## before setup
+- please run `stubgen --output . PyLib/`
+
 ## functions
 - [PyLibTool](PyLibTool/README.md)
 - [Tool](tool/README.md)
@@ -46,7 +49,9 @@ Python files
 
 
 ## changelog
-- 0.0.4 (on process)
+- 0.0.5
+    - add tool.wildcards
+- 0.0.4
     - update biotool.download
     - add retries_download
     - add RetriveUrl.download_genome

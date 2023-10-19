@@ -1,0 +1,6 @@
+from PyLib.PyLibTool.source import source as source, source_env as source_env
+
+a: int
+
+def test_source() -> None: ...
+def test_source_env() -> None: ...

@@ -1,0 +1,13 @@
+from PyLib.PyLibTool.file_info import verbose_import as verbose_import
+from PyLib.biotool.fna_msg import seq_total_depth as seq_total_depth, statistic_fna as statistic_fna
+from PyLib.reader.iters import checkm_iter as checkm_iter, gtdbtk_iter as gtdbtk_iter
+from PyLib.reader.read_outputs import fasta as fasta, jgi_depths as jgi_depths
+from _typeshed import Incomplete
+from typing import Dict, List, TextIO, Tuple
+
+logger: Incomplete
+
+def MAG_seq_features(bin_filename: str, ctg_depth: Dict[str, Tuple[Tuple[int, float], List[float], List[float]]]): ...
+def wrap_depth(fi: TextIO): ...
+def merge_checkm_bin(binner_basedir: str, metawrap: bool = ..., depth_file: str = ..., summary_dict: Dict[str, List[str]] = ...): ...
+def merge_checkm_taxon(binner_basedir: str, file_taxon: str, summary_dict: Dict[str, List[str]] = ...): ...
