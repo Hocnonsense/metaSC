@@ -1,8 +1,8 @@
 ###
 #' @Date: 2022-02-27 13:23:46
 #' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
-#' @LastEditTime: 2023-11-07 22:48:00
-#' @FilePath: /meta-snakemake-minimal/src/libs/metaSC/R/RLib.r
+#' @LastEditTime: 2023-11-09 17:29:23
+#' @FilePath: /metaSC/R/RLib/R/RLib.r
 #' @Description:
 #'    source me!
 ###
@@ -51,6 +51,6 @@ if (grepl("RLib$", getwd())) {
     suppressWarnings(install.packages(dir, quiet = TRUE, repos = NULL))
   }
 
-  make.package("./RLib")
+  make.package("../../RLib")
   library(RLib)
 }
