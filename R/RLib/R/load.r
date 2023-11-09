@@ -1,8 +1,8 @@
 ###
 #* @Date: 2022-02-27 13:19:01
-#' @LastEditors: Hwrn
-#' @LastEditTime: 2022-07-10 10:51:08
-#' @FilePath: /metaSC/R/RLib/R/load.r
+#' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
+#' @LastEditTime: 2023-11-07 22:55:55
+#' @FilePath: /meta-snakemake-minimal/src/libs/metaSC/R/RLib/R/load.r
 #* @Description:
 ###
 
@@ -16,9 +16,9 @@
 #'
 #' @examples
 #' # please check "load_if_not"
-is.defined <- function(var) {
-  env = parent.frame()
-  sym = deparse(substitute(var))
+is_defined <- function(var) {
+  env <- parent.frame()
+  sym <- deparse(substitute(var))
   return(exists(sym, env))
 }
 
@@ -36,24 +36,26 @@ is.defined <- function(var) {
 #' @export
 #'
 #' @examples
-#' load__a <- function (a) {a + 1}
+#' load__a <- function(a) {
+#'   a + 1
+#' }
 #' print(load_if_not(a, 1))
 #' print(a)
 #' print(load_if_not(a, 2))
 #' print(a)
 #' print(load_if_not(a, 2, .force.reload = TRUE))
 #' print(a)
-load_if_not <- function(var, ..., .force.reload=FALSE) {
-  env = parent.frame()
-  sym = deparse(substitute(var))
+load_if_not <- function(var, ..., .force_reload = FALSE) {
+  env <- parent.frame()
+  sym <- deparse(substitute(var))
   if (!exists(sym, env)) {
     message(paste0("var '", sym, "' don't exists, loading"))
-  } else if (.force.reload) {
+  } else if (.force_reload) {
     message(paste0("var '", sym, "' reloading"))
   } else {
     return(var)
   }
-  env[[sym]] = env[[paste0("load__", sym)]](...)
+  env[[sym]] <- env[[paste0("load__", sym)]](...)
   return(env[[sym]])
 }
 
@@ -68,12 +70,12 @@ load_if_not <- function(var, ..., .force.reload=FALSE) {
 #' @description or just use this:
 #'              source(here::here('load.r'))
 source_here <- function(x, ...) {
-    dir <- "."
-    if (sys.nframe() > 0) {
-        frame <- sys.frame(1)
-        if (!is.null(frame$ofile)) {
-            dir <- dirname(frame$ofile)
-        }
+  dir <- "."
+  if (sys.nframe() > 0) {
+    frame <- sys.frame(1)
+    if (!is.null(frame$ofile)) {
+      dir <- dirname(frame$ofile)
     }
-    source(file.path(dir, x), ...)
+  }
+  source(file.path(dir, x), ...)
 }
