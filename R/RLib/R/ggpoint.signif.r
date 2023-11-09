@@ -1,7 +1,7 @@
 ###
 #* @Date: 2022-04-25 00:51:52
 #' @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
-#' @LastEditTime: 2023-08-10 20:04:58
+#' @LastEditTime: 2023-11-09 17:26:02
 #' @FilePath: /metaSC/R/RLib/R/ggpoint.signif.r
 #* @Description:
 ###
@@ -193,16 +193,4 @@ ggpoint_signif <- function(
       guides = "collect"
     )
   # use patchwork to organize picture <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< #
-}
-
-group.signif.mark <- function(data, value, group, signif.alpha = 0.05, max.locat.scale = 0.1, glht.mcp.test = "Tukey") { # nolint.
-  group_signif_mark(
-    data, value, group, signif.alpha, max.locat.scale, glht.mcp.test
-  )
-}
-ggpoint.signif <- function(p, igroup, x.geom = geom_boxplot, y.geom = geom_boxplot, static.mark = "*", p.width = 3, p.height = 3, p_theme = NULL, scale_x = scale_x_continuous, scale_y = scale_y_continuous) { # nolint
-  ggpoint_signif(
-    p, igroup, x.geom, y.geom, static.mark,
-    p.width, p.height, p_theme, scale_x, scale_y
-  )
 }
