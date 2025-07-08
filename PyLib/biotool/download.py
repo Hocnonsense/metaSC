@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
- * @Date: 2021-02-03 11:09:20
- * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-09-01 12:32:10
- * @FilePath: /metaSC/PyLib/biotool/download.py
- * @Description:
-        download genome from net
+* @Date: 2021-02-03 11:09:20
+* @LastEditors: hwrn hwrn.aou@sjtu.edu.cn
+* @LastEditTime: 2025-07-08 14:38:12
+* @FilePath: /metaSC/PyLib/biotool/download.py
+* @Description:
+       download genome from net
 """
 
 import ftplib
@@ -20,6 +20,8 @@ from typing import Callable, Union
 from urllib.request import urlopen, urlretrieve
 
 from Bio import Entrez
+import Bio.Entrez.Parser
+from tqdm import tqdm
 
 from PyLib.PyLibTool.file_info import basicConfig, verbose_import
 from PyLib.tool.shell import runsh_safe
@@ -35,9 +37,13 @@ def byte_to_megabyte(byte):
     return byte / 1048576
 
 
+_logger = lambda *s: print(*s, file=sys.stderr)
+
+
 class ReportHook:
-    def __init__(self):
+    def __init__(self, logger=_logger):
         self.start_time = time.time()
+        self.logger = logger
 
     def report(self, blocknum, block_size, total_size):
         """
@@ -49,10 +55,11 @@ class ReportHook:
             self.start_time = time.time()
 
             if total_size > 0:
-                logger.info(
+                self.logger(
+                    "INFO",
                     "Downloading file of size: {:.2f} MB".format(
                         byte_to_megabyte(total_size)
-                    )
+                    ),
                 )
         else:
             total_downloaded = blocknum * block_size
@@ -73,35 +80,31 @@ class ReportHook:
                 )
 
             status += "        \r"
-            logger.debug(status)
+            self.logger("DEBUG", status)
 
 
-def download(url, download_file=None, overwrite=False):
+def download(url: str, download_file=None, overwrite=False, logger=_logger):
     """
     Download a file from a url
     """
     basicConfig()
     if download_file is None:
         download_file = url.split("/")[-1]
-
+    download_file = Path(download_file).expanduser().resolve()
     if (not os.path.isfile(download_file)) or overwrite:
         try:
-            logger.debug('Downloading "{}" to "{}"'.format(url, download_file))
+            logger("DEBUG:", f'Downloading "{url}" to "{download_file}"')
 
-            urlretrieve(url, download_file, reporthook=ReportHook().report)
+            urlretrieve(url, download_file, reporthook=ReportHook(logger).report)
             return download_file
         except EnvironmentError as e:
-            sys.stderr.write('unable to download "{}"'.format(url))
-            logger.error(e)
-            exit()
+            sys.stderr.write(f'unable to download "{url}"\n')
+            logger("ERROR:", e)
         except Exception as e:
-            sys.stderr.write('unable to download "{}"'.format(url))
-            logger.error("Fault!")
-            logger.error(e)
-            return ""
-
+            sys.stderr.write(f'unable to download "{url}"\n')
+            logger("ERROR:", e)
     else:
-        logger.warning('File "{}" present'.format(download_file))
+        logger("WARN:", f'File "{download_file}" present')
         return download_file
 
 
@@ -112,37 +115,52 @@ def check_entrez_email(email=None):
         return
     if Entrez.email is None:
         out, err = runsh_safe("git config user.email")
-        Entrez.email = out
+        Entrez.email = out  # type: ignore[assignment]
+
+
+def make_retry(retry: int | tqdm):
+    if isinstance(retry, tqdm):
+        return retry
+    _tqdm = tqdm(range(retry + 1))
+    _tqdm.update(1)
+    return _tqdm
 
 
 def retries_download(
     fna_file: Path,
-    call: Callable[[Path], Path],
+    call: Callable[[Path], Path | None],
     sequence_id: str,
     overwrite=False,
-    retry=0,
+    retry: int | tqdm = 0,
 ):
+    _retry = make_retry(retry)
+    n_retry = len(_retry.iterable)
     if overwrite or not fna_file.is_file():
         fna_file.parent.mkdir(parents=True, exist_ok=True)
-        for i in range(retry, -1, -1):
+        for i in _retry:
             try:
                 _fna_file = call(fna_file)
+                assert _fna_file is not None
             except ConnectionRefusedError as e:
-                logger.warning(f"{sequence_id} failed at {e.strerror}, retry ({i})")
+                _retry.set_postfix(failed=e.strerror, retry=n_retry - i)
                 if fna_file.is_file():
                     runsh_safe(f"/bin/rm {fna_file}")
-                if i == 0:
+                if n_retry == i:
                     logger.warning(f"{sequence_id} failed after {retry} tries")
-                    raise e
+                    raise
                 time.sleep(5)
                 continue
+            except KeyboardInterrupt:
+                if fna_file.is_file():
+                    runsh_safe(f"/bin/rm {fna_file}")
+                raise
             else:
-                logger.info(f"{_fna_file} downloaded successfully.")
+                _retry.set_postfix(file=_fna_file)
                 break
         else:
             raise Exception(f"failed to download {fna_file}.")
     else:
-        logger.warning(f"{fna_file} already exists, skip.")
+        _retry.set_postfix(skip="not overwrite", file=fna_file)
 
 
 class RetriveUrl:
@@ -160,8 +178,12 @@ class RetriveUrl:
             return cls._retrieve_url(sequence_id)
 
     @classmethod
-    def download_genome_to(cls, sequence_id: str, filename: Path, overwrite=True):
-        return download(cls._retrieve_url(sequence_id), filename, overwrite)
+    def download_genome_to(
+        cls, sequence_id: str, filename: Path, overwrite=True, logger=_logger
+    ):
+        return download(
+            cls._retrieve_url(sequence_id), filename, overwrite, logger=logger
+        )
 
     @classmethod
     def download_genome(
@@ -169,8 +191,9 @@ class RetriveUrl:
         sequence_id: str,
         output: Union[str, Path] = "./",
         overwrite=False,
-        retry=0,
+        retry: int | tqdm = 0,
     ):
+        _retry = tqdm(range(retry + 1)) if isinstance(retry, int) else retry
         output = Path(output)
         if output.name.endswith(".fna"):
             fna_file = output
@@ -178,12 +201,20 @@ class RetriveUrl:
         else:
             fna_file = output / f"{sequence_id}.fna"
 
+        def retry_logger(*s):
+            if len(s) == 1:
+                _retry.set_postfix(info=s)
+            else:
+                _retry.set_postfix({s[0]: s[1:]})
+
         retries_download(
             fna_file,
-            lambda _file: cls.download_genome_to(sequence_id, _file),
+            lambda _file: cls.download_genome_to(
+                sequence_id, _file, logger=retry_logger
+            ),
             sequence_id,
             overwrite,
-            retry,
+            _retry,
         )
 
         return fna_file
@@ -199,17 +230,17 @@ class RefSeqURL(RetriveUrl):
 
     @classmethod
     def _retrieve_files(cls, sequence_id: str):
-        gcx_id = sequence_id
-
-        gcx, number = gcx_id.split(".")[0].split("_")
+        gcx_id = sequence_id.rsplit(".", 1)
+        version = "" if len(gcx_id) == 1 else f"v{gcx_id[1]}"
+        gcx, number = gcx_id[0].split("_")
         gcx_url = "/".join(
             [gcx] + [number[i : i + 3] for i in range(0, len(number), 3)]
         )
-
         ftp = ftplib.FTP(cls.refseq_base_ftp_url)
         _ = ftp.login()
         _ = ftp.cwd(cls.refseq_genomes_url + "/" + gcx_url)
-        folder = ftp.nlst()[0]
+        nlst = list(ftp.nlst())
+        folder = ([i for i in nlst if i.endswith(version)] or nlst)[-1]
         _ = ftp.cwd(folder)
         files = ftp.nlst()
         _ = ftp.quit()
@@ -233,16 +264,25 @@ class RefSeqURL(RetriveUrl):
         for ff in files:
             if (folder + "_genomic.fna.gz") == ff:
                 return gcx_download_fmt.format(ff)
-        raise KeyError("no item found")
+        raise KeyError(f"no item found in {gcx_download_fmt} for {folder}")
 
     @classmethod
-    def download_genome_to(cls, sequence_id: str, filename: Path, overwrite=True):
-        download(cls._retrieve_url(sequence_id), f"{filename}.gz", overwrite=overwrite)
+    def download_genome_to(
+        cls, sequence_id: str, filename: Path, overwrite=True, logger=_logger
+    ):
+        download(
+            cls._retrieve_url(sequence_id),
+            f"{filename}.gz",
+            overwrite=overwrite,
+            logger=logger,
+        )
         runsh_safe(f"gunzip {filename}.gz")
         return filename
 
     @classmethod
-    def download_gff_to(cls, sequence_id: str, filename: Path, overwrite=True):
+    def download_gff_to(
+        cls, sequence_id: str, filename: Path, overwrite=True, logger=_logger
+    ):
         gcx_download_fmt, folder, files = cls._retrieve_files(sequence_id)
 
         for ff in files:
@@ -252,7 +292,7 @@ class RefSeqURL(RetriveUrl):
         else:
             raise Exception("no gff found")
 
-        download(url, f"{filename}.gz", overwrite=overwrite)
+        download(url, f"{filename}.gz", overwrite=overwrite, logger=logger)
         runsh_safe(f"gunzip {filename}.gz")
         return filename
 
@@ -294,20 +334,27 @@ class GWHSeqURL(RetriveUrl):
     def verify_format(sequence_id):
         return sequence_id.startswith("GWH")
 
-    @staticmethod
-    def _retrieve_url(sequence_id: str) -> str:
-        gwh_id = sequence_id
+    @classmethod
+    def _retrieve_url(cls, sequence_id: str) -> str:
         gwh_base_ftp_url = "download.big.ac.cn/gwh"
-
         gwh_base_url = "https://bigd.big.ac.cn/gwh/api/public/assembly"
+
+        gwh_id = sequence_id
         gwh_genome_url = json.loads(urlopen(gwh_base_url + "/" + gwh_id).read())[
             "ftpPathDna"
         ]
         return "ftp://" + "/".join([gwh_base_ftp_url, gwh_genome_url])
 
     @classmethod
-    def download_genome_to(cls, sequence_id: str, filename: Path, overwrite=True):
-        download(cls._retrieve_url(sequence_id), f"{filename}.gz", overwrite=overwrite)
+    def download_genome_to(
+        cls, sequence_id: str, filename: Path, overwrite=True, logger=_logger
+    ):
+        download(
+            cls._retrieve_url(sequence_id),
+            f"{filename}.gz",
+            overwrite=overwrite,
+            logger=logger,
+        )
         runsh_safe(f"gunzip {filename}.gz")
         return filename
 
@@ -364,7 +411,9 @@ class IMGSeqURL(RetriveUrl):
         raise KeyError("no item found")
 
     @classmethod
-    def download_genome_to(cls, sequence_id: str, filename: Path, overwrite=True):
+    def download_genome_to(
+        cls, sequence_id: str, filename: Path, overwrite=True, logger=_logger
+    ):
         if (not os.path.isfile(filename)) or overwrite:
             img_url = cls._retrieve_url(sequence_id)
             os.system(f"curl '{img_url}' -b {cls.cookies} > {filename}")
@@ -386,12 +435,12 @@ class GenBankSeqURL(RetriveUrl):
     }
 
     @classmethod
-    def verify_format(cls, sequence_id):
+    def verify_format(cls, sequence_id):  # type: ignore[reportIncompatibleMethodOverride]
         matches = {k: re.match(v, sequence_id) for k, v in cls.pattrens.items()}
         return any(i is not None for i in matches.values())
 
     @staticmethod
-    def _retrieve_url(sequence_id: str) -> str:
+    def _retrieve_url(sequence_id: str) -> str:  # type: ignore[reportIncompatibleMethodOverride]
         genebank_id = sequence_id
         genebank_base_url = (
             "https://www.ncbi.nlm.nih.gov/search/api/download-sequence/?db=nuccore&id="
@@ -399,8 +448,15 @@ class GenBankSeqURL(RetriveUrl):
         return genebank_base_url + genebank_id
 
     @classmethod
-    def download_genome_to(cls, sequence_id: str, filename: Path, overwrite=True):
-        download(cls._retrieve_url(sequence_id), f"{filename}", overwrite=overwrite)
+    def download_genome_to(
+        cls, sequence_id: str, filename: Path, overwrite=True, logger=_logger
+    ):
+        download(
+            cls._retrieve_url(sequence_id),
+            f"{filename}",
+            overwrite=overwrite,
+            logger=logger,
+        )
         return filename
 
 
@@ -420,27 +476,28 @@ class WGSSeqURL(RefSeqURL):
     RETMAX = 100
 
     @classmethod
-    def verify_format(cls, sequence_id):
+    def verify_format(cls, sequence_id):  # type: ignore[reportIncompatibleMethodOverride]
         matches = {k: re.match(v, sequence_id) for k, v in cls.pattrens.items()}
         return any(i is not None for i in matches.values())
 
     @classmethod
     def query_assembly(
         cls, sequence_id
-    ) -> tuple["Entrez.Parser.DictionaryElement", list[str]]:
+    ) -> tuple["Bio.Entrez.Parser.DictionaryElement", list[str]]:
         check_entrez_email()
 
         wgs_id = sequence_id
         with Entrez.esearch(db="assembly", term=wgs_id, retmax=cls.RETMAX) as handle:
             search = Entrez.read(handle)
+            assert isinstance(search, dict)
 
         if len(search["IdList"]) > 1:
             logger.warning(f"multipile assembly id found: {search['IdList']}")
         elif len(search["IdList"]) < 1:
             logger.error("no item found, please check item (all digits shall be '0')")
         with Entrez.esummary(db="assembly", id=search["IdList"][0]) as handle:
-            summary_set = Entrez.read(handle)["DocumentSummarySet"]
-        assert isinstance(summary_set, Entrez.Parser.DictionaryElement)
+            summary_set = Entrez.read(handle)["DocumentSummarySet"]  # type: ignore[reportArgumentType]
+        assert isinstance(summary_set, Bio.Entrez.Parser.DictionaryElement)
         return summary_set, search["IdList"]
 
     @classmethod
@@ -463,8 +520,8 @@ class NCBISerachURL(RefSeqURL):
 
     RETMAX = 100
 
-    @classmethod
-    def verify_format(cls, sequence_id):
+    @staticmethod
+    def verify_format(sequence_id):
         return True
 
     @classmethod
@@ -474,12 +531,13 @@ class NCBISerachURL(RefSeqURL):
         wgs_id = sequence_id
         with Entrez.esearch(db="genome", term=wgs_id, retmax=cls.RETMAX) as handle:
             search = Entrez.read(handle)
+            assert isinstance(search, dict)
 
         if len(search["IdList"]) > 1:
             raise KeyError("more than one record returned")
         with Entrez.esummary(db="genome", id=search["IdList"][0]) as handle:
             summary = Entrez.read(handle)
-        assert isinstance(summary, Entrez.Parser.ListElement)
+        assert isinstance(summary, Bio.Entrez.Parser.ListElement)
         if len(summary) == 1:
             refseq_id = summary[0]["Assembly_Accession"]
         else:
@@ -493,7 +551,7 @@ def download_genome(
     output: Union[str, Path] = "./",
     cookies="cookies",
     overwrite=False,
-    retry=0,
+    retry: int | tqdm = 0,
 ):
     """
     @param sequence_id: name of reference genome, possibly starts with [GCA, GCF, GWH, IMG]
@@ -508,7 +566,9 @@ def download_genome(
     """
     basicConfig()
 
-    logger.info(f"download {sequence_id}")
+    _retry = make_retry(retry)
+    _retry.set_description(f"download {sequence_id}")
+    rurl: type[RetriveUrl]
     for rurl in (
         RefSeqURL,
         GWHSeqURL,
@@ -516,18 +576,17 @@ def download_genome(
         WGSSeqURL,
     ):
         if rurl.verify_format(sequence_id):
-            logger.info(f"detect format {rurl.__name__}")
             break
     else:
         if IMGSeqURL.verify_format(sequence_id):
             rurl = IMGSeqURL
-            logger.info(f"detect format {rurl.__name__}")
             if not rurl.is_login():
                 rurl.img_login(cookies)
         else:
-            logger.info(f"no format matched, just search in NCBI")
+            _retry.set_postfix(default=f"NCBI, as no format matched")
+    _retry.set_description(f"download {sequence_id} from {rurl.__name__}")
     return rurl.download_genome(
-        sequence_id, output=output, overwrite=overwrite, retry=retry
+        sequence_id, output=output, overwrite=overwrite, retry=_retry
     )
 
 

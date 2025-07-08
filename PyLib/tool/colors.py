@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
  * @Date: 2023-01-01 13:57:08
- * @LastEditors: Hwrn hwrn.aou@sjtu.edu.cn
- * @LastEditTime: 2023-01-03 21:27:48
- * @FilePath: /2022_09-M_mem/home/hwrn/software/metaSC/PyLib/tool/colors.py
+ * @LastEditors: hwrn hwrn.aou@sjtu.edu.cn
+ * @LastEditTime: 2025-01-15 21:41:19
+ * @FilePath: /2025_01-BurkComamonas/home/hwrn/software/metaSC/PyLib/tool/colors.py
  * @Description:
 """
 # """
@@ -63,7 +63,7 @@ def get_n_hls_colors(num):
 
 def ncolors(num, random=True):
     # http://t.csdn.cn/ZIEZc
-    rgb_colors = []
+    rgb_colors: list[list[int]] = []
     if num < 1:
         return rgb_colors
     hls_colors = (get_n_random_hls_colors if random else get_n_hls_colors)(num)
